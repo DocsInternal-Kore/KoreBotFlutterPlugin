@@ -23,7 +23,7 @@ public class BotConnect: NSObject {
     let botClient = BotClient()
     var user: KREUser?
     //let navigationController = UIApplication.shared.keyWindow?.rootViewController as? UINavigationController
-    
+    var searchJwtToken = ""
     // MARK: - init
     public override init() {
         super.init()
@@ -98,6 +98,70 @@ public class BotConnect: NSObject {
         var error: Unmanaged<CFError>?
         if !CTFontManagerRegisterGraphicsFont(cgFont, &error) {
             debugPrint("KREFontLoader : error loading Font")
+        }
+    }
+    
+    // MARK: get JWT token request
+    public func getJwTokenWithClientId(_ clientId: String!, clientSecret: String!, identity: String!, isAnonymous: Bool!, success:((_ jwToken: String?) -> Void)?, failure:((_ error: Error) -> Void)?) {
+        
+        let urlString = SDKConfiguration.serverConfig.koreJwtUrl()
+        let headers: HTTPHeaders = [
+            "Keep-Alive": "Connection",
+            "Accept": "application/json",
+            "alg": "RS256",
+            "typ": "JWT"
+        ]
+        
+        let parameters: [String: Any] = ["clientId": clientId as String,
+                                         "clientSecret": clientSecret as String,
+                                         "identity": identity as String,
+                                         "aud": "https://idproxy.kore.com/authorize",
+                                         "isAnonymous": isAnonymous as Bool]
+        let dataRequest = sessionManager.request(urlString, method: .post, parameters: parameters, headers: headers)
+        dataRequest.validate().responseJSON { (response) in
+            if let _ = response.error {
+                let error: NSError = NSError(domain: "bot", code: 100, userInfo: [:])
+                failure?(error)
+                self.searchJwtToken = ""
+                return
+            }
+            if let dictionary = response.value as? [String: Any],
+               let jwToken = dictionary["jwt"] as? String {
+                self.searchJwtToken = jwToken
+                    success?(jwToken)
+            } else {
+                let error: NSError = NSError(domain: "bot", code: 100, userInfo: [:])
+                failure?(error)
+                self.searchJwtToken = ""
+            }
+        }
+    }
+    
+    public func getSearchResults(_ text: String!, success:((_ dictionary: [String: Any]) -> Void)?, failure:((_ error: Error) -> Void)?) {
+        let urlString: String = "\(SDKConfiguration.serverConfig.BOT_SERVER)/api/public/stream/\(SDKConfiguration.botConfig.botId)/advancedSearch"
+        //let urlString: String = "\(SDKConfiguration.serverConfig.BOT_SERVER)/chatbot/v2/webhook/\(SDKConfiguration.botConfig.botId)"
+        let authorizationStr = "\(self.searchJwtToken)"
+        let headers: HTTPHeaders = [
+            "Keep-Alive": "Connection",
+            "Content-Type": "application/json",
+            "auth": authorizationStr
+        ]
+        let parameters: [String: Any]  = ["query": text ?? ""]
+        
+        let dataRequest = sessionManager.request(urlString, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers)
+        dataRequest.validate().responseJSON { (response) in
+            if let _ = response.error {
+                let error: NSError = NSError(domain: "bot", code: 100, userInfo: [:])
+                failure?(error)
+                return
+            }
+            
+            if let dictionary = response.value as? [String: Any]{
+                    success?(dictionary)
+            } else {
+                let error: NSError = NSError(domain: "bot", code: 100, userInfo: [:])
+                    failure?(error)
+            }
         }
     }
 

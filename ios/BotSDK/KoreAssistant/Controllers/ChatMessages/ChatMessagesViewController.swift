@@ -270,7 +270,7 @@ class ChatMessagesViewController: UIViewController, BotMessagesViewDelegate, Com
         if let bgUrlString = brandingShared.widgetBgImage!.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed){
             if let bgUrl = URL(string: bgUrlString){
                 backgroungImageView.af_setImage(withURL: bgUrl, placeholderImage: UIImage(named: ""))
-                backgroungImageView.contentMode = .scaleAspectFit
+                backgroungImageView.contentMode = .scaleAspectFill
             }else{
                 self.view.backgroundColor = UIColor.init(hexString: (brandingShared.widgetBodyColor) ?? "#f3f3f5")
             }
@@ -535,23 +535,23 @@ class ChatMessagesViewController: UIViewController, BotMessagesViewDelegate, Com
     }
     
     func configureQuickReplyView() {
-            self.quickReplyView = KREQuickSelectView()
-            self.quickReplyView.translatesAutoresizingMaskIntoConstraints = false
-            self.quickSelectContainerView.addSubview(self.quickReplyView)
-            let bgColor = (brandingShared.buttonActiveBgColor) ?? "#f3f3f5"
-            let textColor = (brandingShared.buttonActiveTextColor) ?? "#2881DF"
-            self.quickReplyView.bgColor = bgColor
-            self.quickReplyView.textColor = textColor
-            self.quickReplyView.boarderColor = textColor
-            self.quickReplyView.fontName = mediumCustomFont
-            self.quickSelectContainerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-16-[quickReplyView]|", options:[], metrics:nil, views:["quickReplyView" : self.quickReplyView as Any]))
-            self.quickSelectContainerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[quickReplyView(60)]", options:[], metrics:nil, views:["quickReplyView" : self.quickReplyView as Any]))
-            
-            self.quickReplyView.sendQuickReplyAction = { [weak self] (text, payload) in
-                if let text = text, let payload = payload {
-                    self?.sendTextMessage(text, options: ["body": payload])
-                }
+        self.quickReplyView = KREQuickSelectView()
+        self.quickReplyView.translatesAutoresizingMaskIntoConstraints = false
+        self.quickSelectContainerView.addSubview(self.quickReplyView)
+        let bgColor = (brandingShared.buttonActiveBgColor) ?? "#f3f3f5"
+        let textColor = (brandingShared.buttonActiveTextColor) ?? "#2881DF"
+        self.quickReplyView.bgColor = bgColor
+        self.quickReplyView.textColor = textColor
+        self.quickReplyView.boarderColor = textColor
+        self.quickReplyView.fontName = mediumCustomFont
+        self.quickSelectContainerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-16-[quickReplyView]|", options:[], metrics:nil, views:["quickReplyView" : self.quickReplyView as Any]))
+        self.quickSelectContainerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[quickReplyView(60)]", options:[], metrics:nil, views:["quickReplyView" : self.quickReplyView as Any]))
+        
+        self.quickReplyView.sendQuickReplyAction = { [weak self] (text, payload) in
+            if let text = text, let payload = payload {
+                self?.sendTextMessage(text, options: ["body": payload])
             }
+        }
     }
     
     func configurePanelCollectionView() {
@@ -840,15 +840,15 @@ class ChatMessagesViewController: UIViewController, BotMessagesViewDelegate, Com
                 ttsBody = text as String
                 
                 if(text.contains("use a web form")){
-//                    let range: NSRange = text.range(of: "use a web form - ")
-//                    let urlString: String? = text.substring(with: NSMakeRange(range.location+range.length, 44))
-//                    if (urlString != nil) {
-//                        let url: URL = URL(string: urlString!)!
-//                        webViewController = SFSafariViewController(url: url)
-//                        webViewController.modalPresentationStyle = .custom
-//                        present(webViewController, animated: true, completion:nil)
-//                    }
-//                    ttsBody = "Ok, Please fill in the details and submit"
+                    //                    let range: NSRange = text.range(of: "use a web form - ")
+                    //                    let urlString: String? = text.substring(with: NSMakeRange(range.location+range.length, 44))
+                    //                    if (urlString != nil) {
+                    //                        let url: URL = URL(string: urlString!)!
+                    //                        webViewController = SFSafariViewController(url: url)
+                    //                        webViewController.modalPresentationStyle = .custom
+                    //                        present(webViewController, animated: true, completion:nil)
+                    //                    }
+                    //                    ttsBody = "Ok, Please fill in the details and submit"
                 }
                 //message.addComponent(textComponent)
                 let string = text as String
@@ -1331,7 +1331,7 @@ class ChatMessagesViewController: UIViewController, BotMessagesViewDelegate, Com
             print("Network reachability: \(status)")
             switch status {
             case .reachable(.ethernetOrWiFi), .reachable(.cellular):
-                 self.establishBotConnection()
+                self.establishBotConnection()
                 break
             case .notReachable:
                 fallthrough
@@ -1675,11 +1675,11 @@ class ChatMessagesViewController: UIViewController, BotMessagesViewDelegate, Com
                 }else{
                     quickReplies = jsonObject["quick_replies"] as? Array<Dictionary<String, AnyObject>> ?? []
                     if let suggestionText = jsonObject["quick_reply_title"] as? String{
-//                        quickReplySuggesstionLbl.text = suggestionText
-//                        quickReplySuggesstionLblHeight = 50
-//                        quickReplySuggesstionLblHeightConstraint.constant = 16.0
-//                        quickReplyViewTopConstraint.constant = 16.0
-//                        quickreplyContainerViewTopConstraint.constant = 32.0
+                        //                        quickReplySuggesstionLbl.text = suggestionText
+                        //                        quickReplySuggesstionLblHeight = 50
+                        //                        quickReplySuggesstionLblHeightConstraint.constant = 16.0
+                        //                        quickReplyViewTopConstraint.constant = 16.0
+                        //                        quickreplyContainerViewTopConstraint.constant = 32.0
                     }
                 }
                 
@@ -2458,7 +2458,7 @@ extension ChatMessagesViewController {
         panelItemViewController.updatePanel(with: panelItem)
     }
     // MARK: - tryout
-    open func startTryOut() {
+    public func startTryOut() {
         
     }
     // MARK: -
@@ -2562,64 +2562,154 @@ extension ChatMessagesViewController{
     
     func brandingApis(client: BotClient?, thread: KREThread?){
         self.kaBotClient.brandingApiRequest(authInfoAccessToken,success: { [weak self] (brandingDic) in
-
-                let jsonDecoder = JSONDecoder()
-                guard let jsonData = try? JSONSerialization.data(withJSONObject: brandingDic as Any , options: .prettyPrinted),
-                      let activeTheme = try? jsonDecoder.decode(ActiveTheme.self, from: jsonData) else {
-                    return
+            let jsonDecoder = JSONDecoder()
+            guard let jsonData = try? JSONSerialization.data(withJSONObject: brandingDic as Any , options: .prettyPrinted),
+                  let activeTheme = try? jsonDecoder.decode(ActiveTheme.self, from: jsonData) else {
+                return
+            }
+            if activeTheme.widgetHeader?.bordercolor != nil{
+                self?.brandingMapping(activeTheme: activeTheme, client: client, thread: thread)
+            }else{
+                if let v3Branding = brandingDic["v3"] as? [String: Any]{
+                    
+                    
+                    let widgetBorderColor = "#000000"
+                    let buttonInactiveBgColor = "#FFFFFF"
+                    let buttonInactiveTextColor = "#ff5e00"
+                    var buttonActiveBgColor = "#f3f3f5"
+                    var buttonActiveTextColor = "#2881DF"
+                    let widgetBgColor = "#ffffff"
+                    let theme = ""
+                    let botName = SDKConfiguration.botConfig.chatBotName
+                    let widgetDividerColor = "#c9c7c9"
+                    let bankLogo = ""
+                    var widgetBgImage = ""
+                    var widgetBodyColor = "#FFFFFFF"
+                    var botchatBgColor  = ""
+                    var botchatTextColor = ""
+                    var userchatBgColor = ""
+                    var userchatTextColor = ""
+                    var widgetTextColor = ""
+                    var widgetHeaderColor = ""
+                    var widgetFooterColor = ""
+                    let widgetFooterTextColor = "#000000"
+                    let widgetFooterPlaceholderColor = "#9A9A9A"
+                    
+                    if let body = v3Branding["body"] as? [String: Any]{
+                        //print(body)
+                        if let bg = body["background"] as? [String: Any]{
+                            if let bgColor = bg["color"] as? String{
+                                widgetBodyColor = bgColor
+                            }
+                            if let bgImage = bg["img"] as? String{
+                                widgetBgImage =  bgImage
+                            }
+                            if let bgType = bg["type"] as? String,  bgType == "color"{
+                                widgetBgImage = ""
+                            }
+                        }
+                        
+                        if let bot_message = body["bot_message"] as? [String: Any]{
+                            if let bot_message_bg_color = bot_message["bg_color"] as? String{
+                                botchatBgColor = bot_message_bg_color
+                            }
+                            if let bot_message_Txt_color = bot_message["color"] as? String{
+                                botchatTextColor = bot_message_Txt_color
+                                
+                            }
+                        }
+                        
+                        if let user_message = body["user_message"] as? [String: Any]{
+                            if let user_message_bg_color = user_message["bg_color"] as? String{
+                                userchatBgColor = user_message_bg_color
+                                buttonActiveBgColor = userchatBgColor
+                            }
+                            if let user_message_Txt_color = user_message["color"] as? String{
+                                userchatTextColor = user_message_Txt_color
+                                buttonActiveTextColor = userchatTextColor
+                            }
+                        }
+                    }
+                    //if let chat_bubble = v3Branding["chat_bubble"] as? [String: Any]{
+                    //print(chat_bubble)
+                    //}
+                    if let footer = v3Branding["footer"] as? [String: Any]{
+                        //print(footer)
+                        if let footerBg = footer["bg_color"] as? String{
+                            widgetFooterColor = footerBg
+                        }
+                    }
+                    if let header = v3Branding["header"] as? [String: Any]{
+                        //print(header)
+                        if let headerBg = header["bg_color"] as? String{
+                            widgetHeaderColor = headerBg
+                        }
+                        if let title = header["title"] as? [String: Any]{
+                            if let titleColor = title["color"] as? String{
+                                widgetTextColor = titleColor
+                            }
+                        }
+                        
+                    }
+                    if let general = v3Branding["general"] as? [String: Any], let generalColors = general["colors"] as? [String: Any] {
+                        //print(general)
+                        if let useColorPaletteOnly = generalColors["useColorPaletteOnly"] as? Bool, useColorPaletteOnly == true{
+                            var genaralPrimaryColor = "#D38A17"
+                            var genaralSecondaryColor = "#101828"
+                            var genaralPrimary_textColor = "#C1EDB9"
+                            var genaralSecondary_textColor = "#000000"
+                            
+                            if let primary = generalColors["primary"] as? String{
+                                genaralPrimaryColor = primary
+                            }
+                            if let primary_text = generalColors["primary_text"] as? String{
+                                genaralPrimary_textColor = primary_text
+                            }
+                            if let secondary = generalColors["secondary"] as? String{
+                                genaralSecondaryColor = secondary
+                            }
+                            if let secondary_text = generalColors["secondary_text"] as? String{
+                                genaralSecondary_textColor = secondary_text
+                            }
+                            userchatBgColor = genaralPrimaryColor
+                            userchatTextColor = genaralSecondary_textColor
+                            botchatBgColor = genaralSecondaryColor
+                            botchatTextColor = genaralPrimary_textColor
+                            //widgetFooterColor = genaralSecondaryColor
+                            //widgetHeaderColor = genaralSecondaryColor
+                            //widgetTextColor = genaralPrimary_textColor
+                            buttonActiveBgColor = genaralPrimaryColor
+                            buttonActiveTextColor = genaralSecondary_textColor
+                        }
+                    }
+                    
+                    brandingShared.widgetBorderColor = widgetBorderColor
+                    brandingShared.widgetTextColor = widgetTextColor
+                    brandingShared.buttonInactiveBgColor = buttonInactiveBgColor
+                    brandingShared.buttonInactiveTextColor = buttonInactiveTextColor
+                    brandingShared.widgetBgColor = widgetBgColor
+                    brandingShared.botchatTextColor = botchatTextColor
+                    brandingShared.buttonActiveBgColor = buttonActiveBgColor
+                    brandingShared.buttonActiveTextColor = buttonActiveTextColor
+                    brandingShared.userchatBgColor = userchatBgColor
+                    brandingShared.theme = theme
+                    brandingShared.botName = botName
+                    brandingShared.botchatBgColor = botchatBgColor
+                    brandingShared.userchatTextColor = userchatTextColor
+                    brandingShared.widgetDividerColor = widgetDividerColor
+                    brandingShared.bankLogo = bankLogo
+                    brandingShared.widgetBgImage = widgetBgImage
+                    brandingShared.widgetBodyColor = widgetBodyColor
+                    brandingShared.widgetFooterColor = widgetFooterColor
+                    brandingShared.widgetHeaderColor = widgetHeaderColor
+                    brandingShared.widgetFooterTextColor = widgetFooterTextColor
+                    brandingShared.widgetFooterPlaceholderColor = widgetFooterPlaceholderColor
+                    self?.sucessMethod(client: client, thread: thread)
+                }else{
+                    self?.getOfflineBrandingData(client: client, thread: thread)
                 }
+            }
             
-            let widgetBorderColor = activeTheme.widgetHeader?.bordercolor
-            let widgetTextColor = activeTheme.widgetHeader?.fontcolor
-            let buttonInactiveBgColor = activeTheme.buttons?.onHoverButtonColor
-            let buttonInactiveTextColor = activeTheme.buttons?.onHoverFontColor
-            let buttonActiveBgColor = activeTheme.buttons?.defaultButtonColor
-            let buttonActiveTextColor = activeTheme.buttons?.defaultFontColor
-            let widgetBgColor = activeTheme.widgetHeader?.backGroundColor
-            let userchatBgColor = activeTheme.userMessage?.bubbleColor
-            let userchatTextColor = activeTheme.userMessage?.fontcolor
-            let theme = ""
-            let botName = SDKConfiguration.botConfig.chatBotName
-            let botchatBgColor = activeTheme.botMessage?.bubbleColor
-            let botchatTextColor = activeTheme.botMessage?.fontcolor
-             
-            let widgetDividerColor = activeTheme.widgetFooter?.placeHolder
-            let bankLogo = ""
-             var widgetBgImage = ""
-             if let userWidgetBgImage =  activeTheme.widgetBody?.useBackgroundImage, userWidgetBgImage == true{
-                 widgetBgImage = activeTheme.widgetBody?.backGroundImage ?? ""
-             }
-            let widgetBodyColor = activeTheme.widgetBody?.backGroundColor
-            let widgetFooterColor = activeTheme.widgetFooter?.backGroundColor
-            let widgetHeaderColor = activeTheme.widgetHeader?.backGroundColor
-            
-            let widgetFooterTextColor = activeTheme.widgetFooter?.fontcolor
-            let widgetFooterPlaceholderColor = activeTheme.widgetFooter?.placeHolder
-            
-            let brandingShared = BrandingSingleton.shared
-            brandingShared.widgetBorderColor = widgetBorderColor
-            brandingShared.widgetTextColor = widgetTextColor
-            brandingShared.buttonInactiveBgColor = buttonInactiveBgColor
-            brandingShared.buttonInactiveTextColor = buttonInactiveTextColor
-            brandingShared.widgetBgColor = widgetBgColor
-            brandingShared.botchatTextColor = botchatTextColor
-            brandingShared.buttonActiveBgColor = buttonActiveBgColor
-            brandingShared.buttonActiveTextColor = buttonActiveTextColor
-            brandingShared.userchatBgColor = userchatBgColor
-            brandingShared.theme = theme
-            brandingShared.botName = botName
-            brandingShared.botchatBgColor = botchatBgColor
-            brandingShared.userchatTextColor = userchatTextColor
-            brandingShared.widgetDividerColor = widgetDividerColor
-            brandingShared.bankLogo = bankLogo
-            brandingShared.widgetBgImage = widgetBgImage
-            brandingShared.widgetBodyColor = widgetBodyColor
-            brandingShared.widgetFooterColor = widgetFooterColor
-            brandingShared.widgetHeaderColor = widgetHeaderColor
-            brandingShared.widgetFooterTextColor = widgetFooterTextColor
-            brandingShared.widgetFooterPlaceholderColor = widgetFooterPlaceholderColor
-            
-            self?.sucessMethod(client: client, thread: thread)
         }, failure: { (error) in
             print(error.localizedDescription)
             self.getOfflineBrandingData(client: client, thread: thread)
@@ -2632,44 +2722,68 @@ extension ChatMessagesViewController{
         let brandingShared = BrandingSingleton.shared
         let jsonStr = brandingShared.brandingjsonStr
         let jsonResult = Utilities.jsonObjectFromString(jsonString: jsonStr)
-        if let brandingArray = jsonResult as? NSArray {
-            if brandingArray.count > 0{
-                brandingShared.hamburgerOptions = (((brandingArray as AnyObject).object(at: 0) as AnyObject).object(forKey: "hamburgermenu") as Any) as? Dictionary<String, Any>
-            }
-            if brandingArray.count>1{
-                let brandingDic = (((brandingArray as AnyObject).object(at: 1) as AnyObject).object(forKey: "brandingwidgetdesktop") as Any)
-                let jsonDecoder = JSONDecoder()
-                guard let jsonData = try? JSONSerialization.data(withJSONObject: brandingDic as Any , options: .prettyPrinted),
-                      let brandingValues = try? jsonDecoder.decode(BrandingModel.self, from: jsonData) else {
-                    return
-                }
-                
-                brandingShared.brandingInfoModel = brandingValues
-                brandingShared.widgetBorderColor = brandingShared.brandingInfoModel?.widgetBorderColor
-                brandingShared.widgetTextColor = brandingShared.brandingInfoModel?.widgetTextColor
-                brandingShared.buttonInactiveBgColor = brandingShared.brandingInfoModel?.buttonInactiveBgColor
-                brandingShared.buttonInactiveTextColor = brandingShared.brandingInfoModel?.buttonInactiveTextColor
-                brandingShared.widgetBgColor = brandingShared.brandingInfoModel?.widgetBgColor
-                brandingShared.botchatTextColor = brandingShared.brandingInfoModel?.botchatTextColor
-                brandingShared.buttonActiveBgColor = brandingShared.brandingInfoModel?.buttonActiveBgColor
-                brandingShared.buttonActiveTextColor = brandingShared.brandingInfoModel?.buttonActiveTextColor
-                brandingShared.userchatBgColor = brandingShared.brandingInfoModel?.userchatBgColor
-                brandingShared.theme = brandingShared.brandingInfoModel?.theme
-                brandingShared.botName = SDKConfiguration.botConfig.chatBotName
-                brandingShared.botchatBgColor = brandingShared.brandingInfoModel?.botchatBgColor
-                brandingShared.userchatTextColor = brandingShared.brandingInfoModel?.userchatTextColor
-                brandingShared.widgetDividerColor = brandingShared.brandingInfoModel?.widgetDividerColor
-                brandingShared.bankLogo = brandingShared.brandingInfoModel?.bankLogo
-                brandingShared.widgetBgImage = brandingShared.brandingInfoModel?.widgetBgImage
-                brandingShared.widgetBodyColor = brandingShared.brandingInfoModel?.widgetBodyColor
-                brandingShared.widgetFooterColor = brandingShared.brandingInfoModel?.widgetFooterColor
-                brandingShared.widgetHeaderColor = brandingShared.brandingInfoModel?.widgetHeaderColor
-                brandingShared.widgetFooterTextColor = brandingShared.brandingInfoModel?.widgetFooterColor
-                brandingShared.widgetFooterPlaceholderColor = brandingShared.brandingInfoModel?.widgetHeaderColor
-                self.sucessMethod(client: client, thread: thread)
-            }
-            
+        
+        let jsonDecoder = JSONDecoder()
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: jsonResult as Any , options: .prettyPrinted),
+              let activeTheme = try? jsonDecoder.decode(ActiveTheme.self, from: jsonData) else {
+            return
         }
+        
+        brandingMapping(activeTheme: activeTheme, client: client, thread: thread)
+    }
+    
+    func brandingMapping(activeTheme: ActiveTheme, client: BotClient?, thread: KREThread?){
+        let widgetBorderColor = activeTheme.widgetHeader?.bordercolor
+        let widgetTextColor = activeTheme.widgetHeader?.fontcolor
+        let buttonInactiveBgColor = activeTheme.buttons?.onHoverButtonColor
+        let buttonInactiveTextColor = activeTheme.buttons?.onHoverFontColor
+        let buttonActiveBgColor = activeTheme.buttons?.defaultButtonColor
+        let buttonActiveTextColor = activeTheme.buttons?.defaultFontColor
+        let widgetBgColor = activeTheme.widgetHeader?.backGroundColor
+        let userchatBgColor = activeTheme.userMessage?.bubbleColor
+        let userchatTextColor = activeTheme.userMessage?.fontcolor
+        let theme = ""
+        let botName = SDKConfiguration.botConfig.chatBotName
+        let botchatBgColor = activeTheme.botMessage?.bubbleColor
+        let botchatTextColor = activeTheme.botMessage?.fontcolor
+        
+        let widgetDividerColor = activeTheme.widgetFooter?.placeHolder
+        let bankLogo = ""
+        var widgetBgImage = ""
+        if let userWidgetBgImage =  activeTheme.widgetBody?.useBackgroundImage, userWidgetBgImage == true{
+            widgetBgImage = activeTheme.widgetBody?.backGroundImage ?? ""
+        }
+        let widgetBodyColor = activeTheme.widgetBody?.backGroundColor
+        let widgetFooterColor = activeTheme.widgetFooter?.backGroundColor
+        let widgetHeaderColor = activeTheme.widgetHeader?.backGroundColor
+        
+        let widgetFooterTextColor = activeTheme.widgetFooter?.fontcolor
+        let widgetFooterPlaceholderColor = activeTheme.widgetFooter?.placeHolder
+        
+        
+        brandingShared.widgetBorderColor = widgetBorderColor
+        brandingShared.widgetTextColor = widgetTextColor
+        brandingShared.buttonInactiveBgColor = buttonInactiveBgColor
+        brandingShared.buttonInactiveTextColor = buttonInactiveTextColor
+        brandingShared.widgetBgColor = widgetBgColor
+        brandingShared.botchatTextColor = botchatTextColor
+        brandingShared.buttonActiveBgColor = buttonActiveBgColor
+        brandingShared.buttonActiveTextColor = buttonActiveTextColor
+        brandingShared.userchatBgColor = userchatBgColor
+        brandingShared.theme = theme
+        brandingShared.botName = botName
+        brandingShared.botchatBgColor = botchatBgColor
+        brandingShared.userchatTextColor = userchatTextColor
+        brandingShared.widgetDividerColor = widgetDividerColor
+        brandingShared.bankLogo = bankLogo
+        brandingShared.widgetBgImage = widgetBgImage
+        brandingShared.widgetBodyColor = widgetBodyColor
+        brandingShared.widgetFooterColor = widgetFooterColor
+        brandingShared.widgetHeaderColor = widgetHeaderColor
+        brandingShared.widgetFooterTextColor = widgetFooterTextColor
+        brandingShared.widgetFooterPlaceholderColor = widgetFooterPlaceholderColor
+        
+        self.sucessMethod(client: client, thread: thread)
     }
     
     // MARK: Sucess Chat Window
@@ -2740,46 +2854,6 @@ extension ChatMessagesViewController{
     
     // MARK: Kore Widgets
     func getWidgetJwTokenWithClientId(_ clientId: String!, clientSecret: String!, identity: String!, isAnonymous: Bool!, success:((_ jwToken: String?) -> Void)?, failure:((_ error: Error) -> Void)?) {
-        
-        //        // Session Configuration
-        //        let configuration = URLSessionConfiguration.default
-        //
-        //        //Manager
-        //        sessionManager = AFHTTPSessionManager.init(baseURL: URL.init(string: SDKConfiguration.serverConfig.JWT_SERVER) as URL?, sessionConfiguration: configuration)
-        //
-        //        // NOTE: You must set your URL to generate JWT.
-        //        let urlString: String = SDKConfiguration.serverConfig.koreJwtUrl()
-        //        let requestSerializer = AFJSONRequestSerializer()
-        //        requestSerializer.httpMethodsEncodingParametersInURI = Set.init(["GET"]) as Set<String>
-        //        requestSerializer.setValue("Keep-Alive", forHTTPHeaderField:"Connection")
-        //
-        //        // Headers: {"alg": "RS256","typ": "JWT"}
-        //        requestSerializer.setValue("RS256", forHTTPHeaderField:"alg")
-        //        requestSerializer.setValue("JWT", forHTTPHeaderField:"typ")
-        //
-        //        let parameters: NSDictionary = ["clientId": clientId as String,
-        //                                        "clientSecret": clientSecret as String,
-        //                                        "identity": identity as String,
-        //                                        "aud": "https://idproxy.kore.com/authorize",
-        //                                        "isAnonymous": isAnonymous as Bool]
-        //
-        //
-        //        sessionManager?.responseSerializer = AFJSONResponseSerializer.init()
-        //        sessionManager?.requestSerializer = requestSerializer
-        //        sessionManager?.post(urlString, parameters: parameters, headers: nil, progress: nil, success: { (sessionDataTask, responseObject) in
-        //            if (responseObject is NSDictionary) {
-        //                let dictionary: NSDictionary = responseObject as! NSDictionary
-        //                let jwToken: String = dictionary["jwt"] as! String
-        //                self.initializeWidgetManager(widgetJWTToken: jwToken)
-        //                success?(jwToken)
-        //
-        //            } else {
-        //                let error: NSError = NSError(domain: "bot", code: 100, userInfo: [:])
-        //                failure?(error)
-        //            }
-        //        }) { (sessionDataTask, error) in
-        //            failure?(error)
-        //        }
         
     }
     
