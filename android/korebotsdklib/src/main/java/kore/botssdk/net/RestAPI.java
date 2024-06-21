@@ -8,6 +8,7 @@ import java.util.HashMap;
 import kore.botssdk.models.BotActiveThemeModel;
 import kore.botssdk.models.BotHistory;
 import kore.botssdk.models.BotMetaModel;
+import kore.botssdk.models.BrandingNewModel;
 import kore.botssdk.models.JWTTokenResponse;
 import kore.botssdk.models.KoreLoginResponse;
 import kore.botssdk.models.PdfResponseModel;
@@ -90,7 +91,10 @@ public interface RestAPI {
 //    Call<ArrayList<BrandingNewModel>> getBrandingNewDetails(@Header("Authorization") String token, @Header("tenantId") String tenantId, @Header("state") String state, @Header("Accepts-version") String version, @Header("Accept-Language") String language, @Header("botid") String botId);
 
     @GET("api/websdkthemes/{botId}/activetheme")
-    Call<BotActiveThemeModel> getBrandingNewDetails(@Path("botId") String bot_Id, @Header("Authorization") String token, @Header("state") String state, @Header("Accepts-version") String version, @Header("Accept-Language") String language, @Header("botid") String botId);
+    Call<ResponseBody> getBrandingDetails(@Path("botId") String bot_Id, @Header("Authorization") String token, @Header("state") String state, @Header("Accepts-version") String version, @Header("Accept-Language") String language, @Header("botid") String botId);
+
+    @GET("api/websdkthemes/{botId}/activetheme")
+    Call<BrandingNewModel> getBrandingNewDetails(@Path("botId") String bot_Id, @Header("Authorization") String token, @Header("state") String state, @Header("Accepts-version") String version, @Header("Accept-Language") String language, @Header("botid") String botId);
 
     // Send WebHook Message
     @POST("chatbot/v2/webhook/{streamId}")
