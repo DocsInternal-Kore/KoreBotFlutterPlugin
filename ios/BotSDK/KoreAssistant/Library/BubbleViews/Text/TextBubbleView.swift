@@ -86,10 +86,12 @@ class TextBubbleView : BubbleView {
                     htmlStr = true
                 }
                 if isHtmlString(for: string) || htmlStr == true{
-                    self.textLabel.setHTMLString(string, withWidth: kMaxTextWidth)
+                    let replaceStr = string.replacingOccurrences(of: ":)", with: "😊")
+                    self.textLabel.setHTMLString(replaceStr, withWidth: kMaxTextWidth)
                 }else{
                     var replaceStr = string
                     replaceStr = replaceStr.replacingOccurrences(of: "&quot;", with: "\"")
+                    replaceStr = replaceStr.replacingOccurrences(of: ":)", with: "😊")
                     self.textLabel.setString(replaceStr, withWidth: kMaxTextWidth)
                 }
             }

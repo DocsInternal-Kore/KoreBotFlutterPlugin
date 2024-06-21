@@ -50,7 +50,7 @@ open class KRETypingStatusView: UIView {
         
         let views: [String: Any] = ["typingImageView": typingImageView, "dancingDots": dancingDots]
         addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-[typingImageView]-2-[dancingDots(30)]-|", options: [], metrics: nil, views: views))
-        typingImageView.widthAnchor.constraint(equalToConstant: 30.0).isActive = true //30.0
+        typingImageView.widthAnchor.constraint(equalToConstant: 0.0).isActive = true //30.0
         typingImageView.heightAnchor.constraint(equalToConstant: 30.0).isActive = true
         typingImageView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 0.0).isActive = true
         dancingDots.heightAnchor.constraint(equalToConstant: 12.0).isActive = true
