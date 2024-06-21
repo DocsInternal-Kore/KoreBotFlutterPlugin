@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="22154" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22130"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB" customClass="MultiImageBubbleView" customModule="korebotplugin">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="200"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="none" translatesAutoresizingMaskIntoConstraints="NO" id="efm-Fj-E0I">
+                    <rect key="frame" x="0.0" y="32" width="375" height="168"/>
+                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="g2E-wQ-XXH">
+                        <size key="itemSize" width="50" height="50"/>
+                        <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                        <size key="footerReferenceSize" width="0.0" height="0.0"/>
+                        <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
+                    </collectionViewFlowLayout>
+                    <connections>
+                        <outlet property="dataSource" destination="iN0-l3-epB" id="yMF-ky-lZF"/>
+                        <outlet property="delegate" destination="iN0-l3-epB" id="7IZ-ig-DoI"/>
+                    </connections>
+                </collectionView>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BLL-Xl-mmJ">
+                    <rect key="frame" x="10" y="0.0" width="355" height="30"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="30" id="7RB-KY-vde"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                    <nil key="textColor"/>
+                    <nil key="highlightedColor"/>
+                </label>
+            </subviews>
+            <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="efm-Fj-E0I" secondAttribute="bottom" id="1wC-ab-HrB"/>
+                <constraint firstItem="BLL-Xl-mmJ" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" constant="10" id="21v-5l-rHv"/>
+                <constraint firstAttribute="trailing" secondItem="BLL-Xl-mmJ" secondAttribute="trailing" constant="10" id="PqP-PC-lDo"/>
+                <constraint firstAttribute="trailing" secondItem="efm-Fj-E0I" secondAttribute="trailing" id="TOX-f7-dNe"/>
+                <constraint firstItem="efm-Fj-E0I" firstAttribute="top" secondItem="BLL-Xl-mmJ" secondAttribute="bottom" constant="2" id="bLp-Vn-Mqp"/>
+                <constraint firstItem="BLL-Xl-mmJ" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="emm-Ty-3t5"/>
+                <constraint firstItem="efm-Fj-E0I" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" id="pLr-AU-f7l"/>
+            </constraints>
+            <nil key="simulatedStatusBarMetrics"/>
+            <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+            <connections>
+                <outlet property="collectionView" destination="efm-Fj-E0I" id="xuD-e2-ZPU"/>
+                <outlet property="textLblHeightConstarint" destination="7RB-KY-vde" id="hUh-IB-VBs"/>
+                <outlet property="textlabel" destination="BLL-Xl-mmJ" id="6tp-R2-hYs"/>
+            </connections>
+            <point key="canvasLocation" x="-41.984732824427482" y="-17.605633802816904"/>
+        </view>
+    </objects>
+</document>

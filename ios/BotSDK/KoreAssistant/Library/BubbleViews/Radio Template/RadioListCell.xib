@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="21507" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21505"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="Inter-Regular.ttf">
+            <string>Inter-Regular</string>
+        </array>
+        <array key="Inter-SemiBold.ttf">
+            <string>Inter-SemiBold</string>
+        </array>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="RadioListCell" rowHeight="61" id="KGk-i7-Jjw" customClass="RadioListCell" customModule="korebotplugin">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="61"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="61"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OfA-tn-623">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="61"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6BM-qX-O0o">
+                                <rect key="frame" x="8" y="15.5" width="30" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="30" id="1Ib-Bm-PUy"/>
+                                    <constraint firstAttribute="height" constant="30" id="qSA-bb-uYC"/>
+                                </constraints>
+                                <state key="normal" image="radio_uncheck"/>
+                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gde-zd-C5i">
+                                <rect key="frame" x="46" y="10" width="136" height="21"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="21" id="c5w-Iy-5T3"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Inter-SemiBold" family="Inter" pointSize="14"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WVa-sr-4hy">
+                                <rect key="frame" x="46" y="32" width="266" height="21"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="21" id="Pbq-TU-SLi"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Inter-Regular" family="Inter" pointSize="12"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="f66-Ba-9w7">
+                                <rect key="frame" x="190" y="10" width="120" height="21"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="21" id="FPs-wE-vwh"/>
+                                    <constraint firstAttribute="width" constant="120" id="wre-CV-2hV"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Inter-SemiBold" family="Inter" pointSize="14"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="raL-8n-Rc4">
+                                <rect key="frame" x="0.0" y="60" width="320" height="1"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="WVa-sr-4hy" firstAttribute="top" secondItem="gde-zd-C5i" secondAttribute="bottom" constant="1" id="Aga-eA-mAf"/>
+                            <constraint firstItem="f66-Ba-9w7" firstAttribute="top" secondItem="gde-zd-C5i" secondAttribute="top" id="CVB-Bc-hsB"/>
+                            <constraint firstItem="6BM-qX-O0o" firstAttribute="leading" secondItem="OfA-tn-623" secondAttribute="leading" constant="8" id="ImS-qf-GeY"/>
+                            <constraint firstItem="f66-Ba-9w7" firstAttribute="leading" secondItem="gde-zd-C5i" secondAttribute="trailing" constant="8" symbolic="YES" id="dTX-WN-df1"/>
+                            <constraint firstItem="gde-zd-C5i" firstAttribute="leading" secondItem="6BM-qX-O0o" secondAttribute="trailing" constant="8" id="ePl-u1-RNE"/>
+                            <constraint firstAttribute="trailing" secondItem="WVa-sr-4hy" secondAttribute="trailing" constant="8" id="hy5-83-bSk"/>
+                            <constraint firstItem="gde-zd-C5i" firstAttribute="top" secondItem="OfA-tn-623" secondAttribute="top" constant="10" id="jwf-pq-Gct"/>
+                            <constraint firstItem="WVa-sr-4hy" firstAttribute="leading" secondItem="6BM-qX-O0o" secondAttribute="trailing" constant="8" symbolic="YES" id="kbU-81-8TS"/>
+                            <constraint firstItem="6BM-qX-O0o" firstAttribute="centerY" secondItem="OfA-tn-623" secondAttribute="centerY" id="x6t-TH-Zo4"/>
+                            <constraint firstAttribute="trailing" secondItem="f66-Ba-9w7" secondAttribute="trailing" constant="10" id="ybS-2z-hE7"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="OfA-tn-623" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" id="0M4-ej-Rbm"/>
+                    <constraint firstItem="OfA-tn-623" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="Xny-WS-KE3"/>
+                    <constraint firstAttribute="trailing" secondItem="OfA-tn-623" secondAttribute="trailing" id="bfT-N6-fNB"/>
+                    <constraint firstAttribute="bottom" secondItem="OfA-tn-623" secondAttribute="bottom" id="g7I-LA-UNI"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
+            <connections>
+                <outlet property="checkBtn" destination="6BM-qX-O0o" id="Lvf-DW-8n1"/>
+                <outlet property="descLbl" destination="WVa-sr-4hy" id="euK-mc-IE5"/>
+                <outlet property="priceLbl" destination="f66-Ba-9w7" id="wt1-ST-Fgc"/>
+                <outlet property="priceLblWidthConstraint" destination="wre-CV-2hV" id="UiQ-X7-gqA"/>
+                <outlet property="titleLbl" destination="gde-zd-C5i" id="NJ7-e7-mdk"/>
+                <outlet property="titleLblTopConstarint" destination="jwf-pq-Gct" id="Ih1-l4-oQX"/>
+            </connections>
+            <point key="canvasLocation" x="44.927536231884062" y="57.254464285714285"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="radio_uncheck" width="24" height="24"/>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

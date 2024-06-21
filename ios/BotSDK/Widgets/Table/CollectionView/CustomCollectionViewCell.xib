@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="21507" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21505"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="HelveticaNeue.ttc">
+            <string>HelveticaNeue</string>
+        </array>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="fxZ-8M-cA6" customClass="CustomCollectionViewCell" customModule="korebotplugin">
+            <rect key="frame" x="0.0" y="0.0" width="109" height="50"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="109" height="50"/>
+                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="WIL-j7-uRz">
+                        <rect key="frame" x="0.0" y="0.0" width="109" height="45"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8QT-m9-jqa">
+                                <rect key="frame" x="5" y="0.0" width="99" height="45"/>
+                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="14"/>
+                                <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="q44-YS-ZYL">
+                                <rect key="frame" x="0.0" y="37" width="109" height="1"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="1" id="vi2-Fy-22e"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="8QT-m9-jqa" secondAttribute="trailing" constant="5" id="Cqr-w8-3in"/>
+                            <constraint firstAttribute="bottom" secondItem="8QT-m9-jqa" secondAttribute="bottom" id="Whj-RZ-qnY"/>
+                            <constraint firstAttribute="bottom" secondItem="q44-YS-ZYL" secondAttribute="bottom" constant="7" id="dXV-9s-oXS"/>
+                            <constraint firstItem="q44-YS-ZYL" firstAttribute="leading" secondItem="WIL-j7-uRz" secondAttribute="leading" id="mYl-YD-xP6"/>
+                            <constraint firstAttribute="trailing" secondItem="q44-YS-ZYL" secondAttribute="trailing" id="p1z-bQ-ZwP"/>
+                            <constraint firstItem="8QT-m9-jqa" firstAttribute="leading" secondItem="WIL-j7-uRz" secondAttribute="leading" constant="5" id="vsT-SB-2SP"/>
+                            <constraint firstItem="8QT-m9-jqa" firstAttribute="top" secondItem="WIL-j7-uRz" secondAttribute="top" id="xWE-hG-Xse"/>
+                        </constraints>
+                    </view>
+                </subviews>
+            </view>
+            <viewLayoutGuide key="safeArea" id="mpw-5O-4Vj"/>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <constraints>
+                <constraint firstItem="WIL-j7-uRz" firstAttribute="top" secondItem="fxZ-8M-cA6" secondAttribute="top" id="EB5-4o-S8E"/>
+                <constraint firstItem="WIL-j7-uRz" firstAttribute="leading" secondItem="fxZ-8M-cA6" secondAttribute="leading" id="XDd-hw-gEn"/>
+                <constraint firstAttribute="bottom" secondItem="WIL-j7-uRz" secondAttribute="bottom" constant="5" id="tT3-pc-dFV"/>
+                <constraint firstAttribute="trailing" secondItem="WIL-j7-uRz" secondAttribute="trailing" id="ybE-Xs-bJ3"/>
+            </constraints>
+            <size key="customSize" width="109" height="50"/>
+            <connections>
+                <outlet property="bgView" destination="WIL-j7-uRz" id="2e2-Ha-cgQ"/>
+                <outlet property="textLabel" destination="8QT-m9-jqa" id="Gkq-27-WmY"/>
+                <outlet property="underLineLbl" destination="q44-YS-ZYL" id="zAV-m8-fnF"/>
+            </connections>
+            <point key="canvasLocation" x="-1447.2" y="-8.0959520239880067"/>
+        </collectionViewCell>
+    </objects>
+</document>

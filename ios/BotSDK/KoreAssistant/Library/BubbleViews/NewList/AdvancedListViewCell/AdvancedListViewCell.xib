@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="21507" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21505"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="Gilroy-Bold.otf">
+            <string>Gilroy-Bold</string>
+        </array>
+        <array key="Gilroy-Medium.otf">
+            <string>Gilroy-Medium</string>
+        </array>
+        <array key="Gilroy-Regular.otf">
+            <string>Gilroy-Regular</string>
+        </array>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" rowHeight="93" id="KGk-i7-Jjw" customClass="AdvancedListViewCell" customModule="korebotplugin">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="93"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="93"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view clipsSubviews="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Dhe-5e-6YA">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="84"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="$ 0.0" textAlignment="right" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="MSI-TJ-jH5" userLabel="Title Label">
+                                <rect key="frame" x="229" y="10" width="75" height="18"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="18" id="pvw-XR-NVe"/>
+                                    <constraint firstAttribute="width" constant="75" id="vv7-qC-VTD"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Gilroy-Bold" family="Gilroy" pointSize="14"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4GE-0r-W7J" userLabel="Title Label">
+                                <rect key="frame" x="16" y="10" width="205" height="18"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="18" id="TvJ-85-Lc6"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Gilroy-Medium" family="Gilroy" pointSize="14"/>
+                                <color key="textColor" red="0.28235294119999998" green="0.28235294119999998" blue="0.28235294119999998" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="AED" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hbX-Ud-8Ir">
+                                <rect key="frame" x="16" y="39" width="140" height="16"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="16" id="uhJ-kN-C79"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Gilroy-Regular" family="Gilroy" pointSize="11"/>
+                                <color key="textColor" red="0.46666666670000001" green="0.46666666670000001" blue="0.46666666670000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="AED" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fQG-qW-HxQ">
+                                <rect key="frame" x="16" y="58" width="111" height="16"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="16" id="7RS-P6-QcR"/>
+                                    <constraint firstAttribute="width" constant="111" id="rpC-TJ-HZc"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Gilroy-Regular" family="Gilroy" pointSize="11"/>
+                                <color key="textColor" red="0.46666666670000001" green="0.46666666670000001" blue="0.46666666670000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="AED" textAlignment="right" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CQc-J3-DEL">
+                                <rect key="frame" x="164" y="39" width="140" height="16"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="16" id="BiP-Su-ebK"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Gilroy-Regular" family="Gilroy" pointSize="11"/>
+                                <color key="textColor" red="0.46666666670000001" green="0.46666666670000001" blue="0.46666666670000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" fixedFrame="YES" text="Subtitle" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="LaP-5z-4bk">
+                                <rect key="frame" x="93.5" y="37" width="0.0" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" name="Gilroy-Regular" family="Gilroy" pointSize="13"/>
+                                <color key="textColor" red="0.19215686269999999" green="0.19215686269999999" blue="0.19215686269999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="AED" textAlignment="right" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iOY-T2-bLU">
+                                <rect key="frame" x="142" y="58" width="162" height="16"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="16" id="hXo-nl-keS"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Gilroy-Regular" family="Gilroy" pointSize="11"/>
+                                <color key="textColor" red="0.46666666670000001" green="0.46666666670000001" blue="0.46666666670000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="iOY-T2-bLU" firstAttribute="leading" secondItem="fQG-qW-HxQ" secondAttribute="trailing" constant="15" id="00U-tW-jZX"/>
+                            <constraint firstItem="CQc-J3-DEL" firstAttribute="top" secondItem="MSI-TJ-jH5" secondAttribute="bottom" constant="11" id="52s-DB-D92"/>
+                            <constraint firstItem="hbX-Ud-8Ir" firstAttribute="width" secondItem="CQc-J3-DEL" secondAttribute="width" id="67M-nJ-aVB"/>
+                            <constraint firstItem="MSI-TJ-jH5" firstAttribute="leading" secondItem="4GE-0r-W7J" secondAttribute="trailing" constant="8" symbolic="YES" id="BR9-fe-xnr"/>
+                            <constraint firstItem="fQG-qW-HxQ" firstAttribute="top" secondItem="hbX-Ud-8Ir" secondAttribute="bottom" constant="3" id="E9f-8X-5vF"/>
+                            <constraint firstItem="fQG-qW-HxQ" firstAttribute="leading" secondItem="Dhe-5e-6YA" secondAttribute="leading" constant="16" id="Ldq-P9-96C"/>
+                            <constraint firstItem="hbX-Ud-8Ir" firstAttribute="top" secondItem="4GE-0r-W7J" secondAttribute="bottom" constant="11" id="V5m-7U-KqU"/>
+                            <constraint firstItem="4GE-0r-W7J" firstAttribute="leading" secondItem="Dhe-5e-6YA" secondAttribute="leading" constant="16" id="Y9F-0V-9je"/>
+                            <constraint firstItem="iOY-T2-bLU" firstAttribute="top" secondItem="hbX-Ud-8Ir" secondAttribute="bottom" constant="3" id="aZb-wV-V1d"/>
+                            <constraint firstItem="hbX-Ud-8Ir" firstAttribute="leading" secondItem="Dhe-5e-6YA" secondAttribute="leading" constant="16" id="c37-Yt-V0M"/>
+                            <constraint firstItem="4GE-0r-W7J" firstAttribute="top" secondItem="Dhe-5e-6YA" secondAttribute="top" constant="10" id="cCA-4X-0pB"/>
+                            <constraint firstAttribute="trailing" secondItem="CQc-J3-DEL" secondAttribute="trailing" constant="16" id="dSs-wE-VKM"/>
+                            <constraint firstItem="CQc-J3-DEL" firstAttribute="leading" secondItem="hbX-Ud-8Ir" secondAttribute="trailing" constant="8" symbolic="YES" id="e4J-7d-Ctx"/>
+                            <constraint firstAttribute="bottom" secondItem="fQG-qW-HxQ" secondAttribute="bottom" constant="10" id="hMa-7b-AKW"/>
+                            <constraint firstAttribute="trailing" secondItem="MSI-TJ-jH5" secondAttribute="trailing" constant="16" id="i98-ef-RZa"/>
+                            <constraint firstItem="MSI-TJ-jH5" firstAttribute="top" secondItem="Dhe-5e-6YA" secondAttribute="top" constant="10" id="plL-yG-eO2"/>
+                            <constraint firstAttribute="trailing" secondItem="iOY-T2-bLU" secondAttribute="trailing" constant="16" id="zPa-pu-no3"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                <constraints>
+                    <constraint firstAttribute="bottom" secondItem="Dhe-5e-6YA" secondAttribute="bottom" constant="9" id="5WI-we-tQU"/>
+                    <constraint firstItem="Dhe-5e-6YA" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" id="E8V-eG-yJm"/>
+                    <constraint firstAttribute="trailing" secondItem="Dhe-5e-6YA" secondAttribute="trailing" id="cHb-Yg-AcG"/>
+                    <constraint firstItem="Dhe-5e-6YA" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="iid-x4-XQM"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <connections>
+                <outlet property="amountLbl" destination="iOY-T2-bLU" id="yEd-Wq-gdz"/>
+                <outlet property="bgView" destination="Dhe-5e-6YA" id="NsB-hU-Tfe"/>
+                <outlet property="cardNoLbl" destination="MSI-TJ-jH5" id="1Au-XF-YHa"/>
+                <outlet property="dateLbl" destination="fQG-qW-HxQ" id="GbP-31-PaC"/>
+                <outlet property="disbursalAmountLbl" destination="CQc-J3-DEL" id="bWD-8L-Zkv"/>
+                <outlet property="disbursalDateLbl" destination="hbX-Ud-8Ir" id="R4m-PD-TNd"/>
+                <outlet property="titleLbl" destination="4GE-0r-W7J" id="rj0-Un-h8h"/>
+            </connections>
+            <point key="canvasLocation" x="137.68115942028987" y="69.977678571428569"/>
+        </tableViewCell>
+    </objects>
+</document>

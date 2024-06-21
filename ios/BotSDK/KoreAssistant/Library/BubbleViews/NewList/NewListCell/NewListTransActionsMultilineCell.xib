@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="21507" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21505"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="Gilroy-Bold.otf">
+            <string>Gilroy-Bold</string>
+        </array>
+        <array key="Gilroy-Medium.otf">
+            <string>Gilroy-Medium</string>
+        </array>
+        <array key="Gilroy-Regular.otf">
+            <string>Gilroy-Regular</string>
+        </array>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="NewListTransActionsMultilineCell" rowHeight="106" id="KGk-i7-Jjw" customClass="NewListTransActionsMultilineCell" customModule="korebotplugin">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="106"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="106"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view clipsSubviews="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="9m0-Da-rlo">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="106"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="Date" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6uz-bN-GHT" userLabel="Title Label">
+                                <rect key="frame" x="5" y="16" width="310" height="17"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="17" id="qs7-hX-v7b"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Gilroy-Bold" family="Gilroy" pointSize="14"/>
+                                <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="Deposit" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="FUm-5w-bX0">
+                                <rect key="frame" x="5" y="73" width="202" height="16"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="16" id="7fr-pV-yX4"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Gilroy-Regular" family="Gilroy" pointSize="13"/>
+                                <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="Deposit" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uqg-C5-aoX">
+                                <rect key="frame" x="5" y="49" width="206" height="16"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="16" id="0oS-po-Pbb"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Gilroy-Regular" family="Gilroy" pointSize="13"/>
+                                <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" textAlignment="right" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="GMD-85-USk" userLabel="Title Label">
+                                <rect key="frame" x="215" y="66" width="100" height="28"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="28" id="4z0-q2-IAF"/>
+                                    <constraint firstAttribute="width" constant="100" id="7dP-yU-DhU"/>
+                                </constraints>
+                                <string key="text">Amount spend:
+AED 234.00</string>
+                                <fontDescription key="fontDescription" name="Gilroy-Medium" family="Gilroy" pointSize="14"/>
+                                <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8r5-Ll-fRg">
+                                <rect key="frame" x="5" y="105" width="315" height="1"/>
+                                <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="1" id="xIi-NC-EPe"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="GMD-85-USk" firstAttribute="leading" secondItem="FUm-5w-bX0" secondAttribute="trailing" constant="8" symbolic="YES" id="4cZ-t9-apa"/>
+                            <constraint firstItem="FUm-5w-bX0" firstAttribute="leading" secondItem="9m0-Da-rlo" secondAttribute="leading" constant="5" id="6mu-L0-QYY"/>
+                            <constraint firstItem="FUm-5w-bX0" firstAttribute="top" secondItem="uqg-C5-aoX" secondAttribute="bottom" constant="8" symbolic="YES" id="FNq-lb-SXT"/>
+                            <constraint firstAttribute="trailing" secondItem="GMD-85-USk" secondAttribute="trailing" constant="5" id="K0x-uR-xdS"/>
+                            <constraint firstItem="uqg-C5-aoX" firstAttribute="leading" secondItem="9m0-Da-rlo" secondAttribute="leading" constant="5" id="L4q-LX-Zyr"/>
+                            <constraint firstItem="8r5-Ll-fRg" firstAttribute="leading" secondItem="9m0-Da-rlo" secondAttribute="leading" constant="5" id="RQq-cY-XRf"/>
+                            <constraint firstAttribute="bottom" secondItem="8r5-Ll-fRg" secondAttribute="bottom" id="SUW-bL-Afb"/>
+                            <constraint firstItem="GMD-85-USk" firstAttribute="leading" secondItem="uqg-C5-aoX" secondAttribute="trailing" constant="4" id="TGG-N1-Acs"/>
+                            <constraint firstAttribute="trailing" secondItem="6uz-bN-GHT" secondAttribute="trailing" constant="5" id="gkO-cz-Nel"/>
+                            <constraint firstItem="6uz-bN-GHT" firstAttribute="top" secondItem="9m0-Da-rlo" secondAttribute="top" constant="16" id="luR-5f-G9i"/>
+                            <constraint firstItem="6uz-bN-GHT" firstAttribute="leading" secondItem="9m0-Da-rlo" secondAttribute="leading" constant="5" id="qG8-GV-hPw"/>
+                            <constraint firstAttribute="trailing" secondItem="8r5-Ll-fRg" secondAttribute="trailing" id="rb9-GP-HFd"/>
+                            <constraint firstItem="8r5-Ll-fRg" firstAttribute="top" secondItem="FUm-5w-bX0" secondAttribute="bottom" constant="16" id="tzd-QE-rDy"/>
+                            <constraint firstItem="8r5-Ll-fRg" firstAttribute="top" secondItem="GMD-85-USk" secondAttribute="bottom" constant="11" id="wLa-g9-BR6"/>
+                            <constraint firstItem="uqg-C5-aoX" firstAttribute="top" secondItem="6uz-bN-GHT" secondAttribute="bottom" constant="16" id="wkq-ua-5Tf"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="9m0-Da-rlo" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="D0h-Wd-5MU"/>
+                    <constraint firstItem="9m0-Da-rlo" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" id="GlG-p5-CIG"/>
+                    <constraint firstAttribute="bottom" secondItem="9m0-Da-rlo" secondAttribute="bottom" id="QA3-dO-5CW"/>
+                    <constraint firstAttribute="trailing" secondItem="9m0-Da-rlo" secondAttribute="trailing" id="ywp-UU-Thw"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
+            <connections>
+                <outlet property="bgView" destination="9m0-Da-rlo" id="r5I-M3-ZF2"/>
+                <outlet property="dateHeightConstraint" destination="qs7-hX-v7b" id="dpn-RE-FLQ"/>
+                <outlet property="dateLbl" destination="6uz-bN-GHT" id="r0U-yh-J8D"/>
+                <outlet property="dateTopConstaint" destination="luR-5f-G9i" id="rl5-6X-24g"/>
+                <outlet property="priceLbl" destination="GMD-85-USk" id="F0u-5y-cCX"/>
+                <outlet property="priceLblWidthConstraint" destination="7dP-yU-DhU" id="v4e-Zg-1wd"/>
+                <outlet property="subTitle" destination="FUm-5w-bX0" id="HZr-iF-JQx"/>
+                <outlet property="titleLabl" destination="uqg-C5-aoX" id="3O6-b8-JCA"/>
+                <outlet property="underlineLbl" destination="8r5-Ll-fRg" id="ICi-PL-aCN"/>
+            </connections>
+            <point key="canvasLocation" x="137.68115942028987" y="46.205357142857139"/>
+        </tableViewCell>
+    </objects>
+</document>
