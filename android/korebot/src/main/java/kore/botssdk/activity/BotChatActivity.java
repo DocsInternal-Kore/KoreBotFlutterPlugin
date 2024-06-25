@@ -1153,7 +1153,8 @@ public class BotChatActivity extends BotAppCompactActivity implements ComposeFoo
                                     brandingModel.setWidgetHeaderColor(brandingDos.getHeader().getBg_color());
                                     brandingModel.setWidgetFooterColor(brandingDos.getFooter().getBg_color());
                                     brandingModel.setWidgetFooterBorderColor(brandingDos.getFooter().getCompose_bar().getOutline_color());
-                                    brandingModel.setWidgetFooterHintColor(brandingDos.getFooter().getCompose_bar().getPlaceholder());
+                                    brandingModel.setWidgetFooterHintColor(brandingDos.getFooter().getCompose_bar().getOutline_color());
+                                    brandingModel.setWidgetFooterHintText(brandingDos.getFooter().getCompose_bar().getPlaceholder());
                                     onEvent(brandingModel);
 
                                 } catch (Exception ex) {

@@ -65,43 +65,47 @@ public class KorebotpluginPlugin implements FlutterPlugin, MethodCallHandler {
 
     @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-        if (call.method.equals("getChatWindow")) {
-            SDKConfiguration.Client.bot_id = call.argument("botId");
-            SDKConfiguration.Client.client_secret = call.argument("clientSecret");
-            SDKConfiguration.Client.client_id = call.argument("clientId");
-            SDKConfiguration.Client.bot_name = call.argument("chatBotName");
-            SDKConfiguration.Client.identity = call.argument("identity");
-            SDKConfiguration.Client.history_call = Boolean.TRUE.equals(call.argument("callHistory"));
+        switch (call.method) {
+            case "getChatWindow":
+                SDKConfiguration.Client.bot_id = call.argument("botId");
+                SDKConfiguration.Client.client_secret = call.argument("clientSecret");
+                SDKConfiguration.Client.client_id = call.argument("clientId");
+                SDKConfiguration.Client.bot_name = call.argument("chatBotName");
+                SDKConfiguration.Client.identity = call.argument("identity");
+                SDKConfiguration.Client.history_call = Boolean.TRUE.equals(call.argument("callHistory"));
 
-            SDKConfiguration.Server.SERVER_URL = call.argument("server_url");
-            SDKConfiguration.setJwtServerUrl(call.argument("jwt_server_url"));
+                SDKConfiguration.Server.SERVER_URL = call.argument("server_url");
+                SDKConfiguration.setJwtServerUrl(call.argument("jwt_server_url"));
 
-            Intent intent = new Intent(context, BotChatActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            Bundle bundle = new Bundle();
-            bundle.putBoolean(BundleUtils.SHOW_PROFILE_PIC, false);
-            if (!StringUtils.isNullOrEmpty(SDKConfiguration.Client.bot_name))
-                bundle.putString(BundleUtils.BOT_NAME_INITIALS, String.valueOf(SDKConfiguration.Client.bot_name.charAt(0)));
-            else
-                bundle.putString(BundleUtils.BOT_NAME_INITIALS, "B");
-            intent.putExtras(bundle);
-            context.startActivity(intent);
-        } else if (call.method.equals("initialize")) {
-            SDKConfiguration.Client.bot_id = call.argument("botId");
-            SDKConfiguration.Client.client_secret = call.argument("clientSecret");
-            SDKConfiguration.Client.client_id = call.argument("clientId");
-            SDKConfiguration.Client.bot_name = call.argument("chatBotName");
-            SDKConfiguration.Client.identity = call.argument("identity");
-            SDKConfiguration.Client.history_call = Boolean.TRUE.equals(call.argument("callHistory"));
+                Intent intent = new Intent(context, BotChatActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                Bundle bundle = new Bundle();
+                bundle.putBoolean(BundleUtils.SHOW_PROFILE_PIC, false);
+                if (!StringUtils.isNullOrEmpty(SDKConfiguration.Client.bot_name))
+                    bundle.putString(BundleUtils.BOT_NAME_INITIALS, String.valueOf(SDKConfiguration.Client.bot_name.charAt(0)));
+                else
+                    bundle.putString(BundleUtils.BOT_NAME_INITIALS, "B");
+                intent.putExtras(bundle);
+                context.startActivity(intent);
+                break;
+            case "initialize":
+                SDKConfiguration.Client.bot_id = call.argument("botId");
+                SDKConfiguration.Client.client_secret = call.argument("clientSecret");
+                SDKConfiguration.Client.client_id = call.argument("clientId");
+                SDKConfiguration.Client.bot_name = call.argument("chatBotName");
+                SDKConfiguration.Client.identity = call.argument("identity");
+                SDKConfiguration.Client.history_call = Boolean.TRUE.equals(call.argument("callHistory"));
 
-            SDKConfiguration.Server.SERVER_URL = call.argument("server_url");
-            SDKConfiguration.Server.KORE_BOT_SERVER_URL = call.argument("server_url");
-            SDKConfiguration.setJwtServerUrl(call.argument("jwt_server_url"));
+                SDKConfiguration.Server.SERVER_URL = call.argument("server_url");
+                SDKConfiguration.Server.KORE_BOT_SERVER_URL = call.argument("server_url");
+                SDKConfiguration.setJwtServerUrl(call.argument("jwt_server_url"));
 
-            //For jwtToken
-            makeStsJwtCallWithConfig();
-        } else if (call.method.equals("getSearchResults")) {
-            getSearchResults(call.argument("searchQuery"));
+                //For jwtToken
+                makeStsJwtCallWithConfig();
+                break;
+            case "getSearchResults":
+                getSearchResults(call.argument("searchQuery"));
+                break;
         }
     }
 
