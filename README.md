@@ -84,9 +84,18 @@ Add below lines in AppDelegate.swift
 /Users/Kartheek.Pagidimarri/Desktop/Screenshot 2025-04-17 at 4.34.54 PM.png
 ``` 
  //Callbacks from chatbotVC
-   NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: "CallbacksNotification"), object: nil)
+NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: "CallbacksNotification"), object: nil)
         
-   NotificationCenter.default.addObserver(self, selector: #selector(self.callbacksMethod), name: NSNotification.Name(rawValue: "CallbacksNotification"), object: nil)
+NotificationCenter.default.addObserver(self, selector: #selector(self.callbacksMethod), name: NSNotification.Name(rawValue: "CallbacksNotification"), object: nil)
+        
+let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
+        flutterMethodChannel = FlutterMethodChannel(name: "kore.botsdk/chatbot",
+                                                    binaryMessenger: controller.binaryMessenger)
+        flutterMethodChannel?.setMethodCallHandler({
+            (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+            // This method is invoked on the UI thread.
+            self.koreBotConnect.connect(methodName: call.method, callArguments: (call.arguments as? [String: Any]) ?? [:])
+        })
 ```
 ```
 @objc func callbacksMethod(notification:Notification) {
