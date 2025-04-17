@@ -79,9 +79,8 @@ When User clicks the back button on the chat window in IOS or hardware back butt
 # For iOS:
 Add below lines in AppDelegate.swift
 
-<img width="597" alt="image" src="https://github.com/SudheerJa-Kore/KoreBotflutterplugin/assets/64408292/fb33b51c-1795-48af-933b-cae0bf0bbe69">
+<img width="1440" alt="Screenshot 2025-04-17 at 4 34 54 PM" src="https://github.com/user-attachments/assets/51a36b8c-84c8-48d2-a11f-d0d4553ae441" />
 
-/Users/Kartheek.Pagidimarri/Desktop/Screenshot 2025-04-17 at 4.34.54 PM.png
 ``` 
  //Callbacks from chatbotVC
 NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: "CallbacksNotification"), object: nil)
