@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		95C74C722DB115120034A48F /* KoreBotConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C74C712DB115120034A48F /* KoreBotConnect.swift */; };
+		95C74C742DB126060034A48F /* KoreBotConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C74C732DB126060034A48F /* KoreBotConnect.swift */; };
 		95D8B7282DAF91A000BB7C7B /* KRECalendarTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95D8B6CA2DAF919F00BB7C7B /* KRECalendarTableViewCell.swift */; };
 		95D8B7292DAF91A000BB7C7B /* KRELocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95D8B6912DAF919F00BB7C7B /* KRELocationManager.swift */; };
 		95D8B72A2DAF91A000BB7C7B /* KREUniversalSearchTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95D8B70D2DAF919F00BB7C7B /* KREUniversalSearchTemplate.swift */; };
@@ -347,7 +347,7 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libKoreBotSdk.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libKoreBotSdk.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		95C74C712DB115120034A48F /* KoreBotConnect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KoreBotConnect.swift; sourceTree = "<group>"; };
+		95C74C732DB126060034A48F /* KoreBotConnect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KoreBotConnect.swift; sourceTree = "<group>"; };
 		95D8B5432DAF919F00BB7C7B /* BotConnect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BotConnect.swift; sourceTree = "<group>"; };
 		95D8B5442DAF919F00BB7C7B /* Common.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
 		95D8B5452DAF919F00BB7C7B /* KABotClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KABotClient.swift; sourceTree = "<group>"; };
@@ -770,7 +770,7 @@
 			children = (
 				95D8B5432DAF919F00BB7C7B /* BotConnect.swift */,
 				95D8B5442DAF919F00BB7C7B /* Common.swift */,
-				95C74C712DB115120034A48F /* KoreBotConnect.swift */,
+				95C74C732DB126060034A48F /* KoreBotConnect.swift */,
 				95D8B5452DAF919F00BB7C7B /* KABotClient.swift */,
 				95D8B5462DAF919F00BB7C7B /* Korei18n.swift */,
 				95D8B5472DAF919F00BB7C7B /* SDKConfiguration.swift */,
@@ -2301,7 +2301,7 @@
 				95D8B7CD2DAF91A000BB7C7B /* DropDownBubbleView.swift in Sources */,
 				95D8B7CE2DAF91A000BB7C7B /* SubTableViewCell.swift in Sources */,
 				95D8B7CF2DAF91A000BB7C7B /* MultiImageBubbleView.swift in Sources */,
-				95C74C722DB115120034A48F /* KoreBotConnect.swift in Sources */,
+				95C74C742DB126060034A48F /* KoreBotConnect.swift in Sources */,
 				95D8B7D02DAF91A000BB7C7B /* KREChartWidgetViewCell.swift in Sources */,
 				95D8B7D12DAF91A000BB7C7B /* KRESnackBarViewController.swift in Sources */,
 				95D8B7D22DAF91A000BB7C7B /* CardTemplateBubbleView.swift in Sources */,
