@@ -29,7 +29,11 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Allow access to microphone.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Speech recognition will be used to determine which words you speak into this device's microphone.</string>
+	<string>Speech recognition will be used to determine which words you speak into this device&apos;s microphone.</string>
+	<key>NSCameraUsageDescription</key>
+	<string> Allow access to camera.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Allow access to photo library.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

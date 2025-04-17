@@ -81,32 +81,20 @@ Add below lines in AppDelegate.swift
 
 <img width="597" alt="image" src="https://github.com/SudheerJa-Kore/KoreBotflutterplugin/assets/64408292/fb33b51c-1795-48af-933b-cae0bf0bbe69">
 
+/Users/Kartheek.Pagidimarri/Desktop/Screenshot 2025-04-17 at 4.34.54 PM.png
 ``` 
  //Callbacks from chatbotVC
-  NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: "CallbacksNotification"), object: nil)
-  NotificationCenter.default.addObserver(self, selector: #selector(self.callbacksMethod), name: 
-  NSNotification.Name(rawValue: "CallbacksNotification"), object: nil)
+   NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: "CallbacksNotification"), object: nil)
+        
+   NotificationCenter.default.addObserver(self, selector: #selector(self.callbacksMethod), name: NSNotification.Name(rawValue: "CallbacksNotification"), object: nil)
 ```
 ```
 @objc func callbacksMethod(notification:Notification) {
         let dataString: String = notification.object as! String
-                if let eventDic = convertStringToDictionary(text: dataString){
+        if let eventDic = Utilities.jsonObjectFromString(jsonString: dataString){
             if flutterMethodChannel != nil{
                 flutterMethodChannel?.invokeMethod("Callbacks", arguments: eventDic)
             }
         }
     }
 ```
-```
-  func convertStringToDictionary(text: String) -> [String: Any]? {
-      if let data = text.data(using: .utf8) {
-          do {
-              return try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-          } catch {
-              print(error.localizedDescription)
-          }
-      }
-      return nil
-  }
-  ```
-  <img width="607" alt="image" src="https://github.com/SudheerJa-Kore/KoreBotflutterplugin/assets/64408292/7a6b82c6-c0f3-4d1c-af1f-e7fbedbbb6d4">
