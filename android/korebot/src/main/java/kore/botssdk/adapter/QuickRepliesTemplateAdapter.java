@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 
@@ -18,7 +18,7 @@ import kore.botssdk.listener.InvokeGenericWebViewInterface;
 import kore.botssdk.models.QuickRepliesPayloadModel;
 import kore.botssdk.models.QuickReplyTemplate;
 import kore.botssdk.utils.BundleConstants;
-import kore.botssdk.view.viewHolder.QuickReplyViewHolder;
+import kore.botssdk.viewholders.QuickReplyViewHolder;
 
 public class QuickRepliesTemplateAdapter extends RecyclerView.Adapter<QuickReplyViewHolder> {
 
@@ -28,11 +28,13 @@ public class QuickRepliesTemplateAdapter extends RecyclerView.Adapter<QuickReply
     private ComposeFooterInterface composeFooterInterface;
     private InvokeGenericWebViewInterface invokeGenericWebViewInterface;
     private final int quickReplyFontColor;
+    private final boolean isEnabled;
 
-    public QuickRepliesTemplateAdapter(Context context, RecyclerView parentRecyclerView) {
+    public QuickRepliesTemplateAdapter(Context context, RecyclerView parentRecyclerView, boolean isEnabled) {
         this.context = context;
         this.parentRecyclerView = parentRecyclerView;
         quickReplyFontColor = Color.parseColor("#3F51B5");
+        this.isEnabled = isEnabled;
     }
 
     @NonNull
@@ -49,48 +51,44 @@ public class QuickRepliesTemplateAdapter extends RecyclerView.Adapter<QuickReply
         QuickReplyTemplate quickReplyTemplate = quickReplyTemplateArrayList.get(position);
 
         if (quickReplyTemplate.getImage_url() != null && !quickReplyTemplate.getImage_url().isEmpty()) {
-            Picasso.get().load(quickReplyTemplate.getImage_url()).into(holder.getQuickReplyImage());
             holder.getQuickReplyImage().setVisibility(View.VISIBLE);
+
+            Glide.with(context)
+                    .load(quickReplyTemplate.getImage_url())
+                    .into(holder.getQuickReplyImage());
         } else {
             holder.getQuickReplyImage().setVisibility(View.GONE);
         }
 
         holder.getQuickReplyTitle().setText(quickReplyTemplate.getTitle());
 
-        holder.getQuickReplyRoot().setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int position =  parentRecyclerView.getChildAdapterPosition(v);
-                if (composeFooterInterface != null && invokeGenericWebViewInterface != null) {
-                    QuickReplyTemplate quickReplyTemplate = quickReplyTemplateArrayList.get(position);
+        holder.getQuickReplyRoot().setOnClickListener(v -> {
+            if (!isEnabled) return;
+            int position1 = parentRecyclerView.getChildAdapterPosition(v);
+            QuickReplyTemplate quickReplyTemplate1 = quickReplyTemplateArrayList.get(position1);
 
-                    String quickReplyPayload;
-                    try {
-                        quickReplyPayload = (String) quickReplyTemplate.getPayload();
-                    }catch (Exception e)
-                    {
-                        try {
-                            QuickRepliesPayloadModel quickRepliesPayloadModel = (QuickRepliesPayloadModel) quickReplyTemplate.getPayload();
-                            quickReplyPayload = quickRepliesPayloadModel.getName();
-                        }
-                        catch (Exception exception)
-                        {
-                            quickReplyPayload = "";
-                        }
-                    }
-
-                    if (BundleConstants.BUTTON_TYPE_POSTBACK.equalsIgnoreCase(quickReplyTemplate.getContent_type())) {
-                        composeFooterInterface.onSendClick(quickReplyTemplate.getTitle(), quickReplyPayload,false);
-                    } else if(BundleConstants.BUTTON_TYPE_USER_INTENT.equalsIgnoreCase(quickReplyTemplate.getContent_type())){
-                        invokeGenericWebViewInterface.invokeGenericWebView(BundleConstants.BUTTON_TYPE_USER_INTENT);
-                    }else if(BundleConstants.BUTTON_TYPE_TEXT.equalsIgnoreCase(quickReplyTemplate.getContent_type())){
-                        composeFooterInterface.onSendClick(quickReplyTemplate.getTitle(),quickReplyPayload,false);
-                    }else if(BundleConstants.BUTTON_TYPE_WEB_URL.equalsIgnoreCase(quickReplyTemplate.getContent_type())){
-                        invokeGenericWebViewInterface.invokeGenericWebView(quickReplyPayload);
-                    }else{
-                        composeFooterInterface.onSendClick(quickReplyTemplate.getTitle(), quickReplyPayload,false);
-                    }
+            String quickReplyPayload;
+            try {
+                quickReplyPayload = (String) quickReplyTemplate1.getPayload();
+            } catch (Exception e) {
+                try {
+                    QuickRepliesPayloadModel quickRepliesPayloadModel = (QuickRepliesPayloadModel) quickReplyTemplate1.getPayload();
+                    quickReplyPayload = quickRepliesPayloadModel.getName();
+                } catch (Exception exception) {
+                    quickReplyPayload = "";
                 }
+            }
+
+            if (composeFooterInterface != null && BundleConstants.BUTTON_TYPE_POSTBACK.equalsIgnoreCase(quickReplyTemplate1.getContent_type())) {
+                composeFooterInterface.onSendClick(quickReplyTemplate1.getTitle(), quickReplyPayload, false);
+            } else if (invokeGenericWebViewInterface != null && BundleConstants.BUTTON_TYPE_USER_INTENT.equalsIgnoreCase(quickReplyTemplate1.getContent_type())) {
+                invokeGenericWebViewInterface.invokeGenericWebView(BundleConstants.BUTTON_TYPE_USER_INTENT);
+            } else if (composeFooterInterface != null && BundleConstants.BUTTON_TYPE_TEXT.equalsIgnoreCase(quickReplyTemplate1.getContent_type())) {
+                composeFooterInterface.onSendClick(quickReplyTemplate1.getTitle(), quickReplyPayload, false);
+            } else if (invokeGenericWebViewInterface != null && BundleConstants.BUTTON_TYPE_WEB_URL.equalsIgnoreCase(quickReplyTemplate1.getContent_type())) {
+                invokeGenericWebViewInterface.invokeGenericWebView(quickReplyPayload);
+            } else if (composeFooterInterface != null) {
+                composeFooterInterface.onSendClick(quickReplyTemplate1.getTitle(), quickReplyPayload, false);
             }
         });
     }

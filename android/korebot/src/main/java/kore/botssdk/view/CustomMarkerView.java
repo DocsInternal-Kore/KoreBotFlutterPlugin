@@ -4,12 +4,12 @@ import android.content.Context;
 import android.widget.TextView;
 
 import kore.botssdk.R;
-import kore.botssdk.charts.components.MarkerView;
-import kore.botssdk.charts.data.CandleEntry;
-import kore.botssdk.charts.data.Entry;
-import kore.botssdk.charts.highlight.Highlight;
-import kore.botssdk.charts.utils.MPPointF;
-import kore.botssdk.charts.utils.Utils;
+import com.github.mikephil.charting.components.MarkerView;
+import com.github.mikephil.charting.data.CandleEntry;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.utils.MPPointF;
+import com.github.mikephil.charting.utils.Utils;
 
 /**
  * Created by Shiva Krishna on 11/7/2017.
@@ -28,9 +28,7 @@ public class CustomMarkerView extends MarkerView {
     // content (user-interface)
     @Override
     public void refreshContent(Entry e, Highlight highlight) {
-        if (e instanceof CandleEntry) {
-
-            CandleEntry ce = (CandleEntry) e;
+        if (e instanceof CandleEntry ce) {
 
             tvContent.setText(Utils.formatNumber(ce.getHigh(), 0, true));
         } else {

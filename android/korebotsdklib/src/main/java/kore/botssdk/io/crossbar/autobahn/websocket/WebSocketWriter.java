@@ -402,6 +402,8 @@ class WebSocketWriter extends Handler {
 
         if (len > 0) {
             if (mOptions.getMaskClientFrames()) {
+                /// \todo optimize masking
+                /// \todo masking within buffer of output stream
                 for (int i = 0; i < len; ++i) {
                     payload[i + offset] ^= mask[i % 4];
                 }
@@ -433,8 +435,7 @@ class WebSocketWriter extends Handler {
 
             // Check if the message that we sent was a close frame and was a reply
             // to a closing handshake, if so, then notify master to close the socket.
-            if (msg.obj instanceof Close) {
-                Close closeMessage = (Close) msg.obj;
+            if (msg.obj instanceof Close closeMessage) {
                 if (closeMessage.mIsReply) {
                     notify(new Close(closeMessage.mCode, closeMessage.mReason, true));
                 }

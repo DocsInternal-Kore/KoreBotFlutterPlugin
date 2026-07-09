@@ -6,75 +6,71 @@ import java.util.HashMap;
 
 import kore.botssdk.models.Authorization;
 import kore.botssdk.models.BotInfoModel;
-import kore.botssdk.models.BotResponse;
 import kore.botssdk.models.BotUserInfo;
 import kore.botssdk.models.User;
 
 /**
  * Copyright (c) 2014 Kore Inc. All rights reserved.
  */
-@SuppressWarnings("serial")
+@SuppressWarnings({"UnknownNullness"})
 public class RestResponse {
-
-    public class LoginResponse extends User {
+    public static class LoginResponse extends User {
         public String status;
     }
-    public class JWTTokenResponse{
+
+    public static class JWTTokenResponse {
         private String jwt;
 
         /**
-         * @return
-         * The jwt
+         * @return The jwt
          */
         public String getJwt() {
             return jwt;
         }
+
         /**
-         * @param jwt
-         * The jwt
+         * @param jwt The jwt
          */
         public void setJwt(String jwt) {
             this.jwt = jwt;
         }
     }
-    public class BotAuthorization {
+
+    public static class BotAuthorization {
         private Authorization authorization;
         private BotUserInfo userInfo;
 
         /**
-         * @return
-         * The authorization
+         * @return The authorization
          */
         public Authorization getAuthorization() {
             return authorization;
         }
 
         /**
-         * @param authorization
-         * The authorization
+         * @param authorization The authorization
          */
         public void setAuthorization(Authorization authorization) {
             this.authorization = authorization;
         }
 
         /**
-         * @return
-         * The userInfo
+         * @return The userInfo
          */
         public BotUserInfo getUserInfo() {
             return userInfo;
         }
 
         /**
-         * @param userInfo
-         * The userInfo
+         * @param userInfo The userInfo
          */
         public void setUserInfo(BotUserInfo userInfo) {
             this.userInfo = userInfo;
         }
 
     }
-    public class RTMUrl {
+
+    public static class RTMUrl {
         private String url;
 
         /**
@@ -93,8 +89,10 @@ public class RestResponse {
     }
 
     public static class BotMessage {
+        private String renderMsg;
         private String body;
         private BotCustomData customData;
+
         public HashMap<String, Object> getParams() {
             return params;
         }
@@ -105,14 +103,30 @@ public class RestResponse {
 
         private HashMap<String, Object> params;
         private ArrayList<HashMap<String, String>> attachments = new ArrayList<>();
+        private String type;
 
-        public BotMessage(String body) {
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public BotMessage(String body, String renderMsg) {
             this.body = body;
+            this.renderMsg = renderMsg == null || renderMsg.isEmpty() ? null : renderMsg;
         }
 
         public BotMessage(String body, ArrayList<HashMap<String, String>> attachments) {
             this.body = body;
             this.attachments = attachments;
+        }
+
+        public BotMessage(String body, String type, String renderMsg) {
+            this.renderMsg = renderMsg == null || renderMsg.isEmpty() ? null : renderMsg;
+            this.body = body;
+            this.type = type;
         }
 
         public void setBody(String body) {
@@ -127,6 +141,14 @@ public class RestResponse {
             return body;
         }
 
+        public String getRenderMsg() {
+            return renderMsg;
+        }
+
+        public void setRenderMsg(String renderMsg) {
+            this.renderMsg = renderMsg;
+        }
+
         public BotCustomData getCustomData() {
             return customData;
         }
@@ -136,16 +158,15 @@ public class RestResponse {
         }
     }
 
-    public static class BotCustomData extends HashMap<String,Object>{
+    public static class BotCustomData extends HashMap<String, Object> {
 
     }
 
-    public static class BotResponses extends ArrayList<BotResponse>{}
-
-    public static class Meta{
+    public static class Meta {
         public final String timezone;
         public final String locale;
-        public Meta(String timezone, String locale){
+
+        public Meta(String timezone, String locale) {
             this.timezone = timezone;
             this.locale = locale;
         }
@@ -153,25 +174,39 @@ public class RestResponse {
 
     public static class BotPayLoad {
         private BotMessage message;
-        private final String resourceid = "/bot.message";
+        private String resourceid = "/bot.message";
         private BotInfoModel botInfo;
-        private int clientMessageId = (int)System.currentTimeMillis();
+        private long clientMessageId = System.currentTimeMillis();
         private Meta meta;
-        private int id = clientMessageId;
+        private Object id = clientMessageId;
         private String client = "Android";
+        private String event;
+
+        public void setEvent(String event) {
+            this.event = event;
+        }
+
+        public String getEvent() {
+            return event;
+        }
+
+        public void setMsgId(String msgId) {
+            this.id = msgId;
+        }
 
         public void setMessage(BotMessage message) {
             this.message = message;
         }
-        public void setBotInfo(BotInfoModel botInfo){
+
+        public void setBotInfo(BotInfoModel botInfo) {
             this.botInfo = botInfo;
         }
 
-        public int getClientMessageId() {
+        public long getClientMessageId() {
             return clientMessageId;
         }
 
-        public void setClientMessageId(int clientMessageId) {
+        public void setClientMessageId(long clientMessageId) {
             this.clientMessageId = clientMessageId;
         }
 
@@ -183,11 +218,11 @@ public class RestResponse {
             this.meta = meta;
         }
 
-        public int getId() {
+        public Object getId() {
             return id;
         }
 
-        public void setId(int id) {
+        public void setId(Object id) {
             this.id = id;
         }
 
@@ -198,12 +233,17 @@ public class RestResponse {
         public void setClient(String client) {
             this.client = client;
         }
+
         public BotMessage getMessage() {
             return message;
         }
 
         public String getResourceid() {
             return resourceid;
+        }
+
+        public void setResourceid(String resourceid) {
+            this.resourceid = resourceid;
         }
 
         public BotInfoModel getBotInfo() {

@@ -1,4 +1,4 @@
-package kore.botssdk.botdb;/*
+/*
 package kore.botssdk.BotDb;
 
 import android.content.Context;

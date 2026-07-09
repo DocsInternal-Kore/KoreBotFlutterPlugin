@@ -3,7 +3,7 @@ import UIKit
 import Flutter
 import korebotplugin
 
-@UIApplicationMain
+@main
 @objc class AppDelegate: FlutterAppDelegate {
     
     var flutterMethodChannel: FlutterMethodChannel? = nil
@@ -210,21 +210,21 @@ import korebotplugin
 //
 //        let BOT_SERVER = BOT_SERVER;
 //
-////        let clientId = "cs-1e845b00-81ad-5757-a1e7-d0f6fea227e9"; // Copy this value from Bot Builder SDK Settings ex. cs-5250bdc9-6bfe-5ece-92c9-ab54aa2d4285
+////        let clientId = "PLEASE_ENTER_CLIENT_ID"; // Copy this value from Bot Builder SDK Settings.
 ////
-////        let clientSecret = "5OcBSQtH/k6Q/S6A3bseYfOee02YjjLLTNoT1qZDBso="; // Copy this value from Bot Builder SDK Settings ex. Wibn3ULagYyq0J10LCndswYycHGLuIWbwHvTRSfLwhs=
+////        let clientSecret = "PLEASE_ENTER_CLIENT_SECRET"; // Copy this value from Bot Builder SDK Settings.
 ////
-////        let botId = "st-b9889c46-218c-58f7-838f-73ae9203488c"; // Copy this value from Bot Builder -> Channels -> Web/Mobile Client  ex. st-acecd91f-b009-5f3f-9c15-7249186d827d
+////        let botId = "PLEASE_ENTER_BOT_ID"; // Copy this value from Bot Builder -> Channels -> Web/Mobile Client.
 ////
-////        let chatBotName = "SDKBot"; // Copy this value from Bot Builder -> Channels -> Web/Mobile Client  ex. "Demo Bot"
+////        let chatBotName = "PLEASE_ENTER_BOT_NAME"; // Copy this value from Bot Builder -> Channels -> Web/Mobile Client.
 ////
-////        let identity = "rajasekhar.balla@kore.com";// This should represent the subject for JWT token. This can be an email or phone number, in case of known user, and in case of anonymous user, this can be a randomly generated unique id.
+////        let identity = "PLEASE_ENTER_IDENTITY";// This should represent the subject for JWT token. This can be an email or phone number, in case of known user, and in case of anonymous user, this can be a randomly generated unique id.
 ////
 ////        let isAnonymous = true; // This should be either true (in case of known-user) or false (in-case of anonymous user).
 ////
-////        let JWT_SERVER = "https://mk2r2rmj21.execute-api.us-east-1.amazonaws.com/dev/"; // Replace it with the actual JWT server URL, if required. Refer to developer documentation for instructions on hosting JWT Server.
+////        let JWT_SERVER = "PLEASE_ENTER_JWT_SERVER_URL"; // Replace it with the actual JWT server URL, if required. Refer to developer documentation for instructions on hosting JWT Server.
 ////
-////        let BOT_SERVER = "https://bots.kore.ai";
+////        let BOT_SERVER = "PLEASE_ENTER_BOT_SERVER_URL";
 //
 //
 //        botConnect.initialize(clientId, clientSecret: clientSecret, botId: botId, chatBotName: chatBotName, identity: identity, isAnonymous: isAnonymous, isWebhookEnabled: false, JWTServerUrl: JWT_SERVER, BOTServerUrl: BOT_SERVER, BrandingUrl: BOT_SERVER, customData: [:], queryParameters: [], customJWToken: "");
@@ -292,6 +292,5 @@ import korebotplugin
 //    }
 //
 //}
-
 
 

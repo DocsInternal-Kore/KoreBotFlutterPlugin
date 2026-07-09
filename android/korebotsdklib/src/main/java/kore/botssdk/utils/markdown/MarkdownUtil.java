@@ -5,16 +5,9 @@ import org.apache.commons.lang3.math.NumberUtils;
 
 import kore.botssdk.utils.Utils;
 
-
-/**
- * Created by AmitYadav on 2/28/2017.
- */
-
 public class MarkdownUtil {
 
     public static String processMarkDown(String text) {
-//        text = text.replaceAll("" + MarkdownConstant.NEW_LINE, "<br/>");
-//        text = text.replaceAll("\\s", "&nbsp;");
         text = markDownBoldAndItalic(text, MarkdownConstant.STAR,
                 MarkdownConstant.BOLD_HTML_START, MarkdownConstant.BOLD_HTML_END);
         text = markDownBoldAndItalic(text, MarkdownConstant.TILDE,
@@ -26,7 +19,8 @@ public class MarkdownUtil {
         text = markDownList(text, MarkdownConstant.ORDER_LIST_P1,
                 MarkdownConstant.ORDER_LIST_ITEM_FORMAT, MarkdownConstant.ORDER_LIST_CONTAINER_FORMAT);
         text = markDownHeading(text);
-
+        text = markDownEscapeQuote(text);
+        text = markDownRemovingParagraph(text);
         return text;
     }
 
@@ -55,6 +49,17 @@ public class MarkdownUtil {
             nIndex = text.indexOf(delimiter, index + 1);
             if (nIndex == -1) {
                 break;
+            }
+
+            nIndex = text.indexOf(delimiter, index + 1);
+            if (nIndex == -1) {
+                break;
+            }
+
+            // NEW CHECK: if newline exists between *...* → skip
+            String between = text.substring(index + 1, nIndex);
+            if (between.contains("\n")) {
+                continue;
             }
 
             //get previous char and ignore SPACE and consecutive STAR
@@ -407,7 +412,7 @@ public class MarkdownUtil {
             }
 
             StringBuilder builder = new StringBuilder(text);
-            char c = text.charAt(index+2);
+            char c = text.charAt(index + 2);
             if (Character.isDigit(c) && Integer.parseInt(c + "") <= 6) {
 
 
@@ -441,11 +446,30 @@ public class MarkdownUtil {
                 }
 
                 text = builder.toString();
-            }else{
+            } else {
                 break;
             }
         } while (true);
 
+        return text;
+    }
+
+    /**
+     * Convert escape quote ``` to empty
+     */
+    private static String markDownEscapeQuote(String text) {
+        text = text.replaceAll(" ```", "\n");
+        text = text.replaceAll("```", "");
+
+        return text;
+    }
+
+    /**
+     * Convert escape quote ``` to empty
+     */
+    private static String markDownRemovingParagraph(String text) {
+        text = text.replaceAll("<p>", "");
+        text = text.replaceAll("</p>", "");
         return text;
     }
 }

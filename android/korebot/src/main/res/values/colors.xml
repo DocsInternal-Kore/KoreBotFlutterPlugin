@@ -3,6 +3,8 @@
     <!--<color name="colorAccent">#2f91e5</color>--><!-- HSBC - #db0012, BMC Helix - #2f91e5 -->
     <color name="bgBlueSignup">#3F51B5</color>
     <color name="bgLightBlue">#9fa8da</color>
+    <color name="kora_grey">#202124</color>
+    <color name="gray_modern">#4B5565</color>
 
 <!--    General Theme-->
     <color name="colorPrimaryKa">#3F51B5</color>
@@ -120,9 +122,9 @@
     <!--<color name="color_4741fa">#4741fa</color>-->
     <color name="color_f7f7fd">#f7f7fd</color>
     <string-array name="color_set">
-        <item>#4E74F0</item>
-        <item>#E44929</item>
-        <item>#FF7A00</item>
+        <item>#5BC8C4</item>
+        <item>#4A9AF2</item>
+        <item>#8ECB60</item>
         <item>#BDA100</item>
         <item>#E36CA2</item>
         <item>#591880</item>
@@ -204,7 +206,4 @@
     <color name="color_3E3E51">#3e3e51</color>
     <color name="listview_cost">#008000</color>
     <color name="txtFontBlack">#000000</color>
-    <color name="kora_grey">#202124</color>
-    <color name="gray_modern">#4B5565</color>
-    <color name="neutral">#404040</color>
 </resources>

@@ -1,9 +1,11 @@
 package kore.botssdk.listener;
 
-/**
- * Created by Pradeep Mahato on 13-Jun-16.
+import java.util.HashMap;
+
+/*
  * Copyright (c) 2014 Kore Inc. All rights reserved.
  */
-public interface ComposeFooterUpdate {
+public interface ComposeFooterUpdate extends BaseView {
     void enableSendButton();
+    void addAttachmentToAdapter(HashMap<String, String> attachmentKey);
 }

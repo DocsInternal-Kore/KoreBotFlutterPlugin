@@ -8,13 +8,13 @@
 
     <ImageView
         android:id="@+id/ivOptions"
-        android:layout_width="@dimen/dimen_25dp"
-        android:layout_height="@dimen/dimen_25dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_margin="@dimen/dimen_7dp"
         android:background="@drawable/checkbox_drawable"
-        android:contentDescription="@string/app_name" />
+        android:contentDescription="@string/drawable_to_display_whether_the_option_is_selected_or_not" />
 
-    <TextView
+    <kore.botssdk.view.CustomTextView
         android:id="@+id/tvBtnText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

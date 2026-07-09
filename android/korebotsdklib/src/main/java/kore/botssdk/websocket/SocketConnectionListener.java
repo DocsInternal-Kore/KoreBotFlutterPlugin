@@ -1,8 +1,7 @@
 package kore.botssdk.websocket;
 
 
-/**
- * Created by Ramachandra
+/*
  * Copyright (c) 2014 Kore Inc. All rights reserved.
  */
 public interface SocketConnectionListener {
@@ -47,13 +46,17 @@ public interface SocketConnectionListener {
 
 
     void refreshJwtToken();
+
     /**
-     * Callback for when user Connected
-     *//*
-    void onConnected(String message);
-	
-	*//**
-     * Callback for when user Disconnected
-     *//*
-	void onDisconnected(String reason);*/
+     * Fired when a sdk reached maximum attempts to connect to Bot.
+     * @param reconnectionStopped with reason.
+     */
+    void onReconnectStopped(String reconnectionStopped);
+
+    /**
+     * Fired when a sdk completed start call during connect to Bot.
+     * @param isReconnect with reconnect status.
+     */
+    void onStartCompleted(boolean isReconnect);
+
 }

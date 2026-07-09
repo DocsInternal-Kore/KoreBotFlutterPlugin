@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 
@@ -20,11 +20,10 @@ import kore.botssdk.models.QuickRepliesPayloadModel;
 import kore.botssdk.models.QuickReplyTemplate;
 import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.utils.BundleConstants;
-import kore.botssdk.view.viewHolder.QuickReplyViewHolder;
-import kore.botssdk.view.viewUtils.DimensionUtil;
+import kore.botssdk.viewUtils.DimensionUtil;
+import kore.botssdk.viewholders.QuickReplyViewHolder;
 
 /**
- * Created by Pradeep Mahato on 28/7/17.
  * Copyright (c) 2014 Kore Inc. All rights reserved.
  */
 public class QuickRepliesAdapter extends RecyclerView.Adapter<QuickReplyViewHolder> {
@@ -42,7 +41,7 @@ public class QuickRepliesAdapter extends RecyclerView.Adapter<QuickReplyViewHold
     public QuickRepliesAdapter(Context context, RecyclerView parentRecyclerView) {
         this.context = context;
         this.parentRecyclerView = parentRecyclerView;
-        quickWidgetColor = Color.parseColor(SDKConfiguration.BubbleColors.quickBorderColor);
+        quickWidgetColor = Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor);
         fillColor = Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor);
         quickReplyFontColor = Color.parseColor(SDKConfiguration.BubbleColors.quickReplyTextColor);
         dp1= (int) DimensionUtil.dp1;
@@ -52,7 +51,7 @@ public class QuickRepliesAdapter extends RecyclerView.Adapter<QuickReplyViewHold
     @Override
     public QuickReplyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View convertView = View.inflate(context, R.layout.quick_reply_item_layout, null);
-        GradientDrawable gradientDrawable = (GradientDrawable)convertView.findViewById(R.id.quick_reply_view).getBackground();
+        GradientDrawable gradientDrawable = (GradientDrawable)convertView.findViewById(R.id.quick_reply_view).getBackground().mutate();
         gradientDrawable.setStroke(dp1, quickWidgetColor);
         gradientDrawable.setColor(fillColor);
         QuickReplyViewHolder viewHolder = new QuickReplyViewHolder(convertView);
@@ -65,47 +64,47 @@ public class QuickRepliesAdapter extends RecyclerView.Adapter<QuickReplyViewHold
         QuickReplyTemplate quickReplyTemplate = quickReplyTemplateArrayList.get(position);
 
         if (quickReplyTemplate.getImage_url() != null && !quickReplyTemplate.getImage_url().isEmpty()) {
-            Picasso.get().load(quickReplyTemplate.getImage_url()).into(holder.getQuickReplyImage());
             holder.getQuickReplyImage().setVisibility(View.VISIBLE);
+
+            Glide.with(context)
+                    .load(quickReplyTemplate.getImage_url())
+                    .into(holder.getQuickReplyImage());
         } else {
             holder.getQuickReplyImage().setVisibility(View.GONE);
         }
 
         holder.getQuickReplyTitle().setText(quickReplyTemplate.getTitle());
 
-        holder.getQuickReplyRoot().setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int position =  parentRecyclerView.getChildAdapterPosition(v);
-                if (composeFooterInterface != null && invokeGenericWebViewInterface != null) {
-                    QuickReplyTemplate quickReplyTemplate = quickReplyTemplateArrayList.get(position);
+        holder.getQuickReplyRoot().setOnClickListener(v -> {
+            int position1 =  parentRecyclerView.getChildAdapterPosition(v);
+            if (composeFooterInterface != null && invokeGenericWebViewInterface != null) {
+                QuickReplyTemplate quickReplyTemplate1 = quickReplyTemplateArrayList.get(position1);
 
-                    String quickReplyPayload = null;
+                String quickReplyPayload;
+                try {
+                    quickReplyPayload = (String) quickReplyTemplate1.getPayload();
+                }catch (Exception e)
+                {
                     try {
-                        quickReplyPayload = (String) quickReplyTemplate.getPayload();
-                    }catch (Exception e)
+                        QuickRepliesPayloadModel quickRepliesPayloadModel = (QuickRepliesPayloadModel) quickReplyTemplate1.getPayload();
+                        quickReplyPayload = quickRepliesPayloadModel.getName();
+                    }
+                    catch (Exception exception)
                     {
-                        try {
-                            QuickRepliesPayloadModel quickRepliesPayloadModel = (QuickRepliesPayloadModel) quickReplyTemplate.getPayload();
-                            quickReplyPayload = quickRepliesPayloadModel.getName();
-                        }
-                        catch (Exception exception)
-                        {
-                            quickReplyPayload = "";
-                        }
+                        quickReplyPayload = "";
                     }
+                }
 
-                    if (BundleConstants.BUTTON_TYPE_POSTBACK.equalsIgnoreCase(quickReplyTemplate.getContent_type())) {
-                        composeFooterInterface.onSendClick(quickReplyTemplate.getTitle(), quickReplyPayload,false);
-                    } else if(BundleConstants.BUTTON_TYPE_USER_INTENT.equalsIgnoreCase(quickReplyTemplate.getContent_type())){
-                        invokeGenericWebViewInterface.invokeGenericWebView(BundleConstants.BUTTON_TYPE_USER_INTENT);
-                    }else if(BundleConstants.BUTTON_TYPE_TEXT.equalsIgnoreCase(quickReplyTemplate.getContent_type())){
-                        composeFooterInterface.onSendClick(quickReplyTemplate.getTitle(),quickReplyPayload,false);
-                    }else if(BundleConstants.BUTTON_TYPE_WEB_URL.equalsIgnoreCase(quickReplyTemplate.getContent_type())){
-                        invokeGenericWebViewInterface.invokeGenericWebView(quickReplyPayload);
-                    }else{
-                        composeFooterInterface.onSendClick(quickReplyTemplate.getTitle(), quickReplyPayload,false);
-                    }
+                if (BundleConstants.BUTTON_TYPE_POSTBACK.equalsIgnoreCase(quickReplyTemplate1.getContent_type())) {
+                    composeFooterInterface.onSendClick(quickReplyTemplate1.getTitle(), quickReplyPayload,false);
+                } else if(BundleConstants.BUTTON_TYPE_USER_INTENT.equalsIgnoreCase(quickReplyTemplate1.getContent_type())){
+                    invokeGenericWebViewInterface.invokeGenericWebView(BundleConstants.BUTTON_TYPE_USER_INTENT);
+                }else if(BundleConstants.BUTTON_TYPE_TEXT.equalsIgnoreCase(quickReplyTemplate1.getContent_type())){
+                    composeFooterInterface.onSendClick(quickReplyTemplate1.getTitle(),quickReplyPayload,false);
+                }else if(BundleConstants.BUTTON_TYPE_WEB_URL.equalsIgnoreCase(quickReplyTemplate1.getContent_type())){
+                    invokeGenericWebViewInterface.invokeGenericWebView(quickReplyPayload);
+                }else{
+                    composeFooterInterface.onSendClick(quickReplyTemplate1.getTitle(), quickReplyPayload,false);
                 }
             }
         });

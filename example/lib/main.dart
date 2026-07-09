@@ -53,7 +53,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   static const platform = MethodChannel('kore.botsdk/chatbot');
-  final myController = TextEditingController();
 
   var botConfig = {
     "clientId": "PLEASE_ENTER_CLIENT_ID",
@@ -61,10 +60,8 @@ class _MyHomePageState extends State<MyHomePage> {
     "botId": "PLEASE_ENTER_BOT_ID",
     "chatBotName": "PLEASE_ENTER_BOT_NAME",
     "identity": "PLEASE_ENTER_IDENTITY",
-    "jwt_server_url":
-        "PLEASE_ENTER_JWT_SERVER_URL",
-    "server_url": "PLEASE_ENTER_SERVER_URL",
-    "callHistory": true
+    "jwt_server_url": "PLEASE_ENTER_JWT_SERVER_URL",
+    "server_url": "PLEASE_ENTER_SERVER_URL"
   };
 
   Future<void> _callNativemethod() async {
@@ -76,43 +73,12 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     try {
-      final String config =
-          await platform.invokeMethod('getChatWindow', botConfig);
-    } on PlatformException catch (e) {}
-  }
-
-  Future<void> botInitialize() async {
-    platform.setMethodCallHandler((handler) async {
-      if (handler.method == 'Callbacks') {
-        // Do your logic here.
-        debugPrint("Event from native ${handler.arguments}");
-      }
-    });
-
-    try {
-      final String config =
-          await platform.invokeMethod('initialize', botConfig);
-    } on PlatformException catch (e) {}
-  }
-
-  Future<void> getSearchResults(searchQuery) async {
-    platform.setMethodCallHandler((handler) async {
-      if (handler.method == 'Callbacks') {
-        // Do your logic here.
-        debugPrint("Event from native ${handler.arguments}");
-      }
-    });
-
-    try {
-      final String config = await platform
-          .invokeMethod('getSearchResults', {"searchQuery": searchQuery});
-    } on PlatformException catch (e) {}
+      await platform.invokeMethod('getChatWindow', botConfig);
+    } on PlatformException catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
-    botInitialize();
-
     return Material(
       child: Center(
         child: Column(
@@ -124,22 +90,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: _callNativemethod,
                 child: const Text('Bot Connect'),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-              child: TextFormField(
-                controller: myController,
-                decoration: const InputDecoration(
-                  border: UnderlineInputBorder(),
-                  labelText: 'Enter your message',
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-              child: ElevatedButton(
-                  onPressed: () => {getSearchResults(myController.text)},
-                  child: const Text('Search Query')),
             ),
           ],
         ),

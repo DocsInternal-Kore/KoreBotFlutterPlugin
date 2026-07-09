@@ -15,32 +15,36 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.MultiTransformation;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 
 import java.util.ArrayList;
 
 import kore.botssdk.R;
 import kore.botssdk.models.AdvanceListTableModel;
 import kore.botssdk.utils.StringUtils;
-import kore.botssdk.view.viewUtils.RoundedCornersTransform;
 
 public class CardTemplateListAdapter extends RecyclerView.Adapter<CardTemplateListAdapter.ButtonViewHolder> {
     private final LayoutInflater inflater;
     private final ArrayList<AdvanceListTableModel.AdvanceTableRowDataModel> buttons;
+    private final Context context;
 
     public CardTemplateListAdapter(@NonNull Context context, @NonNull ArrayList<AdvanceListTableModel.AdvanceTableRowDataModel> buttons) {
         this.buttons = buttons;
         this.inflater = LayoutInflater.from(context);
+        this.context = context;
     }
 
     @NonNull
     @Override
-    public ButtonViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        return new ButtonViewHolder(inflater.inflate(R.layout.card_desc_list_cell, viewGroup, false));
+    public CardTemplateListAdapter.ButtonViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+        return new CardTemplateListAdapter.ButtonViewHolder(inflater.inflate(R.layout.card_desc_list_cell, viewGroup, false));
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ButtonViewHolder holder, int i) {
+    public void onBindViewHolder(@NonNull CardTemplateListAdapter.ButtonViewHolder holder, int i) {
         AdvanceListTableModel.AdvanceTableRowDataModel btn = buttons.get(i);
         holder.tvBtnText.setText(btn.getTitle());
 
@@ -68,7 +72,15 @@ public class CardTemplateListAdapter extends RecyclerView.Adapter<CardTemplateLi
                 }
                 else
                 {
-                    Picasso.get().load(btn.getIcon()).transform(new RoundedCornersTransform()).into(holder.ivListBtnIcon);
+                    Glide.with(context)
+                            .load(btn.getIcon())
+                            .transform(
+                                    new MultiTransformation<>(
+                                            new CenterCrop(),
+                                            new RoundedCorners(20)
+                                    )
+                            )
+                            .into(holder.ivListBtnIcon);
                 }
             }
             catch (Exception ex)
@@ -81,12 +93,6 @@ public class CardTemplateListAdapter extends RecyclerView.Adapter<CardTemplateLi
     @Override
     public int getItemCount() {
         return buttons != null ? buttons.size() : 0;
-    }
-
-    boolean isFullView;
-
-    public void setIsFromFullView(boolean isFullView) {
-        this.isFullView = isFullView;
     }
 
     public static class ButtonViewHolder extends RecyclerView.ViewHolder {

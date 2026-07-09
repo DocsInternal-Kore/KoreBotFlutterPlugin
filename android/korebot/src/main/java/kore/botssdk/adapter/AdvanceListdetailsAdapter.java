@@ -14,7 +14,10 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.MultiTransformation;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 
 import java.util.ArrayList;
 
@@ -22,14 +25,13 @@ import kore.botssdk.R;
 import kore.botssdk.models.Widget;
 import kore.botssdk.utils.KaFontUtils;
 import kore.botssdk.utils.StringUtils;
-import kore.botssdk.view.viewUtils.RoundedCornersTransform;
 
-public class AdvanceListdetailsAdapter extends BaseAdapter
+public class AdvanceListDetailsAdapter extends BaseAdapter
 {
     private final Context context;
     private final ArrayList<Widget.Button> contentModels;
 
-    protected AdvanceListdetailsAdapter(@NonNull Context context, @NonNull ArrayList<Widget.Button> contentModels)
+    public AdvanceListDetailsAdapter(@NonNull Context context, @NonNull ArrayList<Widget.Button> contentModels)
     {
         this.context = context;
         this.contentModels = contentModels;
@@ -91,7 +93,15 @@ public class AdvanceListdetailsAdapter extends BaseAdapter
                 }
                 else
                 {
-                    Picasso.get().load(dataObj.getIcon()).transform(new RoundedCornersTransform()).into(holder.ivListBtnIcon);
+                    Glide.with(context)
+                            .load(dataObj.getIcon())
+                            .transform(
+                                    new MultiTransformation<>(
+                                            new CenterCrop(),
+                                            new RoundedCorners(20)
+                                    )
+                            )
+                            .into(holder.ivListBtnIcon);
                 }
             }
             catch (Exception ex)

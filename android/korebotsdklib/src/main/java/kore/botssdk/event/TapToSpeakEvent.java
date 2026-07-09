@@ -1,4 +1,4 @@
-package kore.botssdk.event;/*
+/*
 package kore.botssdk.event;
 
 */

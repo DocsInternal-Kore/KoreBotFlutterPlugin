@@ -5,10 +5,8 @@ import com.google.gson.JsonObject;
 
 import java.util.HashMap;
 
-import kore.botssdk.models.BotActiveThemeModel;
 import kore.botssdk.models.BotHistory;
 import kore.botssdk.models.BotMetaModel;
-import kore.botssdk.models.BrandingNewModel;
 import kore.botssdk.models.JWTTokenResponse;
 import kore.botssdk.models.KoreLoginResponse;
 import kore.botssdk.models.PdfResponseModel;
@@ -34,7 +32,9 @@ public interface RestAPI {
 
     String URL_VERSION = "/1.1";
 
-    /** Login Service **/
+    /**
+     * Login Service
+     **/
     @POST("/api/oAuth/token")
     Call<RestResponse.LoginResponse> loginUser(@Body HashMap<String, Object> userCredentials);
 
@@ -55,7 +55,11 @@ public interface RestAPI {
 
     //Getting jwt grant
     @POST("/api/oAuth/token/jwtgrant")
-    Call<RestResponse.BotAuthorization> jwtGrant(@Body HashMap<String,Object> jwtToken);
+    Call<RestResponse.BotAuthorization> jwtGrant(@Body HashMap<String, Object> jwtToken);
+
+//    //Getting jwt grant Anonymous
+//    @POST("/api/oAuth/token/jwtgrant/anonymous")
+//    RestResponse.BotAuthorization jwtGrantAnonymous(@Body HashMap<String,Object> jwtToken);
 
     //Getting rtm URL
     @POST("/api/rtm/start")
@@ -64,11 +68,12 @@ public interface RestAPI {
     @POST("/api/rtm/start")
     Call<RestResponse.RTMUrl> getRtmUrl(@Header("Authorization") String token, @Body HashMap<String, Object> optParameterBotInfo, @Query("isReconnect") boolean isReconnect);
 
-//    Get search results
-    @POST("api/public/stream/{botId}/advancedSearch")
-    Call<ResponseBody> getAdvancedSearch(@Path("botId") String botId, @Header("auth") String token, @Body HashMap<String, Object> jsonObject);
+    //Get Market Streams
+//    @GET("/api/users/{userId}/builder/streams")
+//    Call<MarketStreamList> getMarketStreams(@Path("userId") String userId, @Header("Authorization") String token);
 
     //Subscribe to Push notification
+//    api/public/streams/PLEASE_ENTER_STREAM_ID/sdknotifications/subscribe'
     @POST("/api/users/{userId}/sdknotifications/subscribe")
     Call<ResponseBody> subscribeForPushNotification(@Path("userId") String userId, @Header("Authorization") String token, @Body HashMap<String, Object> req);
 
@@ -91,25 +96,24 @@ public interface RestAPI {
 //    Call<ArrayList<BrandingNewModel>> getBrandingNewDetails(@Header("Authorization") String token, @Header("tenantId") String tenantId, @Header("state") String state, @Header("Accepts-version") String version, @Header("Accept-Language") String language, @Header("botid") String botId);
 
     @GET("api/websdkthemes/{botId}/activetheme")
-    Call<ResponseBody> getBrandingDetails(@Path("botId") String bot_Id, @Header("Authorization") String token, @Header("state") String state, @Header("Accepts-version") String version, @Header("Accept-Language") String language, @Header("botid") String botId);
-
-    @GET("api/websdkthemes/{botId}/activetheme")
-    Call<BrandingNewModel> getBrandingNewDetails(@Path("botId") String bot_Id, @Header("Authorization") String token, @Header("state") String state, @Header("Accepts-version") String version, @Header("Accept-Language") String language, @Header("botid") String botId);
+    Call<ResponseBody> getBrandingNewDetails(@Path("botId") String bot_Id, @Header("Authorization") String token, @Header("state") String state, @Header("Accepts-version") String version, @Header("Accept-Language") String language, @Header("botid") String botId);
 
     // Send WebHook Message
     @POST("chatbot/v2/webhook/{streamId}")
     Call<WebHookResponseDataModel> sendWebHookMessage(@Path("streamId") String streamId, @Header("Authorization") String token, @Body HashMap<String, Object> body);
 
     @GET("/api/chathistory/{streamId}/ivr?")
-    Call<BotHistory> getWebHookBotHistory(@Header("Authorization") String token, @Path("streamId") String streamId, @Query("botId") String botId, @Query("limit") int limit);
+    Call<BotHistory> getWebHookBotHistory(@Header("Authorization") String token, @Path("streamId") String streamId, @Query("botId") String botId, @Query("limit") int limit, @Query("offset") int offset);
 
     @GET("api/botmeta/{streamId}")
     Call<BotMetaModel> getWebHookBotMeta(@Header("Authorization") String token, @Path("streamId") String streamId);
 
     @GET("chatbot/v2/webhook/{streamId}/poll/{pollId}")
     Call<WebHookResponseDataModel> getPollIdData(@Header("Authorization") String token, @Path("streamId") String streamId, @Path("pollId") String pollId);
+
     @POST
     Call<PdfResponseModel> getPdfBaseDetails(@Url String url, @HeaderMap HashMap<String, String> header, @Body JsonObject body);
+
     @POST
-    Call<ResponseBody> getPdfDetails(@Url String url, @HeaderMap HashMap<String, String> header,  @Body JsonObject body);
+    Call<ResponseBody> getPdfDetails(@Url String url, @HeaderMap HashMap<String, String> header, @Body JsonObject body);
 }

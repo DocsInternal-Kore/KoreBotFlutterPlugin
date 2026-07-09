@@ -1,15 +1,17 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 
 android {
-    compileSdk 34
+    namespace 'kore.korebotsdklib'
+    compileSdk 36
 
-    dataBinding{
-        enabled = true
+    buildFeatures {
+        dataBinding true
     }
 
     defaultConfig {
         minSdkVersion 23
-        targetSdkVersion 34
+        targetSdkVersion 36
     }
     buildTypes {
         release {
@@ -20,8 +22,8 @@ android {
     useLibrary 'org.apache.http.legacy'
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     buildscript {
@@ -32,16 +34,8 @@ android {
 
     dependencies {
 
-        api 'androidx.appcompat:appcompat:1.6.1'
+        api 'androidx.appcompat:appcompat:1.7.0'
         api 'de.greenrobot:eventbus:2.4.0'
-        //For jwt
-        api 'io.jsonwebtoken:jjwt-api:0.12.3'
-        api 'io.jsonwebtoken:jjwt-impl:0.12.3'
-        api('io.jsonwebtoken:jjwt-orgjson:0.12.3') {
-            exclude group: 'org.json', module: 'json' //provided by Android natively
-        }
-        // Uncomment the next line if you want to use RSASSA-PSS (PS256, PS384, PS512) algorithms:
-        //runtimeOnly 'org.bouncycastle:bcprov-jdk15on:1.60'
         api 'com.squareup.retrofit2:retrofit:2.9.0'
         api 'com.squareup.okhttp3:logging-interceptor:4.12.0'
         api 'com.google.code.gson:gson:2.10.1'
@@ -52,4 +46,3 @@ android {
         api group: 'org.apache.commons', name: 'commons-lang3', version: '3.3.2'
     }
 }
-

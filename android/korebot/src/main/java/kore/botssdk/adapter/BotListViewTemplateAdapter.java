@@ -1,6 +1,7 @@
 package kore.botssdk.adapter;
 
-import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
+import static android.content.Context.MODE_PRIVATE;
+import static kore.botssdk.models.BotResponsePayLoadText.THEME_NAME;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -17,9 +18,11 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import androidx.core.content.res.ResourcesCompat;
-
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.MultiTransformation;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.util.ArrayList;
 
@@ -30,24 +33,22 @@ import kore.botssdk.models.BotListModel;
 import kore.botssdk.models.BotResponse;
 import kore.botssdk.utils.BundleConstants;
 import kore.botssdk.utils.StringUtils;
-import kore.botssdk.view.viewUtils.RoundedCornersTransform;
+
 @SuppressLint("UnknownNullness")
 public class BotListViewTemplateAdapter extends BaseAdapter {
     private ArrayList<BotListModel> botListModelArrayList = new ArrayList<>();
-    ComposeFooterInterface composeFooterInterface;
-    InvokeGenericWebViewInterface invokeGenericWebViewInterface;
+    private ComposeFooterInterface composeFooterInterface;
+    private InvokeGenericWebViewInterface invokeGenericWebViewInterface;
     private final Context context;
-    private final RoundedCornersTransform roundedCornersTransform;
     final ListView parentListView;
     private final int count;
-    private final SharedPreferences sharedPreferences;
+    private final BottomSheetDialog bottomSheetDialog;
 
-    public BotListViewTemplateAdapter(Context context, ListView parentListView, int count) {
+    public BotListViewTemplateAdapter(Context context, ListView parentListView, int count, BottomSheetDialog bottomSheetDialog) {
         this.context = context;
-        this.roundedCornersTransform = new RoundedCornersTransform();
         this.parentListView = parentListView;
         this.count = count;
-        this.sharedPreferences = context.getSharedPreferences(BotResponse.THEME_NAME, Context.MODE_PRIVATE);
+        this.bottomSheetDialog = bottomSheetDialog;
     }
 
     @Override
@@ -95,33 +96,17 @@ public class BotListViewTemplateAdapter extends BaseAdapter {
         BotListModel botListModel = getItem(position);
         holder.botListItemImage.setVisibility(View.GONE);
 
-        if(sharedPreferences != null)
-        {
-            GradientDrawable rightDrawable = (GradientDrawable) ResourcesCompat.getDrawable(context.getResources() , R.drawable.rounded_rect_feedback, context.getTheme());
-           if(rightDrawable != null)
-           {
-               rightDrawable.setColor(Color.parseColor(sharedPreferences.getString(BotResponse.BUTTON_ACTIVE_BG_COLOR, "#ffffff")));
-               String themeName = sharedPreferences.getString(BotResponse.APPLY_THEME_NAME, BotResponse.THEME_NAME_1);
-               if(themeName.equalsIgnoreCase(BotResponse.THEME_NAME_1))
-               {
-                   rightDrawable.setStroke((int) (1*dp1), Color.parseColor(sharedPreferences.getString(BotResponse.BUTTON_ACTIVE_BG_COLOR, "#ffffff")));
-                   holder.botListItemRoot.setBackground(rightDrawable);
-               }
-               else
-               {
-                   rightDrawable.setStroke((int) (2*dp1), Color.parseColor(sharedPreferences.getString(BotResponse.WIDGET_BORDER_COLOR, "#ffffff")));
-                   holder.botListItemRoot.setBackground(rightDrawable);
-               }
-           }
-
-            holder.botListItemTitle.setTextColor(Color.parseColor(sharedPreferences.getString(BotResponse.BUTTON_ACTIVE_TXT_COLOR, "#505968")));
-        }
-
-
-
-        if(!StringUtils.isNullOrEmpty(botListModel.getImage_url())) {
+        if (!StringUtils.isNullOrEmpty(botListModel.getImage_url())) {
             holder.botListItemImage.setVisibility(View.VISIBLE);
-            Picasso.get().load(botListModel.getImage_url()).transform(roundedCornersTransform).into(holder.botListItemImage);
+            Glide.with(context)
+                    .load(botListModel.getImage_url())
+                    .transform(
+                            new MultiTransformation<>(
+                                    new CenterCrop(),
+                                    new RoundedCorners(20)
+                            )
+                    )
+                    .into(holder.botListItemImage);
         }
 
         holder.botListItemTitle.setTag(botListModel);
@@ -129,40 +114,34 @@ public class BotListViewTemplateAdapter extends BaseAdapter {
         holder.botListItemTitle.setTypeface(null, Typeface.BOLD);
         holder.bot_list_item_cost.setText(botListModel.getValue());
 
-        if(botListModel.getColor() != null)
+        if (botListModel.getColor() != null)
             holder.bot_list_item_cost.setTextColor(Color.parseColor(botListModel.getColor()));
 
         holder.bot_list_item_cost.setTypeface(null, Typeface.BOLD);
 
-        if(!StringUtils.isNullOrEmpty(botListModel.getSubtitle())) {
+        if (!StringUtils.isNullOrEmpty(botListModel.getSubtitle())) {
             holder.botListItemSubtitle.setVisibility(View.VISIBLE);
             holder.botListItemSubtitle.setText(botListModel.getSubtitle());
-
-            if(sharedPreferences != null)
-                holder.botListItemSubtitle.setTextColor(Color.parseColor(sharedPreferences.getString(BotResponse.BUTTON_ACTIVE_TXT_COLOR, "#505968")));
         }
 
-        holder.botListItemRoot.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (composeFooterInterface != null && invokeGenericWebViewInterface != null) {
-                    int position = parentListView.getPositionForView(v);
-                    BotListModel _botListModel = getItem(position);
-                    if (_botListModel != null && _botListModel.getDefault_action() != null) {
-                        if (BundleConstants.BUTTON_TYPE_WEB_URL.equalsIgnoreCase(_botListModel.getDefault_action().getType())) {
-                            invokeGenericWebViewInterface.invokeGenericWebView(_botListModel.getDefault_action().getUrl());
-                        } else if (BundleConstants.BUTTON_TYPE_POSTBACK.equalsIgnoreCase(_botListModel.getDefault_action().getType())) {
+        holder.botListItemRoot.setOnClickListener(v -> {
+            if (bottomSheetDialog != null) bottomSheetDialog.dismiss();
+            if (composeFooterInterface != null && invokeGenericWebViewInterface != null) {
+                int position1 = parentListView.getPositionForView(v);
+                BotListModel _botListModel = getItem(position1);
+                if (_botListModel != null && _botListModel.getDefault_action() != null) {
+                    if (BundleConstants.BUTTON_TYPE_WEB_URL.equalsIgnoreCase(_botListModel.getDefault_action().getType())) {
+                        invokeGenericWebViewInterface.invokeGenericWebView(_botListModel.getDefault_action().getUrl());
+                    } else if (BundleConstants.BUTTON_TYPE_POSTBACK.equalsIgnoreCase(_botListModel.getDefault_action().getType())) {
 
-                            if(!StringUtils.isNullOrEmpty(_botListModel.getDefault_action().getPayload()))
-                                composeFooterInterface.onSendClick(_botListModel.getDefault_action().getPayload(),false);
-                            else if(!StringUtils.isNullOrEmpty(_botListModel.getDefault_action().getTitle()))
-                                composeFooterInterface.onSendClick(_botListModel.getDefault_action().getTitle(),false);
-                        }
+                        if (!StringUtils.isNullOrEmpty(_botListModel.getDefault_action().getPayload()))
+                            composeFooterInterface.onSendClick(_botListModel.getDefault_action().getTitle(), _botListModel.getDefault_action().getPayload(), false);
+                        else if (!StringUtils.isNullOrEmpty(_botListModel.getDefault_action().getTitle()))
+                            composeFooterInterface.onSendClick(_botListModel.getDefault_action().getTitle(), false);
                     }
                 }
             }
         });
-
     }
 
     public void setBotListModelArrayList(ArrayList<BotListModel> botListModelArrayList) {
@@ -187,6 +166,10 @@ public class BotListViewTemplateAdapter extends BaseAdapter {
         holder.botListItemSubtitle = view.findViewById(R.id.bot_list_item_subtitle);
         holder.bot_list_item_cost = view.findViewById(R.id.bot_list_item_cost);
 
+        SharedPreferences pref = holder.botListItemRoot.getContext().getSharedPreferences(THEME_NAME, MODE_PRIVATE);
+        GradientDrawable drawable = (GradientDrawable) holder.botListItemRoot.getBackground().mutate();
+        drawable.setStroke(2, Color.parseColor(pref.getString(BotResponse.BUBBLE_LEFT_BG_COLOR, "#ffffff")));
+
         view.setTag(holder);
     }
 
@@ -197,4 +180,3 @@ public class BotListViewTemplateAdapter extends BaseAdapter {
         TextView botListItemSubtitle, bot_list_item_cost;
     }
 }
-

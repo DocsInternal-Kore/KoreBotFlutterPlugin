@@ -29,7 +29,7 @@ public class BankingFeedbackButtonsAdapter extends RecyclerView.Adapter<BankingF
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+    public BankingFeedbackButtonsAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
     {
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
         View listItem = layoutInflater.inflate(R.layout.banking_feedback_button_cell, parent, false);
@@ -37,7 +37,7 @@ public class BankingFeedbackButtonsAdapter extends RecyclerView.Adapter<BankingF
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull BankingFeedbackButtonsAdapter.ViewHolder holder, int position) {
         BotButtonModel botListModel = botButtonModels.get(position);
         holder.tvButton.setText(botListModel.getLabel());
 

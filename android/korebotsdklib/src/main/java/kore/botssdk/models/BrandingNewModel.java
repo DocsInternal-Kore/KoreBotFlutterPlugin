@@ -1,6 +1,5 @@
 package kore.botssdk.models;
 
-@SuppressWarnings("UnKnownNullness")
 public class BrandingNewModel {
     String _id;
     String streamId;

@@ -289,6 +289,11 @@ class WebSocketReader extends Thread {
             }
 
         } else {
+
+            /// \todo refactor this for streaming processing, incl. fail fast on invalid UTF-8 within frame already
+
+            // within frame
+
             // see if we buffered complete frame
             if (mPosition >= mFrameHeader.mTotalLen) {
 
@@ -404,7 +409,15 @@ class WebSocketReader extends Thread {
                             } else {
 
                                 // dispatch WS text message as Java String (previously already validated)
-                                onTextMessage(mMessagePayload.toString());
+                                String s;
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                                    s = mMessagePayload.toString(StandardCharsets.UTF_8);
+                                }
+                                else
+                                {
+                                    s = mMessagePayload.toString();
+                                }
+                                onTextMessage(s);
                             }
 
                         } else if (mMessageOpcode == 2) {
@@ -542,6 +555,7 @@ class WebSocketReader extends Thread {
                     }
                 }
 
+                /// \FIXME verify handshake from server
                 Map<String, String> handshakeParams = parseHttpHeaders(Arrays.copyOfRange(headers, 1, headers.length));
 
                 mMessageData = Arrays.copyOfRange(mMessageData, pos + 4, mMessageData.length + pos + 4);
