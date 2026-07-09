@@ -26,6 +26,7 @@ import korebotplugin
             (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
             // This method is invoked on the UI thread.
             self.koreBotConnect.connect(methodName: call.method, callArguments: (call.arguments as? [String: Any]) ?? [:])
+            result("OK")
         })
         
         GeneratedPluginRegistrant.register(with: self)
@@ -292,5 +293,4 @@ import korebotplugin
 //    }
 //
 //}
-
 

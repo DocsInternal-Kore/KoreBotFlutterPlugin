@@ -135,7 +135,7 @@
                         <constraint firstItem="ZaQ-rh-0bb" firstAttribute="leading" secondItem="vYq-Dl-sqx" secondAttribute="leading" constant="15" id="boP-ct-5wQ"/>
                         <constraint firstItem="ZaQ-rh-0bb" firstAttribute="centerY" secondItem="vYq-Dl-sqx" secondAttribute="centerY" id="qtr-br-BVo"/>
                         <constraint firstAttribute="trailing" secondItem="hck-M1-PCS" secondAttribute="trailing" constant="55" id="rgJ-xC-Cp3"/>
-                        <constraint firstAttribute="height" constant="64" id="x0K-6Q-nrN"/>
+                        <constraint firstAttribute="height" constant="56" id="x0K-6Q-nrN"/>
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="NJH-pd-1Go">

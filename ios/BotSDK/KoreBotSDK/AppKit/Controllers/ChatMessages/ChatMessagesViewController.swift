@@ -141,7 +141,7 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
             headerViewHeightConstraint.constant = 0.0
             headerView.isHidden = true
         }else{
-            headerViewHeightConstraint.constant = 64.0
+            headerViewHeightConstraint.constant = 56.0
             headerView.isHidden = false
         }
         
@@ -191,7 +191,11 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         super.viewWillAppear(animated)
         addNotifications()
         navigationController?.setNavigationBarHidden(true, animated: false)
-        statusBarView.backgroundColor = statusBarBackgroundColor
+        if let headerColorString = brandingShared.widgetHeaderColor, headerColorString != "" {
+            statusBarView.backgroundColor = UIColor.init(hexString: headerColorString)
+        } else {
+            statusBarView.backgroundColor = statusBarBackgroundColor
+        }
     }
     
     func setStatusBarBackgroundColor(){
@@ -2672,6 +2676,24 @@ extension ChatMessagesViewController{
                 self?.sucessMethod(client: client, thread: thread)
             }else{ //V3 branding response
                 if let v3Branding = brandingDic["v3"] as? [String: Any]{
+                    func stringValue(_ dictionary: [String: Any], _ keys: String...) -> String? {
+                        for key in keys {
+                            if let value = dictionary[key] as? String, value != "" {
+                                return value
+                            }
+                        }
+                        return nil
+                    }
+                    
+                    func dictionaryValue(_ dictionary: [String: Any], _ keys: String...) -> [String: Any]? {
+                        for key in keys {
+                            if let value = dictionary[key] as? [String: Any] {
+                                return value
+                            }
+                        }
+                        return nil
+                    }
+                    
                     var widgetBorderColor = "#000000"
                     var buttonInactiveBgColor = "#FFFFFF"
                     var buttonInactiveTextColor = "#ff5e00"
@@ -2693,6 +2715,7 @@ extension ChatMessagesViewController{
                     var widgetFooterColor = ""
                     var widgetFooterTextColor = "#000000"
                     var widgetFooterPlaceholderColor = "#9A9A9A"
+                    var widgetFooterPlaceholderText: String?
                     var widgetFooterBorderColor = ""
                     var bubbleShape =  "square"
                     
@@ -2735,24 +2758,40 @@ extension ChatMessagesViewController{
                         }
                         
                     }
-                    if let footer = v3Branding["footer"] as? [String: Any]{
+                    if let footer = dictionaryValue(v3Branding, "footer"){
                         //print(footer)
-                        if let footerBg = footer["bg_color"] as? String{
+                        if let footerBg = stringValue(footer, "bg_color", "bg-color", "backgroundColor", "background_color", "bgColor"){
                             widgetFooterColor = footerBg
                         }
-                        if let composeBar = footer["compose_bar"] as? [String: Any]{
-                            if let boraderColor = composeBar["outline-color"] as? String{
-                                widgetFooterBorderColor = boraderColor
+                        if let composeBar = dictionaryValue(footer, "compose_bar", "composeBar", "compose-bar"){
+                            if widgetFooterColor == "", let composeBarBg = stringValue(composeBar, "bg_color", "bg-color", "backgroundColor", "background_color", "bgColor"){
+                                widgetFooterColor = composeBarBg
+                            }
+                            if let borderColor = stringValue(composeBar, "outline-color", "outline_color", "outlineColor", "borderColor", "border_color"){
+                                widgetFooterBorderColor = borderColor
+                                widgetFooterPlaceholderColor = borderColor
+                            }
+                            if let placeholderColor = stringValue(composeBar, "placeholderColor", "placeholder_color", "placeholder-color", "hintColor", "hint_color"){
+                                widgetFooterPlaceholderColor = placeholderColor
+                            }
+                            if let textColor = stringValue(composeBar, "textColor", "text_color", "color"){
+                                widgetFooterTextColor = textColor
+                            }
+                            if let placeholderText = stringValue(composeBar, "placeholder", "placeHolder", "placeholderText", "placeholder_text"){
+                                widgetFooterPlaceholderText = placeholderText
                             }
                         }
                     }
-                    if let header = v3Branding["header"] as? [String: Any]{
+                    if let header = dictionaryValue(v3Branding, "header"){
                         //print(header)
-                        if let headerBg = header["bg_color"] as? String{
+                        if let headerBg = stringValue(header, "bg_color", "bg-color", "backgroundColor", "background_color", "bgColor"){
                             widgetHeaderColor = headerBg
                         }
-                        if let title = header["title"] as? [String: Any]{
-                            if let titleColor = title["color"] as? String{
+                        if let title = dictionaryValue(header, "title"){
+                            if let titleName = stringValue(title, "name", "text", "title"){
+                                botName = titleName
+                            }
+                            if let titleColor = stringValue(title, "color", "fontColor", "font_color"){
                                 widgetTextColor = titleColor
                             }
                         }
@@ -2782,9 +2821,9 @@ extension ChatMessagesViewController{
                             userchatTextColor = genaralSecondary_textColor
                             botchatBgColor = genaralSecondaryColor
                             botchatTextColor = genaralPrimary_textColor
-                            //widgetFooterColor = genaralSecondaryColor
-                            //widgetHeaderColor = genaralSecondaryColor
-                            //widgetTextColor = genaralPrimary_textColor
+                            widgetFooterColor = genaralSecondaryColor
+                            widgetHeaderColor = genaralSecondaryColor
+                            widgetTextColor = genaralPrimary_textColor
                             buttonActiveBgColor = genaralPrimaryColor
                             buttonActiveTextColor = genaralSecondary_textColor
                         }
@@ -2879,6 +2918,7 @@ extension ChatMessagesViewController{
                     brandingShared.widgetFooterPlaceholderColor = widgetFooterPlaceholderColor
                     brandingShared.widgetFooterBorderColor = widgetFooterBorderColor
                     brandingShared.bubbleShape = bubbleShape
+                    composeBarPlaceholder = widgetFooterPlaceholderText ?? "Type your message..."
                     self?.sucessMethod(client: client, thread: thread)
                 }else{
                     self?.getOfflineBrandingData(client: client, thread: thread)
@@ -3194,14 +3234,21 @@ extension ChatMessagesViewController{
                 self.view.backgroundColor = UIColor.init(hexString: (brandingShared.widgetBodyColor) ?? "#f3f3f5")
             }
         }
-        composeView.backgroundColor = UIColor.init(hexString: (brandingShared.widgetFooterColor) ?? "#eaeaea")
+        let footerColor = UIColor.init(hexString: (brandingShared.widgetFooterColor) ?? "#eaeaea")
+        composeBarContainerView.backgroundColor = footerColor
+        composeView.backgroundColor = footerColor
+        quickSelectContainerView.backgroundColor = footerColor
+        attachmentContainerView.backgroundColor = footerColor
+        attachmentCollectionView.backgroundColor = footerColor
+        audioComposeContainerView.backgroundColor = footerColor
+        panelCollectionViewContainerView.backgroundColor = footerColor
         if statusBarBottomBackgroundColor == nil{
-            footerStatusBarView.backgroundColor = UIColor.init(hexString: (brandingShared.widgetFooterColor) ?? "#eaeaea")
+            footerStatusBarView.backgroundColor = footerColor
         }else{
             footerStatusBarView.backgroundColor = statusBarBottomBackgroundColor
         }
         composeView.brandingChnages()
-        audioComposeView.backgroundColor = UIColor.init(hexString: (brandingShared.widgetFooterColor) ?? "#eaeaea")
+        audioComposeView.backgroundColor = footerColor
         
         BubbleViewRightTint = UIColor.init(hexString: (brandingShared.userchatBgColor) ?? "#2881DF")
         BubbleViewLeftTint = UIColor.init(hexString: (brandingShared.botchatBgColor) ?? "#FFFFFF")
@@ -3211,7 +3258,9 @@ extension ChatMessagesViewController{
         bubbleViewBotChatButtonBgColor = UIColor.init(hexString: (brandingShared.buttonActiveBgColor) ?? "#f3f3f5")
         bubbleViewBotChatButtonTextColor = UIColor.init(hexString: (brandingShared.buttonActiveTextColor) ?? "#2881DF")
         themeColor = UIColor.init(hexString: (brandingShared.buttonActiveBgColor) ?? "#f3f3f5") //BubbleViewRightTint //bubbleViewBotChatButtonTextColor
-        headerView.backgroundColor = UIColor.init(hexString: (brandingShared.widgetHeaderColor) ?? "#FFFFFF")
+        let headerColor = UIColor.init(hexString: (brandingShared.widgetHeaderColor) ?? "#FFFFFF")
+        headerView.backgroundColor = headerColor
+        statusBarView.backgroundColor = headerColor
         
         let backImage = UIImage(named: "keyboard-arrow-left", in: bundleImage, compatibleWith: nil)
         let tintedBackImage = backImage?.withRenderingMode(.alwaysTemplate)

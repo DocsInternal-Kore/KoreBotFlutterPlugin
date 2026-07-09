@@ -23,44 +23,19 @@ public class KoreBotConnect: NSObject {
         let flutterDic = callArguments
         switch (methodName) {
         case "initialize":
-            let configDetails = flutterDic as? [String: Any]
-            guard let clientId = configDetails?["clientId"] as? String else{
+            guard let config = self.configureBot(configDetails: flutterDic) else {
                 return
             }
-            guard let clientSecret = configDetails?["clientSecret"] as? String else{
-                return
-            }
-            guard let botId = configDetails?["botId"] as? String else{
-                return
-            }
-            guard let chatBotName = configDetails?["chatBotName"] as? String else{
-                return
-            }
-            guard let identity = configDetails?["identity"] as? String else{
-                return
-            }
-            guard let jwtServerUrl = configDetails?["jwt_server_url"] as? String else{
-                return
-            }
-            guard let botServerUrl = configDetails?["server_url"] as? String else{
-                return
-            }
-            let isCallHistory = configDetails?["callHistory"] as? Bool ?? true
-            let customData = configDetails?["customData"] as? [String: Any] ?? [:]
-            let queryParameters = configDetails?["queryParameters"] as? [[String: Any]] ?? []
-            let customJWToken = configDetails?["customJWToken"] as? String ?? ""
-            isCallSearchApi = configDetails?["isSearch"] as? Bool ?? false
-            let isAnonymous = configDetails?["isAnonymous"] as? Bool ?? false
-            let isWebhookEnabled = configDetails?["isWebhookEnabled"] as? Bool ?? false
-            
-            //Set Korebot Config
-            self.setBotConfig(clientId: clientId, clientSecret: clientSecret, botId: botId, chatBotName: chatBotName, identity: identity, JWT_SERVER: jwtServerUrl, BOT_SERVER: botServerUrl, isCallHistory: isCallHistory, customData: customData, queryParameters: queryParameters, customJWToken: customJWToken, isAnonymous: isAnonymous, isWebhookEnabled: isWebhookEnabled)
-            
-            if isCallSearchApi{
-                self.searchConnect(clientId: clientId, clientSecret: clientSecret, botId: botId, chatBotName: chatBotName, identity: identity)
+            if config.isSearch {
+                self.searchConnect(clientId: config.clientId, clientSecret: config.clientSecret, botId: config.botId, chatBotName: config.chatBotName, identity: config.identity)
             }
             break
         case "getChatWindow":
+            if !flutterDic.isEmpty {
+                guard self.configureBot(configDetails: flutterDic) != nil else {
+                    return
+                }
+            }
             // Show the Bot Window by calling the below method call
             self.showBotWindow()
             break
@@ -83,6 +58,42 @@ public class KoreBotConnect: NSObject {
         default:
             break
         }
+    }
+    
+    @discardableResult
+    func configureBot(configDetails: [String: Any]) -> (clientId: String, clientSecret: String, botId: String, chatBotName: String, identity: String, isSearch: Bool)? {
+        guard let clientId = configDetails["clientId"] as? String else {
+            return nil
+        }
+        guard let clientSecret = configDetails["clientSecret"] as? String else {
+            return nil
+        }
+        guard let botId = configDetails["botId"] as? String else {
+            return nil
+        }
+        guard let chatBotName = configDetails["chatBotName"] as? String else {
+            return nil
+        }
+        guard let identity = configDetails["identity"] as? String else {
+            return nil
+        }
+        guard let jwtServerUrl = configDetails["jwt_server_url"] as? String else {
+            return nil
+        }
+        guard let botServerUrl = configDetails["server_url"] as? String else {
+            return nil
+        }
+        let isCallHistory = configDetails["callHistory"] as? Bool ?? true
+        let customData = configDetails["customData"] as? [String: Any] ?? [:]
+        let queryParameters = configDetails["queryParameters"] as? [[String: Any]] ?? []
+        let customJWToken = configDetails["customJWToken"] as? String ?? ""
+        isCallSearchApi = configDetails["isSearch"] as? Bool ?? false
+        let isAnonymous = configDetails["isAnonymous"] as? Bool ?? false
+        let isWebhookEnabled = configDetails["isWebhookEnabled"] as? Bool ?? false
+        
+        self.setBotConfig(clientId: clientId, clientSecret: clientSecret, botId: botId, chatBotName: chatBotName, identity: identity, JWT_SERVER: jwtServerUrl, BOT_SERVER: botServerUrl, isCallHistory: isCallHistory, customData: customData, queryParameters: queryParameters, customJWToken: customJWToken, isAnonymous: isAnonymous, isWebhookEnabled: isWebhookEnabled)
+        
+        return (clientId, clientSecret, botId, chatBotName, identity, isCallSearchApi)
     }
     
     func setBotConfig(clientId:String, clientSecret:String, botId:String, chatBotName:String, identity:String, JWT_SERVER:String, BOT_SERVER:String, isCallHistory: Bool, customData: [String: Any], queryParameters: [[String: Any]], customJWToken: String,isAnonymous : Bool, isWebhookEnabled: Bool){
