@@ -61,7 +61,8 @@ class _MyHomePageState extends State<MyHomePage> {
     "chatBotName": "PLEASE_ENTER_BOT_NAME",
     "identity": "PLEASE_ENTER_IDENTITY",
     "jwt_server_url": "PLEASE_ENTER_JWT_SERVER_URL",
-    "server_url": "PLEASE_ENTER_SERVER_URL"
+    "server_url": "PLEASE_ENTER_SERVER_URL",
+    "preferredLanguage": "en"
   };
 
   Future<void> _callNativemethod() async {
