@@ -76,6 +76,7 @@ public class ListViewTemplateHolder extends BaseViewHolder {
                 botCustomListViewButton.setOnClickListener(v -> {
                     ListActionSheetFragment bottomSheetDialog = new ListActionSheetFragment();
                     bottomSheetDialog.setData(payloadInner.getHeading() != null ? payloadInner.getHeading() : payloadInner.getText(), botListViewMoreDataModel);
+                    bottomSheetDialog.setLanguage(payloadInner.getLang());
                     bottomSheetDialog.setHeaderVisible(true);
                     if (isLastItem()) bottomSheetDialog.setComposeFooterInterface(composeFooterInterface);
                     bottomSheetDialog.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
@@ -92,6 +93,7 @@ public class ListViewTemplateHolder extends BaseViewHolder {
                 botCustomListViewButton.setOnClickListener(v -> {
                     ListMoreActionSheetFragment bottomSheetDialog = new ListMoreActionSheetFragment();
                     bottomSheetDialog.setData(payloadInner.getText(), listElements);
+                    bottomSheetDialog.setLanguage(payloadInner.getLang());
                     if (isLastItem()) bottomSheetDialog.setComposeFooterInterface(composeFooterInterface);
                     bottomSheetDialog.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
                     bottomSheetDialog.show(((FragmentActivity) context).getSupportFragmentManager(), "add_tags");

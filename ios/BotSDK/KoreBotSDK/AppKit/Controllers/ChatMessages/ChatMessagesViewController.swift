@@ -91,6 +91,7 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     public var user: KREUser?
     public var sheetController: KABottomSheetController?
     var isShowAudioComposeView = false
+    private var isBrandingReady = false
     var insets: UIEdgeInsets = .zero
     @IBOutlet weak var panelCollectionViewContainerHeightConstraint: NSLayoutConstraint!
     
@@ -136,6 +137,12 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     
     public override func viewDidLoad() {
         super.viewDidLoad()
+
+        let direction: UISemanticContentAttribute = SDKConfiguration.botConfig.isRTL()
+            ? .forceRightToLeft
+            : .forceLeftToRight
+        view.semanticContentAttribute = direction
+        headerView.semanticContentAttribute = direction
         
         if !isShowHeaderView{
             headerViewHeightConstraint.constant = 0.0
@@ -1555,8 +1562,13 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         self.audioComposeContainerHeightConstraint.isActive = prepare
         self.audioComposeContainerView.clipsToBounds = prepare
         self.composeView.configureViewForKeyboard(prepare)
-        self.composeBarContainerView.isHidden = !prepare
-        self.audioComposeContainerView.isHidden = prepare
+        self.updateFooterVisibility()
+    }
+
+    private func updateFooterVisibility() {
+        self.footerStatusBarView.isHidden = !isBrandingReady
+        self.composeBarContainerView.isHidden = !isBrandingReady || !self.composeView.isKeyboardEnabled
+        self.audioComposeContainerView.isHidden = !isBrandingReady || self.composeView.isKeyboardEnabled
     }
     
     // MARK: BotMessagesDelegate methods
@@ -1733,8 +1745,11 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         let zero = CGAffineTransform(translationX: 0.0, y: 0.0)
         self.leftMenuContainerView.transform = zero
         
-        leftMenuContainerView.semanticContentAttribute = .forceLeftToRight
-        leftMenuContainerSubView.semanticContentAttribute = .forceLeftToRight
+        let direction: UISemanticContentAttribute = SDKConfiguration.botConfig.isRTL()
+            ? .forceRightToLeft
+            : .forceLeftToRight
+        leftMenuContainerView.semanticContentAttribute = direction
+        leftMenuContainerSubView.semanticContentAttribute = direction
         let transition = CATransition()
         transition.type = .push
         transition.subtype = .fromLeft
@@ -2693,6 +2708,28 @@ extension ChatMessagesViewController{
                         }
                         return nil
                     }
+
+                    func boolValue(_ dictionary: [String: Any], _ keys: String...) -> Bool? {
+                        for key in keys {
+                            if let value = dictionary[key] as? Bool {
+                                return value
+                            }
+                            if let value = dictionary[key] as? NSNumber {
+                                return value.boolValue
+                            }
+                            if let value = dictionary[key] as? String {
+                                switch value.lowercased() {
+                                case "true", "1":
+                                    return true
+                                case "false", "0":
+                                    return false
+                                default:
+                                    continue
+                                }
+                            }
+                        }
+                        return nil
+                    }
                     
                     var widgetBorderColor = "#000000"
                     var buttonInactiveBgColor = "#FFFFFF"
@@ -2779,6 +2816,16 @@ extension ChatMessagesViewController{
                             }
                             if let placeholderText = stringValue(composeBar, "placeholder", "placeHolder", "placeholderText", "placeholder_text"){
                                 widgetFooterPlaceholderText = placeholderText
+                            }
+                        }
+                        if let buttons = dictionaryValue(footer, "buttons") {
+                            if let microphone = dictionaryValue(buttons, "microphone"),
+                               let showMicrophone = boolValue(microphone, "show") {
+                                SDKConfiguration.botConfig.isShowSpeachToTextIcon = showMicrophone
+                            }
+                            if let attachment = dictionaryValue(buttons, "attachment"),
+                               let showAttachment = boolValue(attachment, "show") {
+                                SDKConfiguration.botConfig.isShowAttachmentIcon = showAttachment
                             }
                         }
                     }
@@ -3248,6 +3295,7 @@ extension ChatMessagesViewController{
             footerStatusBarView.backgroundColor = statusBarBottomBackgroundColor
         }
         composeView.brandingChnages()
+        composeView.applyFooterButtonConfiguration()
         audioComposeView.backgroundColor = footerColor
         
         BubbleViewRightTint = UIColor.init(hexString: (brandingShared.userchatBgColor) ?? "#2881DF")
@@ -3266,6 +3314,9 @@ extension ChatMessagesViewController{
         let tintedBackImage = backImage?.withRenderingMode(.alwaysTemplate)
         self.backBtn.setBackgroundImage(tintedBackImage, for: .normal)
         self.backBtn.tintColor = widgetTxtColor
+
+        isBrandingReady = true
+        updateFooterVisibility()
         
     }
 }

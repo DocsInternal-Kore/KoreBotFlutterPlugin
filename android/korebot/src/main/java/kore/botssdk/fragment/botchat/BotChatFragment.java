@@ -68,6 +68,7 @@ import kore.botssdk.utils.BundleConstants;
 import kore.botssdk.utils.BundleUtils;
 import kore.botssdk.utils.ClosingService;
 import kore.botssdk.utils.LogUtils;
+import kore.botssdk.utils.LangUtils;
 import kore.botssdk.utils.StringUtils;
 import kore.botssdk.viewmodels.chat.BotChatViewModel;
 import kore.botssdk.viewmodels.chat.BotChatViewModelFactory;
@@ -490,12 +491,16 @@ public class BotChatFragment extends Fragment implements BotChatViewListener, Co
 
         };
 
+        Context localizedContext = LangUtils.getLocalizedContext(
+                requireActivity(),
+                SDKConfiguration.Server.getPreferredLanguage()
+        );
         AlertDialog dialog = new AlertDialog.Builder(requireActivity())
-                .setMessage(R.string.close_or_minimize)
+                .setMessage(localizedContext.getString(R.string.close_or_minimize))
                 .setCancelable(false)
-                .setPositiveButton(R.string.minimize, dialogClickListener)
-                .setNegativeButton(R.string.close, dialogClickListener)
-                .setNeutralButton(R.string.cancel, dialogClickListener)
+                .setPositiveButton(localizedContext.getString(R.string.minimize), dialogClickListener)
+                .setNegativeButton(localizedContext.getString(R.string.close), dialogClickListener)
+                .setNeutralButton(localizedContext.getString(R.string.cancel), dialogClickListener)
                 .create();
 
         dialog.show();

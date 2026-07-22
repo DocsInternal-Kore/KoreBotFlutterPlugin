@@ -670,13 +670,13 @@ open class KABotClient: NSObject {
         } else {
             identity = SDKConfiguration.botConfig.identity
         }
-        var botInfo: [String: Any] = [:]
-        if SDKConfiguration.botConfig.customData.isEmpty{
-            botInfo = ["chatBot": chatBotName, "taskBotId": botId]
-        }else{
-            let customData: [String: Any] = SDKConfiguration.botConfig.customData
-            botInfo = ["chatBot": chatBotName, "taskBotId": botId,"customData": customData]
-        }
+        var connectionCustomData = SDKConfiguration.botConfig.customData
+        connectionCustomData["interactiveLanguage"] = SDKConfiguration.botConfig.preferredLanguage
+        let botInfo: [String: Any] = [
+            "chatBot": chatBotName,
+            "taskBotId": botId,
+            "customData": connectionCustomData
+        ]
         
         if let jwToken = SDKConfiguration.botConfig.customJWToken as? String, jwToken != ""{
             let dataStoreManager: DataStoreManager = DataStoreManager.sharedManager

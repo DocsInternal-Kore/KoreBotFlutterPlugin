@@ -127,7 +127,7 @@
     <string name="subtitle">Subtitle</string>
     <string name="select">Select</string>
     <string name="button">Button</string>
-    <string name="stripped_shirt" translatable="false">Stripped Shirt</string>
+    <string name="stripped_shirt">Stripped Shirt</string>
     <string name="_40_99" translatable="false">$40.99</string>
     <string name="buy">Buy</string>
     <string name="hello">Hello</string>
@@ -161,28 +161,28 @@
     <string name="send_slots">Send Slots</string>
     <string name="selected_slots">Selected Slots</string>
     <string name="suggested_faq">Suggested FAQ</string>
-    <string name="tab1" translatable="false">Tab1</string>
-    <string name="tab2" translatable="false">Tab2</string>
+    <string name="tab1">Tab1</string>
+    <string name="tab2">Tab2</string>
     <string name="knowledge_title">knowledge title</string>
     <string name="knowledge_description">knowledge description</string>
     <string name="tags">#tags</string>
-    <string name="_1_attachment" translatable="false">1 Attachment</string>
-    <string name="my_video" translatable="false">My Video</string>
-    <string name="image_name" translatable="false">Image Name</string>
-    <string name="testing" translatable="false">Testing</string>
+    <string name="_1_attachment">1 Attachment</string>
+    <string name="my_video">My Video</string>
+    <string name="image_name">Image Name</string>
+    <string name="testing">Testing</string>
     <string name="ok">OK</string>
     <string name="email">email</string>
     <string name="upi_id">UPI ID</string>
-    <string name="bot_chat_bubble_background_color" translatable="false">Bot Chat bubble background color</string>
+    <string name="bot_chat_bubble_background_color">Bot Chat bubble background color</string>
     <string name="loading_data">Loading data…</string>
-    <string name="to_reorder_the_widgets" translatable="false">to reorder the widgets</string>
+    <string name="to_reorder_the_widgets">to reorder the widgets</string>
     <string name="minimize">Minimize</string>
     <string name="close">Close</string>
     <string name="close_or_minimize">Would you like to close the conversation or minimize.</string>
     <string name="bot_not_connected">Connection to the bot failed after several retries. Please verify your internet connection and try again later.</string>
     <string name="colon" translatable="false">:</string>
     <string name="default_click_time" translatable="false">12:00:AM</string>
-    <string name="what_can_be_improved" translatable="false">What can be Improved ?</string>
+    <string name="what_can_be_improved">What can be Improved ?</string>
     <string name="select_all">Select All</string>
     <string name="cancel">Cancel</string>
 
@@ -191,11 +191,11 @@
     <string name="attachment_upload_document">Upload Document</string>
     <string name="attachment_capture_photo">Capture Photo</string>
     <string name="attachment_capture_video">Capture Video</string>
-    <string name="speak_out_the_bot_response_text" translatable="false">Speak out the bot response text</string>
+    <string name="speak_out_the_bot_response_text">Speak out the bot response text</string>
     <string name="share">Share</string>
     <string name="copy_link">Copy Link</string>
     <string name="downloading">Downloading…</string>
-    <string name="downloading_file_name" translatable="false">Downloading to: \"/Downloads/KoreMedia/%s\". Please check in status bar!</string>
+    <string name="downloading_file_name">Downloading to: \"/Downloads/KoreMedia/%s\". Please check in status bar!</string>
     <string name="copy_to_clipboard">Copied to clipboard</string>
     <string name="downloading_file">Downloading file…</string>
     <string name="downloading_failed">Downloading failed!</string>

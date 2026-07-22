@@ -27,6 +27,9 @@ public class BotHeaderFragment extends BaseHeaderFragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.bot_header_layout, null);
+        view.setLayoutDirection(SDKConfiguration.Server.isRtl()
+                ? View.LAYOUT_DIRECTION_RTL
+                : View.LAYOUT_DIRECTION_LTR);
         updateUI();
         return view;
     }

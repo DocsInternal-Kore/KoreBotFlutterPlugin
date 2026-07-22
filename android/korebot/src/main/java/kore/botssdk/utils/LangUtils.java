@@ -29,6 +29,14 @@ public class LangUtils {
         SDKConfiguration.setDeviceLocale(Locale.forLanguageTag(lang));
     }
 
+    public static Context getLocalizedContext(@NonNull Context context, String lang) {
+        Locale locale = Locale.forLanguageTag(lang == null ? LANG_EN : lang);
+        Configuration configuration = new Configuration(context.getResources().getConfiguration());
+        configuration.setLocale(locale);
+        configuration.setLayoutDirection(locale);
+        return context.createConfigurationContext(configuration);
+    }
+
     private static void updateResources(@NonNull Context context, @NonNull Locale locale) {
         Locale.setDefault(locale);
 

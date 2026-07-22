@@ -254,6 +254,7 @@ open class BotClient: NSObject, RTMPersistentConnectionDelegate {
             if let botToken = authInfoModel?.accessToken {
                 parameters["botToken"] = botToken
             }
+            parameters["currentBotLang"] = SDKConfiguration.botConfig.preferredLanguage
             dictionary?.forEach { (key, value) in parameters[key] = value }
             connection.sendMessage(message, parameters: parameters, options: options)
         }else{

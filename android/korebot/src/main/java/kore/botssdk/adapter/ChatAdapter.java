@@ -2,6 +2,7 @@ package kore.botssdk.adapter;
 
 import android.os.Build;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -382,7 +383,38 @@ public class ChatAdapter extends RecyclerView.Adapter<BaseViewHolder> implements
         holder.setContentStateListener(this);
         holder.setComposeFooterInterface(composeFooterInterface);
         holder.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
+        applyLanguageDirection(holder, baseBotMessage);
         holder.bind(getItem(position));
+    }
+
+    private void applyLanguageDirection(BaseViewHolder holder, BaseBotMessage message) {
+        holder.itemView.setLayoutDirection(isMessageRtl(message)
+                ? View.LAYOUT_DIRECTION_RTL
+                : View.LAYOUT_DIRECTION_LTR);
+    }
+
+    public boolean isItemRtl(int position) {
+        return position >= 0 && position < getItemCount() && isMessageRtl(getItem(position));
+    }
+
+    private boolean isMessageRtl(BaseBotMessage message) {
+        String responseLanguage = getResponseLanguage(message);
+        return SDKConfiguration.Server.isRtlLanguage(
+                SDKConfiguration.Server.resolveLanguage(responseLanguage));
+    }
+
+    private String getResponseLanguage(BaseBotMessage message) {
+        if (message instanceof BotResponse) {
+            BotResponse response = (BotResponse) message;
+            if (response.getMessage() != null && !response.getMessage().isEmpty()
+                    && response.getMessage().get(0) != null
+                    && response.getMessage().get(0).getComponent() != null) {
+                PayloadOuter payloadOuter = response.getMessage().get(0).getComponent().getPayload();
+                PayloadInner payloadInner = payloadOuter == null ? null : payloadOuter.getPayload();
+                return payloadInner == null ? null : payloadInner.getLang();
+            }
+        }
+        return null;
     }
 
     private void applyBotIcon(BaseViewHolder holder, BotResponse response) {

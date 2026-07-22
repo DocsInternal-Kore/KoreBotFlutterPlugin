@@ -1,7 +1,6 @@
 package kore.botssdk.itemdecoration;
 
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
-
+import android.content.Context;
 import android.graphics.Rect;
 import android.view.View;
 
@@ -12,11 +11,10 @@ import kore.botssdk.adapter.ChatAdapter;
 
 public class ChatAdapterItemDecoration extends RecyclerView.ItemDecoration {
 
-    public static final int firstItemMarginTop = (int) (12 * dp1);
-    public static final int commonVerticalMargin = (int) (6 * dp1);
-    public static final int messageMargin = (int) (30 * dp1);
-    public static final int requestMsgMarginRight = (int) (4 * dp1);
-    public static final int responseMarginLeft = (int) (4 * dp1);
+    private static final int FIRST_ITEM_MARGIN_TOP_DP = 12;
+    private static final int COMMON_VERTICAL_MARGIN_DP = 6;
+    private static final int MESSAGE_MARGIN_DP = 30;
+    private static final int EDGE_MARGIN_DP = 4;
 
     public ChatAdapterItemDecoration() {
     }
@@ -29,15 +27,36 @@ public class ChatAdapterItemDecoration extends RecyclerView.ItemDecoration {
         if (adapter == null) return;
         if (position < 0 || adapter.getItemCount() <= position) return;
 
-        outRect.top = position == 0 ? firstItemMarginTop : commonVerticalMargin;
+        int commonVerticalMargin = toPixels(parent.getContext(), COMMON_VERTICAL_MARGIN_DP);
+        int messageMargin = toPixels(parent.getContext(), MESSAGE_MARGIN_DP);
+        int edgeMargin = toPixels(parent.getContext(), EDGE_MARGIN_DP);
+        outRect.top = position == 0
+                ? toPixels(parent.getContext(), FIRST_ITEM_MARGIN_TOP_DP)
+                : commonVerticalMargin;
         outRect.bottom = commonVerticalMargin;
 
-        if (adapter.getItemType(position) == ChatAdapter.TEMPLATE_BUBBLE_REQUEST) {
-            outRect.left = messageMargin;
-            outRect.right = requestMsgMarginRight;
-        } else {
+        boolean isRequest = adapter.getItemType(position) == ChatAdapter.TEMPLATE_BUBBLE_REQUEST;
+        boolean isRtl = adapter.isItemRtl(position);
+        // Requests use END and responses use START, so their physical edge changes in RTL.
+        boolean bubbleAtLeftEdge = isRequest == isRtl;
+        if (bubbleAtLeftEdge) {
+            outRect.left = edgeMargin;
             outRect.right = messageMargin;
-            outRect.left = responseMarginLeft;
+        } else {
+            outRect.left = messageMargin;
+            outRect.right = edgeMargin;
         }
+    }
+
+    public static int getMessageMargin(Context context) {
+        return toPixels(context, MESSAGE_MARGIN_DP);
+    }
+
+    public static int getCommonVerticalMargin(Context context) {
+        return toPixels(context, COMMON_VERTICAL_MARGIN_DP);
+    }
+
+    private static int toPixels(Context context, int dp) {
+        return Math.round(dp * context.getResources().getDisplayMetrics().density);
     }
 }

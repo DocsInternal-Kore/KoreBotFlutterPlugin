@@ -100,9 +100,9 @@ public abstract class BaseViewHolder extends RecyclerView.ViewHolder {
         TextView timeStamp = itemView.findViewById(R.id.time_stamp);
         LinearLayoutCompat.LayoutParams params = (LinearLayoutCompat.LayoutParams) timeStamp.getLayoutParams();
         if (this instanceof RequestTextTemplateHolder) {
-            params.setMarginEnd(ChatAdapterItemDecoration.messageMargin / 2);
+            params.setMarginEnd(ChatAdapterItemDecoration.getMessageMargin(context) / 2);
         } else {
-            params.setMarginStart(ChatAdapterItemDecoration.messageMargin / 2);
+            params.setMarginStart(ChatAdapterItemDecoration.getMessageMargin(context) / 2);
         }
         if (SDKConfiguration.BubbleColors.showIcon && !SDKConfiguration.OverrideKoreConfig.showIconTop) {
             ImageView botIcon = itemView.findViewById(R.id.bot_icon);
@@ -259,7 +259,7 @@ public abstract class BaseViewHolder extends RecyclerView.ViewHolder {
         if (!isBotRequest) {
             if (!(this instanceof ResponseTextTemplateHolder)) {
                 LinearLayoutCompat.LayoutParams params = (LinearLayoutCompat.LayoutParams) bubbleText.getLayoutParams();
-                params.bottomMargin = ChatAdapterItemDecoration.commonVerticalMargin * 2;
+                params.bottomMargin = ChatAdapterItemDecoration.getCommonVerticalMargin(context) * 2;
             }
 
             Typeface regular = KaFontUtils.getCustomTypeface("regular", context);

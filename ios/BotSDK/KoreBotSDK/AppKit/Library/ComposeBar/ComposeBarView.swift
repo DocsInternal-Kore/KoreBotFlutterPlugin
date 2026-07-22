@@ -31,6 +31,8 @@ class ComposeBarView: UIView {
     fileprivate var speechToTextButton: UIButton!
 
     fileprivate var textViewTrailingConstraint: NSLayoutConstraint!
+    fileprivate var menuButtonWidthConstraint: NSLayoutConstraint!
+    fileprivate var attachmentButtonWidthConstraint: NSLayoutConstraint!
     fileprivate(set) public var isKeyboardEnabled: Bool = false
     
     convenience init() {
@@ -163,6 +165,9 @@ class ComposeBarView: UIView {
     
     fileprivate func setupViews() {
         //self.backgroundColor = UIColor.init(hexString: "#eaeaea")
+        self.semanticContentAttribute = SDKConfiguration.botConfig.isRTL()
+            ? .forceRightToLeft
+            : .forceLeftToRight
         
         self.growingTextView = KREGrowingTextView(frame: CGRect.zero)
         self.growingTextView.translatesAutoresizingMaskIntoConstraints = false
@@ -171,7 +176,7 @@ class ComposeBarView: UIView {
         
         self.growingTextView.textView.tintColor = .black
         self.growingTextView.textView.textColor = UIColor.init(hexString: (brandingShared.widgetFooterTextColor) ?? "#26344A")
-        self.growingTextView.textView.textAlignment = .right
+        self.growingTextView.textView.textAlignment = .natural
         self.growingTextView.maxNumberOfLines = 10
         self.growingTextView.font = UIFont(name: regularCustomFont, size: 14.0) ?? UIFont.systemFont(ofSize: 14.0)
         self.growingTextView.textContainerInset = UIEdgeInsets(top: 7, left: 0, bottom: 7, right: 0)
@@ -260,13 +265,11 @@ class ComposeBarView: UIView {
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[bottomLineView]|", options:[], metrics:nil, views:views))
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[bottomLineView(0.5)]|", options:[], metrics:nil, views:views))
         
-        var menuBtnWidth = 0
-        menuBtnWidth = isShowComposeMenuBtn == true ? 30 : 0
-        
-        var attachmentBtnWidth = 0
-        attachmentBtnWidth = SDKConfiguration.botConfig.isShowAttachmentIcon == true ? 32 : 0
-        
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[attachmentButton(\(attachmentBtnWidth))]-5-[menuButton(\(menuBtnWidth))]-5-[growingTextView]-5-[sendButton(35)]-10-|", options:[], metrics:nil, views:views))
+        self.menuButtonWidthConstraint = self.menuButton.widthAnchor.constraint(equalToConstant: isShowComposeMenuBtn ? 30 : 0)
+        self.attachmentButtonWidthConstraint = self.attachmentButton.widthAnchor.constraint(equalToConstant: SDKConfiguration.botConfig.isShowAttachmentIcon ? 32 : 0)
+        NSLayoutConstraint.activate([self.menuButtonWidthConstraint, self.attachmentButtonWidthConstraint])
+
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[attachmentButton]-5-[menuButton]-5-[growingTextView]-5-[sendButton(35)]-10-|", options:[], metrics:nil, views:views))
        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[growingTextView]-5-[speechToTextButton(35)]-10-|", options:[], metrics:nil, views:views))
        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-6-[growingTextView]-6-|", options:[], metrics:nil, views:views))
        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[sendButton(35)]", options:[], metrics:nil, views:views))
@@ -342,6 +345,13 @@ class ComposeBarView: UIView {
         self.growingTextView.textView.text = text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         self.textDidChangeNotification(Notification(name: UITextView.textDidChangeNotification))
     }
+
+    func applyFooterButtonConfiguration() {
+        self.attachmentButtonWidthConstraint.constant = SDKConfiguration.botConfig.isShowAttachmentIcon ? 32 : 0
+        self.menuButtonWidthConstraint.constant = isShowComposeMenuBtn ? 30 : 0
+        self.valueChanged()
+        self.setNeedsLayout()
+    }
     
     //MARK: Private methods
     
@@ -384,7 +394,7 @@ class ComposeBarView: UIView {
         let hasText = self.growingTextView.textView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).count > 0
         self.sendButton.isEnabled = hasText
         if self.isKeyboardEnabled {
-            self.attachmentButton.isHidden = false
+            self.attachmentButton.isHidden = !SDKConfiguration.botConfig.isShowAttachmentIcon
             if attachmentKeybord{
                 self.sendButton.isHidden = false
                 self.sendButton.isEnabled = true
@@ -398,7 +408,7 @@ class ComposeBarView: UIView {
                     self.speechToTextButton.isHidden = true
                 }
             }
-            self.menuButton.isHidden = false
+            self.menuButton.isHidden = !isShowComposeMenuBtn
         }else{
             self.sendButton.isHidden = true
             self.speechToTextButton.isHidden = true
@@ -450,5 +460,7 @@ class ComposeBarView: UIView {
         self.sendButton = nil
         self.speechToTextButton = nil
         self.textViewTrailingConstraint = nil
+        self.menuButtonWidthConstraint = nil
+        self.attachmentButtonWidthConstraint = nil
     }
 }

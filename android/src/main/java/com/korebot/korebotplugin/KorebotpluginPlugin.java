@@ -114,6 +114,8 @@ public class KorebotpluginPlugin implements FlutterPlugin, MethodCallHandler {
         applyBoolean(call, "timeStampsRequired", SDKConfig::setIsTimeStampsRequired);
         applyBoolean(call, "updateStatusBarColor", SDKConfig::setIsUpdateStatusBarColor);
         applyString(call, "bubbleDateFormat", SDKConfig::setBubbleDateFormat);
+        String preferredLanguage = firstStringArg(call, "preferredLanguage", "preferred_language");
+        SDKConfig.setPreferredLanguage(preferredLanguage == null ? "en" : preferredLanguage);
 
         HashMap<String, Object> queryParams = mapArg(call, "queryParams") ;
         if (queryParams != null) SDKConfig.setQueryParams(queryParams);

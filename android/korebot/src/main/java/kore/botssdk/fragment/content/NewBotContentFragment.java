@@ -60,6 +60,9 @@ public class NewBotContentFragment extends BaseContentFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.bot_content_layout, null);
+        view.setLayoutDirection(SDKConfiguration.Server.isRtl()
+                ? View.LAYOUT_DIRECTION_RTL
+                : View.LAYOUT_DIRECTION_LTR);
         getBundleInfo();
         return view;
     }

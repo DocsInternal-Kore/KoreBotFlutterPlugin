@@ -58,6 +58,7 @@ import kore.botssdk.models.BotRequest;
 import kore.botssdk.models.BotResponse;
 import kore.botssdk.models.BrandingModel;
 import kore.botssdk.models.NotificationModel;
+import kore.botssdk.utils.LangUtils;
 import kore.botssdk.models.UserInfo;
 import kore.botssdk.net.BrandingRestBuilder;
 import kore.botssdk.net.RestBuilder;
@@ -154,6 +155,10 @@ public class NewBotChatActivity extends BotAppCompactActivity implements BotChat
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        getWindow().getDecorView().setLayoutDirection(SDKConfiguration.Server.isRtl()
+                ? View.LAYOUT_DIRECTION_RTL
+                : View.LAYOUT_DIRECTION_LTR);
 
         if (SDKConfiguration.OverrideKoreConfig.disable_action_bar && getSupportActionBar() != null)
             getSupportActionBar().hide();
@@ -665,12 +670,16 @@ public class NewBotChatActivity extends BotAppCompactActivity implements BotChat
             }
         };
 
+        Context localizedContext = LangUtils.getLocalizedContext(
+                NewBotChatActivity.this,
+                SDKConfiguration.Server.getPreferredLanguage()
+        );
         AlertDialog dialog = new AlertDialog.Builder(NewBotChatActivity.this)
-                .setMessage(R.string.close_or_minimize)
+                .setMessage(localizedContext.getString(R.string.close_or_minimize))
                 .setCancelable(false)
-                .setPositiveButton(R.string.minimize, dialogClickListener)
-                .setNegativeButton(R.string.close, dialogClickListener)
-                .setNeutralButton(R.string.cancel, dialogClickListener)
+                .setPositiveButton(localizedContext.getString(R.string.minimize), dialogClickListener)
+                .setNegativeButton(localizedContext.getString(R.string.close), dialogClickListener)
+                .setNeutralButton(localizedContext.getString(R.string.cancel), dialogClickListener)
                 .create();
 
         dialog.show();

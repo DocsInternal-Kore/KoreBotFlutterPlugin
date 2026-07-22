@@ -32,6 +32,7 @@ import kore.botssdk.listener.ComposeFooterInterface;
 import kore.botssdk.listener.InvokeGenericWebViewInterface;
 import kore.botssdk.models.BotListModel;
 import kore.botssdk.models.BotResponse;
+import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.utils.StringUtils;
 
 public class ListMoreActionSheetFragment extends BottomSheetDialogFragment {
@@ -41,6 +42,7 @@ public class ListMoreActionSheetFragment extends BottomSheetDialogFragment {
     InvokeGenericWebViewInterface invokeGenericWebViewInterface;
     private BottomSheetDialog bottomSheetDialog;
     private String title;
+    private String language;
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -48,6 +50,10 @@ public class ListMoreActionSheetFragment extends BottomSheetDialogFragment {
                              @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.list_view_more_sheet, container, false);
+        String resolvedLanguage = SDKConfiguration.Server.resolveLanguage(language);
+        view.setLayoutDirection(SDKConfiguration.Server.isRtlLanguage(resolvedLanguage)
+                ? View.LAYOUT_DIRECTION_RTL
+                : View.LAYOUT_DIRECTION_LTR);
         ListView lvMoreData = view.findViewById(R.id.lvMoreData);
         LinearLayout llCloseBottomSheet = view.findViewById(R.id.llCloseBottomSheet);
         TextView tvOptionsTitle = view.findViewById(R.id.tvOptionsTitle);
@@ -121,5 +127,9 @@ public class ListMoreActionSheetFragment extends BottomSheetDialogFragment {
     public void setData(String title, ArrayList<BotListModel> botListModelArrayList) {
         this.model = botListModelArrayList;
         this.title = title;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 }

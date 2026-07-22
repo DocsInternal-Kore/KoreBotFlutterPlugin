@@ -19,6 +19,10 @@ class MessageBubbleCell : UITableViewCell {
     var bubbleLeadingConstraint: NSLayoutConstraint!
     var bubbleTrailingConstraint: NSLayoutConstraint!
     var bubbleBottomConstraint: NSLayoutConstraint!
+    var senderImageLeadingConstraint: NSLayoutConstraint!
+    var senderImageTrailingConstraint: NSLayoutConstraint!
+    var userImageLeadingConstraint: NSLayoutConstraint!
+    var userImageTrailingConstraint: NSLayoutConstraint!
     var userImageViewTrialing = 45.0
     lazy var dateLabel: UILabel = {
         let dateLabel = UILabel(frame: .zero)
@@ -45,20 +49,26 @@ class MessageBubbleCell : UITableViewCell {
             return self.bubbleView.tailPosition
         }
         set {
-            if (tailPosition == .left) {
+            let messageInset = self.bubbleView.isSenderMessage == true
+                ? self.userImageViewTrialing
+                : 45.0
+
+            if (newValue == .left) {
+                self.bubbleLeadingConstraint.constant = messageInset
                 self.bubbleLeadingConstraint.priority = UILayoutPriority.defaultHigh
                 self.bubbleTrailingConstraint.priority = UILayoutPriority.defaultLow
                 self.senderImageView.isHidden = false
                 self.userImageView.isHidden = true
 
             } else {
+                self.bubbleTrailingConstraint.constant = messageInset
                 self.bubbleLeadingConstraint.priority = UILayoutPriority.defaultLow
                 self.bubbleTrailingConstraint.priority = UILayoutPriority.defaultHigh
                 self.senderImageView.isHidden = true
                 self.userImageView.isHidden = false
             }
             
-            self.bubbleView.tailPosition = tailPosition
+            self.bubbleView.tailPosition = newValue
             self.setNeedsUpdateConstraints()
         }
     }
@@ -119,9 +129,18 @@ class MessageBubbleCell : UITableViewCell {
         let views: [String: UIView] = ["senderImageView": senderImageView, "bubbleContainerView": bubbleContainerView, "userImageView": userImageView, "dateLabel":dateLabel]
         
         self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-45-[dateLabel]-\(userImageViewTrialing + 2)-|", options:[], metrics:nil, views:views))
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-8-[senderImageView(28)]", options:[], metrics:nil, views:views))
-        
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[userImageView(\(userImageViewWidth))]-8-|", options:[], metrics:nil, views:views))
+        senderImageView.widthAnchor.constraint(equalToConstant: 28).isActive = true
+        userImageView.widthAnchor.constraint(equalToConstant: CGFloat(userImageViewWidth)).isActive = true
+
+        // These constraints represent physical bubble sides. Using left/right keeps
+        // the parent view's RTL semantic direction from mirroring them a second time.
+        senderImageLeadingConstraint = senderImageView.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 8)
+        senderImageTrailingConstraint = senderImageView.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -8)
+        userImageLeadingConstraint = userImageView.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 8)
+        userImageTrailingConstraint = userImageView.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -8)
+
+        senderImageLeadingConstraint.isActive = true
+        userImageTrailingConstraint.isActive = true
         if isShowBotIconTop{
             self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-35-[userImageView(28)]", options:[], metrics:nil, views:views))
             self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-35-[senderImageView(28)]", options:[], metrics:nil, views:views))
@@ -134,9 +153,9 @@ class MessageBubbleCell : UITableViewCell {
 
         self.bubbleBottomConstraint = NSLayoutConstraint(item:self.contentView, attribute:.bottom, relatedBy:.equal, toItem:self.bubbleContainerView, attribute:.bottom, multiplier:1.0, constant:4.0)
         self.bubbleBottomConstraint.priority = UILayoutPriority.defaultHigh
-        self.bubbleLeadingConstraint = NSLayoutConstraint(item:self.bubbleContainerView as Any, attribute:.leading, relatedBy:.equal, toItem:self.contentView, attribute:.leading, multiplier:1.0, constant:45.0)
+        self.bubbleLeadingConstraint = NSLayoutConstraint(item:self.bubbleContainerView as Any, attribute:.left, relatedBy:.equal, toItem:self.contentView, attribute:.left, multiplier:1.0, constant:45.0)
         self.bubbleLeadingConstraint.priority = UILayoutPriority.defaultHigh
-        self.bubbleTrailingConstraint = NSLayoutConstraint(item:self.contentView, attribute:.trailing, relatedBy:.equal, toItem:self.bubbleContainerView, attribute:.trailing, multiplier:1.0, constant:16.0)
+        self.bubbleTrailingConstraint = NSLayoutConstraint(item:self.contentView, attribute:.right, relatedBy:.equal, toItem:self.bubbleContainerView, attribute:.right, multiplier:1.0, constant:16.0)
         self.bubbleTrailingConstraint.priority = UILayoutPriority.defaultLow
         
         self.contentView.addConstraints([self.bubbleTrailingConstraint, self.bubbleLeadingConstraint, self.bubbleBottomConstraint])
@@ -148,11 +167,11 @@ class MessageBubbleCell : UITableViewCell {
 
     static func setComponents(_ components: Array<KREComponent>, bubbleView: BubbleView) {
         let component: KREComponent = components.first!
-        if (component.message?.isSender == true) {
-            bubbleView.tailPosition = .right
-        } else {
-            bubbleView.tailPosition = .left
-        }
+        let responseLanguage = SDKConfiguration.botConfig.responseLanguage(from: components as NSArray)
+        let isRTL = SDKConfiguration.botConfig.isRTL(responseLanguage)
+        let isSender = component.message?.isSender == true
+        bubbleView.isSenderMessage = isSender
+        bubbleView.tailPosition = isSender ? (isRTL ? .left : .right) : (isRTL ? .right : .left)
     
         bubbleView.components = components as NSArray?
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
@@ -172,6 +191,21 @@ class MessageBubbleCell : UITableViewCell {
         
         let component: KREComponent = components.first!
         let message: KREMessage = component.message!
+        let responseLanguage = SDKConfiguration.botConfig.responseLanguage(from: components as NSArray)
+        let isRTL = SDKConfiguration.botConfig.isRTL(responseLanguage)
+        let isSender = message.isSender
+
+        NSLayoutConstraint.deactivate([
+            senderImageLeadingConstraint,
+            senderImageTrailingConstraint,
+            userImageLeadingConstraint,
+            userImageTrailingConstraint
+        ])
+        NSLayoutConstraint.activate(isRTL
+            ? [senderImageTrailingConstraint, userImageLeadingConstraint]
+            : [senderImageLeadingConstraint, userImageTrailingConstraint])
+        senderImageView.isHidden = isSender
+        userImageView.isHidden = !isSender
         
        
        //DateLabel
@@ -224,6 +258,10 @@ class MessageBubbleCell : UITableViewCell {
         self.bubbleLeadingConstraint = nil
         self.bubbleTrailingConstraint = nil
         self.bubbleBottomConstraint = nil
+        self.senderImageLeadingConstraint = nil
+        self.senderImageTrailingConstraint = nil
+        self.userImageLeadingConstraint = nil
+        self.userImageTrailingConstraint = nil
         self.bubbleView = nil
     }
 }
@@ -234,7 +272,6 @@ class TextBubbleCell : MessageBubbleCell {
     }
     override var tailPosition: BubbleMaskTailPosition {
         didSet {
-            self.bubbleTrailingConstraint.constant = userImageViewTrialing
             if (tailPosition == .left) {
                 self.bubbleLeadingConstraint.priority = UILayoutPriority.defaultHigh
                 self.bubbleTrailingConstraint.priority = UILayoutPriority.defaultLow

@@ -45,10 +45,15 @@ public class ListActionSheetFragment extends BottomSheetDialogFragment {
     private String title;
     private BottomSheetDialog bottomSheetDialog;
     private boolean showHeader = false;
+    private String language;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.list_bottom_sheet, container, false);
+        String resolvedLanguage = SDKConfiguration.Server.resolveLanguage(language);
+        view.setLayoutDirection(SDKConfiguration.Server.isRtlLanguage(resolvedLanguage)
+                ? View.LAYOUT_DIRECTION_RTL
+                : View.LAYOUT_DIRECTION_LTR);
         ListView lvMoreData = view.findViewById(R.id.lvMoreData);
         tvTab1 = view.findViewById(R.id.tvTab1);
         tvTab2 = view.findViewById(R.id.tvTab2);
@@ -168,5 +173,8 @@ public class ListActionSheetFragment extends BottomSheetDialogFragment {
         this.title = title;
         model = taskTemplateModel;
     }
-}
 
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+}

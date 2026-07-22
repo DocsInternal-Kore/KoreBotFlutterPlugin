@@ -7,6 +7,7 @@ package kore.botssdk.net;
 import android.annotation.SuppressLint;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
@@ -78,6 +79,9 @@ public class SDKConfiguration {
     //Server related configurations
     @SuppressLint("HardcodedPassword")
     public static class Server {
+        private static final String DEFAULT_LANGUAGE = "en";
+        private static String preferredLanguage = DEFAULT_LANGUAGE;
+
         public static void setServerUrl(String serverUrl) {
             SERVER_URL = serverUrl;
         }
@@ -121,6 +125,39 @@ public class SDKConfiguration {
 
         public static BotStatusListener getBotStatusListener() {
             return botStatusListener;
+        }
+
+        public static void setPreferredLanguage(String language) {
+            preferredLanguage = normalizeLanguage(language);
+        }
+
+        public static String getPreferredLanguage() {
+            return preferredLanguage;
+        }
+
+        public static String resolveLanguage(String responseLanguage) {
+            return responseLanguage == null || responseLanguage.trim().isEmpty()
+                    ? preferredLanguage
+                    : normalizeLanguage(responseLanguage);
+        }
+
+        public static boolean isRtl() {
+            return isRtlLanguage(preferredLanguage);
+        }
+
+        public static boolean isRtlLanguage(String language) {
+            Locale locale = Locale.forLanguageTag(normalizeLanguage(language));
+            return TextUtils.getLayoutDirectionFromLocale(locale) == View.LAYOUT_DIRECTION_RTL;
+        }
+
+        private static String normalizeLanguage(String language) {
+            if (language == null || language.trim().isEmpty()) return DEFAULT_LANGUAGE;
+            String normalized = language.trim().replace('_', '-');
+            Locale locale = Locale.forLanguageTag(normalized);
+            String tag = locale.toLanguageTag();
+            return tag == null || tag.isEmpty() || "und".equalsIgnoreCase(tag)
+                    ? DEFAULT_LANGUAGE
+                    : tag;
         }
     }
 

@@ -39,6 +39,10 @@ class ListWidgetDetailsViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        let responseLanguage = SDKConfiguration.botConfig.responseLanguage(fromJSONString: dataString)
+        view.semanticContentAttribute = SDKConfiguration.botConfig.isRTL(responseLanguage)
+            ? .forceRightToLeft
+            : .forceLeftToRight
         // Do any additional setup after loading the view.
         if #available(iOS 13.0, *) {
             overrideUserInterfaceStyle = .light
@@ -138,4 +142,3 @@ extension ListWidgetDetailsViewController: UITableViewDelegate,UITableViewDataSo
     }
     
 }
-

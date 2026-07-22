@@ -74,10 +74,10 @@ public class BotAppCompactActivity extends AppCompatActivity {
             Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
             int bottom = ime.bottom;
             if (bottom == 0) bottom = insets.bottom;
-            view.setPadding(insets.left,0, insets.right, bottom);
-            if (sharedPreferences.getInt(BundleConstants.STATUS_BAR_HEIGHT, 0) == 0)
+            view.setPadding(insets.left, 0, insets.right, bottom);
+            if (sharedPreferences.getInt(BundleConstants.STATUS_BAR_HEIGHT, 0) != insets.top)
                 sharedPreferences.edit().putInt(BundleConstants.STATUS_BAR_HEIGHT, insets.top).apply();
-            if (Build.VERSION.SDK_INT >= 35 && statusBarLayout != null) {
+            if (statusBarLayout != null) {
                 statusBarLayout.setVisibility(VISIBLE);
                 ViewGroup.LayoutParams params = statusBarLayout.getLayoutParams();
                 params.height = insets.top;
@@ -118,17 +118,20 @@ public class BotAppCompactActivity extends AppCompatActivity {
     }
 
     protected void changeStatusBarColor(String color) {
+        int statusBarColor = resolveStatusBarColor(color);
+        statusBarLayout.setVisibility(VISIBLE);
+        ViewGroup.LayoutParams params = statusBarLayout.getLayoutParams();
+        params.height = sharedPreferences.getInt(BundleConstants.STATUS_BAR_HEIGHT, 0);
+        statusBarLayout.setLayoutParams(params);
+        statusBarLayout.setBackgroundColor(statusBarColor);
+        updateSystemBarAppearance(color);
+
         if (Build.VERSION.SDK_INT >= 35) {
-            statusBarLayout.setVisibility(VISIBLE);
-            ViewGroup.LayoutParams params = statusBarLayout.getLayoutParams();
-            params.height = sharedPreferences.getInt(BundleConstants.STATUS_BAR_HEIGHT, 0);
-            statusBarLayout.setLayoutParams(params);
-            statusBarLayout.setBackgroundColor(resolveStatusBarColor(color));
-            updateSystemBarAppearance(color);
+            return;
         } else {
             Window window = getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(color.isBlank() ? ContextCompat.getColor(BotAppCompactActivity.this, R.color.colorPrimary) : Color.parseColor(color));
+            window.setStatusBarColor(statusBarColor);
         }
     }
 

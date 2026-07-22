@@ -87,6 +87,12 @@ public class KoreBotConnect: NSObject {
         let customData = configDetails["customData"] as? [String: Any] ?? [:]
         let queryParameters = configDetails["queryParameters"] as? [[String: Any]] ?? []
         let customJWToken = configDetails["customJWToken"] as? String ?? ""
+        let preferredLanguage = configDetails["preferredLanguage"] as? String
+            ?? configDetails["preferred_language"] as? String
+            ?? "en"
+        SDKConfiguration.botConfig.preferredLanguage = SDKConfiguration.botConfig.normalizeLanguage(preferredLanguage)
+        botConnect.koreSDkLanguage = Locale(identifier: SDKConfiguration.botConfig.preferredLanguage).languageCode
+            ?? SDKConfiguration.botConfig.preferredLanguage
         isCallSearchApi = configDetails["isSearch"] as? Bool ?? false
         let isAnonymous = configDetails["isAnonymous"] as? Bool ?? false
         let isWebhookEnabled = configDetails["isWebhookEnabled"] as? Bool ?? false

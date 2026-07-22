@@ -64,7 +64,8 @@ public class BotClient {
      * Connection for anonymous user
      */
     public void connectAsAnonymousUser(String jwtToken, String chatBotName, String taskBotId, SocketConnectionListener socketConnectionListener, boolean isReconnect) {
-
+        if (customData == null) customData = new RestResponse.BotCustomData();
+        customData.put("interactiveLanguage", SDKConfiguration.Server.getPreferredLanguage());
         botInfoModel = new BotInfoModel(chatBotName, taskBotId, customData);
         SocketWrapper.getInstance(mContext).connectAnonymous(jwtToken, botInfoModel, socketConnectionListener, null, isReconnect);
     }

@@ -12,6 +12,7 @@ import kore.botssdk.utils.LogUtils;
 
 public class PayloadInner {
     private String template_type;
+    private String lang;
     private String label;
     private String text;
     private String pie_type;
@@ -96,6 +97,14 @@ public class PayloadInner {
 
     public void setTemplate_type(String template_type) {
         this.template_type = template_type;
+    }
+
+    public String getLang() {
+        return lang;
+    }
+
+    public void setLang(String lang) {
+        this.lang = lang;
     }
 
     public void setText(String text) {

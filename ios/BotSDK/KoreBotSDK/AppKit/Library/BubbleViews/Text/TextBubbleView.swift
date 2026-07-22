@@ -13,7 +13,7 @@ import ObjcSupport
 class TextBubbleView : BubbleView {
     var onChange: ((_ reload: Bool) -> ())!
     func kTextColor() -> UIColor {
-        return (self.tailPosition == BubbleMaskTailPosition.left ? Common.UIColorRGB(0x484848) : Common.UIColorRGB(0xFFFFFF))
+        return usesOutgoingStyle ? Common.UIColorRGB(0xFFFFFF) : Common.UIColorRGB(0x484848)
     }
     let kMaxTextWidth: CGFloat = BubbleViewMaxWidth - 20.0
     let kMinTextWidth: CGFloat = 20.0
@@ -46,12 +46,12 @@ class TextBubbleView : BubbleView {
     }
     
     func setTextColor() {
-        if self.tailPosition == BubbleMaskTailPosition.left {
-            self.textLabel.textColor = BubbleViewBotChatTextColor
-            self.textLabel.linkTextColor = Common.UIColorRGB(0x0076FF)
-        }else{
+        if usesOutgoingStyle {
             self.textLabel.textColor = BubbleViewUserChatTextColor
             self.textLabel.linkTextColor = Common.UIColorRGB(0xFFFFFF)
+        }else{
+            self.textLabel.textColor = BubbleViewBotChatTextColor
+            self.textLabel.linkTextColor = Common.UIColorRGB(0x0076FF)
         }
     }
     

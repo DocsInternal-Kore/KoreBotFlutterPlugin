@@ -90,6 +90,9 @@ public class ComposeFooterFragment extends BaseFooterFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.bot_footer_fragment, null);
+        view.setLayoutDirection(SDKConfiguration.Server.isRtl()
+                ? View.LAYOUT_DIRECTION_RTL
+                : View.LAYOUT_DIRECTION_LTR);
         findViews(view);
         isDisabled = true;
         isFirstTime = true;

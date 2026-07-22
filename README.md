@@ -42,6 +42,7 @@ class BotLauncher {
     'identity': '<USER_IDENTITY>',
     'jwt_server_url': '<JWT_SERVER_URL>',
     'server_url': 'https://platform.kore.ai',
+    'preferredLanguage': 'en',
     'callHistory': false,
   };
 
@@ -89,6 +90,7 @@ Optional keys:
 | Key | Description |
 | --- | --- |
 | `callHistory` | Enables or disables initial history loading. |
+| `preferredLanguage` / `preferred_language` | Interactive language tag, such as `en` or `ar`. Defaults to `en`; RTL layout is enabled for RTL languages. A response payload `lang` value overrides the layout direction for that response. |
 | `customData` | Map sent with bot messages. |
 | `queryParams` | Android query parameters map. |
 | `queryParameters` | iOS query parameters array. |

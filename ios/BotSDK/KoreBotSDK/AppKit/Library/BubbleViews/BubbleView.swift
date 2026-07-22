@@ -28,6 +28,12 @@ var bubbleViewBotChatButtonBgColor: UIColor = UIColor.init(hexString: "#f3f3f5")
 var bubbleViewBotChatButtonTextColor: UIColor = UIColor.init(hexString: "#2881DF")
 
 open class BubbleView: UIView {
+    var isSenderMessage: Bool?
+
+    var usesOutgoingStyle: Bool {
+        return isSenderMessage ?? (tailPosition == BubbleMaskTailPosition.right)
+    }
+
     var tailPosition: BubbleMaskTailPosition! {
         didSet {
             self.backgroundColor = self.borderColor()
@@ -43,6 +49,10 @@ open class BubbleView: UIView {
     
     public var components:NSArray! {
         didSet(c) {
+            let responseLanguage = SDKConfiguration.botConfig.responseLanguage(from: components)
+            semanticContentAttribute = SDKConfiguration.botConfig.isRTL(responseLanguage)
+                ? .forceRightToLeft
+                : .forceLeftToRight
             self.populateComponents()
         }
     }
@@ -204,19 +214,19 @@ open class BubbleView: UIView {
     }
     
     func contrastTintColor() -> UIColor {
-        if (self.tailPosition == BubbleMaskTailPosition.left) {
-            return BubbleViewLeftContrastTint
+        if usesOutgoingStyle {
+            return BubbleViewRightContrastTint
         }
-        
-        return BubbleViewRightContrastTint
+
+        return BubbleViewLeftContrastTint
     }
     
     func borderColor() -> UIColor {
-        if (self.tailPosition == BubbleMaskTailPosition.left) {
-            return BubbleViewLeftTint
+        if usesOutgoingStyle {
+            return BubbleViewRightTint
         }
-        
-        return BubbleViewRightTint
+
+        return BubbleViewLeftTint
     }
     
     func applyBubbleMask() {

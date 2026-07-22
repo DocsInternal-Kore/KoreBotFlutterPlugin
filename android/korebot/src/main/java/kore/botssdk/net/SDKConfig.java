@@ -148,6 +148,10 @@ public class SDKConfig {
         SDKConfiguration.Server.customData = customData;
     }
 
+    public static void setPreferredLanguage(String language) {
+        SDKConfiguration.Server.setPreferredLanguage(language);
+    }
+
     public static void disconnectBotSession(@NonNull Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(BotResponse.THEME_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();

@@ -409,6 +409,7 @@ public class BotSocketConnectionManager extends BaseSocketConnectionManager {
             customData.putAll(SDKConfiguration.Server.customData);
 
         customData.put("botToken", getAccessToken());
+        customData.put("currentBotLang", SDKConfiguration.Server.getPreferredLanguage());
         botMessage.setCustomData(customData);
         botPayLoad.setMessage(botMessage);
         BotInfoModel botInfo = new BotInfoModel(botName, streamId, null);
@@ -469,6 +470,7 @@ public class BotSocketConnectionManager extends BaseSocketConnectionManager {
             customData.putAll(SDKConfiguration.Server.customData);
 
         customData.put("botToken", getAccessToken());
+        customData.put("currentBotLang", SDKConfiguration.Server.getPreferredLanguage());
 
         if (message != null) {
             if (attachments != null && !attachments.isEmpty()) {
@@ -506,6 +508,7 @@ public class BotSocketConnectionManager extends BaseSocketConnectionManager {
         RestResponse.BotMessage botMessage = new RestResponse.BotMessage(payLoad, message);
         botPayLoad.setMessage(botMessage);
         customData.put("botToken", getAccessToken());
+        customData.put("currentBotLang", SDKConfiguration.Server.getPreferredLanguage());
         botMessage.setCustomData(customData);
         BotInfoModel botInfo = new BotInfoModel(botName, streamId, null);
         botPayLoad.setBotInfo(botInfo);

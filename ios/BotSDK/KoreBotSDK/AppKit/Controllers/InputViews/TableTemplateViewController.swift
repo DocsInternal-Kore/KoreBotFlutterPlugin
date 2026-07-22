@@ -41,6 +41,10 @@ class TableTemplateViewController: UIViewController, UICollectionViewDataSource,
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        let responseLanguage = SDKConfiguration.botConfig.responseLanguage(fromJSONString: dataString)
+        view.semanticContentAttribute = SDKConfiguration.botConfig.isRTL(responseLanguage)
+            ? .forceRightToLeft
+            : .forceLeftToRight
         let jsonObject: NSDictionary = Utilities.jsonObjectFromString(jsonString: dataString!) as! NSDictionary
         let data: Dictionary<String, Any> = jsonObject as! Dictionary<String, Any>
         self.data = TableData(data)

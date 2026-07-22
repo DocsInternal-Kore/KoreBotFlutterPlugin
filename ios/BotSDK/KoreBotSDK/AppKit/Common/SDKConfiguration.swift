@@ -47,6 +47,65 @@ class SDKConfiguration: NSObject {
         public static var isShowAttachmentIcon : Bool = true
         
         public static var deviceToken:Data? =  nil
+
+        public static var preferredLanguage = "en"
+
+        static func normalizeLanguage(_ language: String?) -> String {
+            guard let value = language?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else {
+                return "en"
+            }
+            return value.replacingOccurrences(of: "_", with: "-")
+        }
+
+        static func resolveLanguage(_ responseLanguage: String?) -> String {
+            guard let value = responseLanguage?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else {
+                return preferredLanguage
+            }
+            return normalizeLanguage(value)
+        }
+
+        static func isRTL(_ language: String? = nil) -> Bool {
+            let resolved = resolveLanguage(language)
+            let languageCode = Locale(identifier: resolved).languageCode ?? resolved
+            return Locale.characterDirection(forLanguage: languageCode) == .rightToLeft
+        }
+
+        static func responseLanguage(from components: NSArray?) -> String? {
+            guard let components = components else { return nil }
+            for value in components {
+                let payload: String?
+                if let component = value as? KREComponent {
+                    payload = component.componentDesc
+                } else if let component = value as? Component {
+                    payload = component.payload
+                } else {
+                    payload = nil
+                }
+                if let language = responseLanguage(fromJSONString: payload) { return language }
+            }
+            return nil
+        }
+
+        static func responseLanguage(fromJSONString jsonString: String?) -> String? {
+            guard let jsonString = jsonString,
+                  let data = jsonString.data(using: .utf8),
+                  let object = try? JSONSerialization.jsonObject(with: data) else { return nil }
+            return findLanguage(in: object)
+        }
+
+        private static func findLanguage(in value: Any) -> String? {
+            if let dictionary = value as? [String: Any] {
+                if let language = dictionary["lang"] as? String, !language.isEmpty { return language }
+                for nestedValue in dictionary.values {
+                    if let language = findLanguage(in: nestedValue) { return language }
+                }
+            } else if let array = value as? [Any] {
+                for nestedValue in array {
+                    if let language = findLanguage(in: nestedValue) { return language }
+                }
+            }
+            return nil
+        }
     }
     
     struct serverConfig {

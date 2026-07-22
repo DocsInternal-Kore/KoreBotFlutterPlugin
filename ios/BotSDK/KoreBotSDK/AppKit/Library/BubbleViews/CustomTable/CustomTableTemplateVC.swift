@@ -47,6 +47,10 @@ class CustomTableTemplateVC: UIViewController, UICollectionViewDataSource, UICol
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        let responseLanguage = SDKConfiguration.botConfig.responseLanguage(fromJSONString: dataString)
+        view.semanticContentAttribute = SDKConfiguration.botConfig.isRTL(responseLanguage)
+            ? .forceRightToLeft
+            : .forceLeftToRight
         
         let customCollectionViewLayout = self.collectionView.collectionViewLayout as! CustomCollectionViewLayout
         customCollectionViewLayout.shouldPinFirstRow = true

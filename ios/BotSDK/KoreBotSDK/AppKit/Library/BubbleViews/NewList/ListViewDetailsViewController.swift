@@ -36,6 +36,10 @@ class ListViewDetailsViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        let responseLanguage = SDKConfiguration.botConfig.responseLanguage(fromJSONString: dataString)
+        view.semanticContentAttribute = SDKConfiguration.botConfig.isRTL(responseLanguage)
+            ? .forceRightToLeft
+            : .forceLeftToRight
         // Do any additional setup after loading the view.
         if #available(iOS 11.0, *) {
             self.subView.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner], radius: 10.0, borderColor: UIColor.clear, borderWidth: 1.5)
@@ -126,4 +130,3 @@ extension ListViewDetailsViewController: UITableViewDelegate,UITableViewDataSour
         }
     }
 }
-
