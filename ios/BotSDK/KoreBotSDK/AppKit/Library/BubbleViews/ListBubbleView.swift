@@ -10,45 +10,29 @@ import UIKit
 
 class ListBubbleView: BubbleView {
     static let elementsLimit: Int = 3
-    var tileBgv : UIView!
+
     var optionsView: KREOptionsView!
     var reloadTable = false
-    //public var optionsAction: ((_ text: String?, _ payload: String?) -> Void)!
+    //public var optionsAction: ((_ text: String?) -> Void)!
     //public var linkAction: ((_ text: String?) -> Void)!
     var spaceing = 0.0
     
     override func initialize() {
         super.initialize()
         
-        self.tileBgv = UIView(frame:.zero)
-        self.tileBgv.translatesAutoresizingMaskIntoConstraints = false
-        self.tileBgv.layer.rasterizationScale =  UIScreen.main.scale
-        self.tileBgv.layer.shouldRasterize = true
-        self.tileBgv.layer.cornerRadius = 0.0
-        self.tileBgv.layer.borderColor = UIColor.clear.cgColor
-        self.tileBgv.clipsToBounds = true
-        self.tileBgv.layer.borderWidth = 0.0
-        self.addSubview(self.tileBgv)
-        self.tileBgv.backgroundColor = .white
-        
-        let views: [String: UIView] = ["tileBgv": tileBgv]
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[tileBgv]-0-|", options: [], metrics: nil, views: views))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[tileBgv]-0-|", options: [], metrics: nil, views: views))
-        
         self.optionsView = KREOptionsView()
         self.optionsView.translatesAutoresizingMaskIntoConstraints = false
         self.optionsView.isUserInteractionEnabled = true
-        self.tileBgv.addSubview(self.optionsView)
+        self.addSubview(self.optionsView)
         
-        optionsView.layer.cornerRadius = 0.0
-        optionsView.layer.borderWidth = 1.0
-        optionsView.layer.borderColor = BubbleViewLeftTint.cgColor
+        let views: [String: UIView] = ["optionsView": optionsView]
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[optionsView]|", options: [], metrics: nil, views: views))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[optionsView]|", options: [], metrics: nil, views: views))
         
-        let viewss: [String: UIView] = ["optionsView": optionsView]
-        self.tileBgv.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-2-[optionsView]-2-|", options: [], metrics: nil, views: viewss))
-        self.tileBgv.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-2-[optionsView]-2-|", options: [], metrics: nil, views: viewss))
-        
-        
+        self.layer.cornerRadius = 0.0
+        self.layer.borderWidth = 1.0
+        self.clipsToBounds = true
+        self.layer.borderColor = BubbleViewLeftTint.cgColor
         
         // property blocks
         self.optionsView.optionsButtonAction = { [weak self] (text, payload) in
@@ -86,7 +70,7 @@ class ListBubbleView: BubbleView {
                     let subtitle: String = dictionary["subtitle"] != nil ? dictionary["subtitle"] as! String : ""
                     let imageUrl: String = dictionary["image_url"] != nil ? dictionary["image_url"] as! String : ""
                     
-                    let option: KREOption = KREOption(title: title, subTitle: subtitle, imageURL: imageUrl, optionType: .list)
+                    let option: KREOption = KREOption(title: title, subTitle: subtitle, imageURL: imageUrl, optionType: .list, buttonBgColor: btnBgActiveColor, buttonTextColor: btnActiveTextColor)
                     if let defaultAction = dictionary["default_action"] as? [String: Any],
                         let action = Utilities.getKREActionFromDictionary(dictionary: defaultAction) {
                         option.setDefaultAction(action: action)
@@ -104,13 +88,14 @@ class ListBubbleView: BubbleView {
                     if let buttons = jsonObject["buttons"] as? Array<[String: Any]>, let buttonElement = buttons.first {
                         let title: String = buttonElement["title"] != nil ? buttonElement["title"] as! String : ""
                         
-                        let option: KREOption = KREOption(title: title, subTitle: "", imageURL: "", optionType: .button)
+                        let option: KREOption = KREOption(title: title, subTitle: "", imageURL: "", optionType: .button, buttonBgColor: btnBgActiveColor, buttonTextColor: btnActiveTextColor)
                         if let action = Utilities.getKREActionFromDictionary(dictionary: buttonElement) {
                             option.setDefaultAction(action: action)
                         }
                         options.append(option)
-                        spaceing = 15.0
                     }
+                }else{
+                    spaceing = 15.0
                 }
                 
                 
@@ -123,7 +108,7 @@ class ListBubbleView: BubbleView {
     //MARK: View height calculation
     override var intrinsicContentSize : CGSize {
         let height = self.optionsView.getExpectedHeight(width: BubbleViewMaxWidth)
-        let viewSize:CGSize = CGSize(width: BubbleViewMaxWidth, height: height + CGFloat(spaceing))
+        let viewSize:CGSize = CGSize(width: BubbleViewMaxWidth, height: height)
         return viewSize;
     }
 }

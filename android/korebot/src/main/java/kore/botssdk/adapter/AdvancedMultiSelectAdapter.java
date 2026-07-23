@@ -1,8 +1,13 @@
 package kore.botssdk.adapter;
 
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static android.content.Context.MODE_PRIVATE;
+import static kore.botssdk.models.BotResponse.BUBBLE_LEFT_BG_COLOR;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_BG_COLOR;
+import static kore.botssdk.models.BotResponse.THEME_NAME;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
@@ -34,8 +39,8 @@ public class AdvancedMultiSelectAdapter extends RecyclerView.Adapter<AdvancedMul
     private int visibleLimit = 1;
     private ArrayList<AdvanceMultiSelectCollectionModel> checkedItems = new ArrayList<>();
     private AdvanceMultiSelectListener advanceMultiSelectListener;
-
     private boolean isEnabled;
+    private SharedPreferences prefs;
 
     public void setEnabled(boolean enabled) {
         isEnabled = enabled;
@@ -44,8 +49,11 @@ public class AdvancedMultiSelectAdapter extends RecyclerView.Adapter<AdvancedMul
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (prefs == null) {
+            prefs = parent.getContext().getSharedPreferences(THEME_NAME, MODE_PRIVATE);
+        }
         int layoutId = viewType == MULTI_SELECT_ITEM ? R.layout.row_advanced_multi_select_item : R.layout.multiselect_button;
-        return new AdvancedMultiSelectAdapter.ViewHolder(LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false), viewType);
+        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false), viewType);
     }
 
     @Override
@@ -64,20 +72,20 @@ public class AdvancedMultiSelectAdapter extends RecyclerView.Adapter<AdvancedMul
 
             if (multiSelectCollectionModels.size() > 1) holder.rootLayout.setVisibility(View.VISIBLE);
 
-            GradientDrawable gradientDrawable = (GradientDrawable)holder.checkSelectAll.getBackground().mutate();
+            GradientDrawable gradientDrawable = (GradientDrawable) holder.checkSelectAll.getBackground().mutate();
             gradientDrawable.setColor(Color.parseColor("#ffffff"));
-            gradientDrawable.setStroke( (int) dp1, Color.parseColor(SDKConfiguration.BubbleColors.leftBubbleSelected));
+            gradientDrawable.setStroke((int) dp1, Color.parseColor(prefs.getString(BUBBLE_LEFT_BG_COLOR, "#ffffff")));
             holder.checkSelectAll.setTag(true);
 
-            if(checkedItems.containsAll(multiSelectCollectionModels)){
-                gradientDrawable.setStroke( (int) dp1, Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-                gradientDrawable.setColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
+            if (checkedItems.containsAll(multiSelectCollectionModels)) {
+                gradientDrawable.setStroke((int) dp1, Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
+                gradientDrawable.setColor(Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
                 holder.checkSelectAll.setTag(false);
             }
 
-            holder.checkSelectAll.setOnClickListener( v -> {
+            holder.checkSelectAll.setOnClickListener(v -> {
                 advanceMultiSelectListener.allItemsSelected((Boolean) holder.checkSelectAll.getTag(), multiSelectCollectionModels);
-                holder.checkSelectAll.setTag(!((Boolean)holder.checkSelectAll.getTag()));
+                holder.checkSelectAll.setTag(!((Boolean) holder.checkSelectAll.getTag()));
             });
         }
 
@@ -116,8 +124,8 @@ public class AdvancedMultiSelectAdapter extends RecyclerView.Adapter<AdvancedMul
         this.multiSelectModels = multiSelectModels;
     }
 
-    public void setAdvanceMultiListener(AdvanceMultiSelectListener advanceMultiSelectListener) {
-        this.advanceMultiSelectListener = advanceMultiSelectListener;
+    public void setAdvanceMultiListener(AdvanceMultiSelectListener advanceMultiSelectListner) {
+        this.advanceMultiSelectListener = advanceMultiSelectListner;
     }
 
     public void refresh() {

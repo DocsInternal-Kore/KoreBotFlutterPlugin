@@ -2,7 +2,7 @@
 //  TaskMenuTablViewCell.swift
 //  KoreBotSDKDemo
 //
-//  Created by MatrixStream_01 on 29/05/20.
+//  Created by Pagidimarri Kartheek on 29/05/20.
 //  Copyright © 2020 Kore. All rights reserved.
 //
 
@@ -13,12 +13,13 @@ class TaskMenuTablViewCell: UITableViewCell {
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var bgView: UIView!
    
+    @IBOutlet weak var imagVWidthConstarint: NSLayoutConstraint!
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
         bgView.layer.cornerRadius = 10
         bgView.layer.borderWidth = 1
-        bgView.layer.borderColor = UIColor.lightGray.cgColor
+        bgView.layer.borderColor = BubbleViewLeftTint.cgColor
         
         imgView.layer.cornerRadius = imgView.frame.size.height/2
         imgView.clipsToBounds = true

@@ -11,14 +11,12 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.utils.MPPointF;
 import com.github.mikephil.charting.utils.Utils;
 
-/**
- * Created by Shiva Krishna on 11/7/2017.
- */
-
+@SuppressWarnings("UnKnownNullness")
 public class CustomMarkerView extends MarkerView {
 
     private final TextView tvContent;
-    public CustomMarkerView (Context context, int layoutResource) {
+
+    public CustomMarkerView(Context context, int layoutResource) {
         super(context, layoutResource);
         // this markerview only displays a textview
         tvContent = findViewById(R.id.tvContent);
@@ -28,7 +26,9 @@ public class CustomMarkerView extends MarkerView {
     // content (user-interface)
     @Override
     public void refreshContent(Entry e, Highlight highlight) {
-        if (e instanceof CandleEntry ce) {
+        if (e instanceof CandleEntry) {
+
+            CandleEntry ce = (CandleEntry) e;
 
             tvContent.setText(Utils.formatNumber(ce.getHigh(), 0, true));
         } else {
@@ -41,7 +41,7 @@ public class CustomMarkerView extends MarkerView {
 
     @Override
     public MPPointF getOffset() {
-        return new MPPointF(-(getWidth() / 2), -getHeight());
+        return new MPPointF(-((float) getWidth() / 2), -getHeight());
     }
 
 }

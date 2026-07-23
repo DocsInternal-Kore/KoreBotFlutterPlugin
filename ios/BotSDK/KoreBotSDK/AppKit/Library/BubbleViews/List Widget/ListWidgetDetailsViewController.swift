@@ -39,14 +39,7 @@ class ListWidgetDetailsViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let responseLanguage = SDKConfiguration.botConfig.responseLanguage(fromJSONString: dataString)
-        view.semanticContentAttribute = SDKConfiguration.botConfig.isRTL(responseLanguage)
-            ? .forceRightToLeft
-            : .forceLeftToRight
         // Do any additional setup after loading the view.
-        if #available(iOS 13.0, *) {
-            overrideUserInterfaceStyle = .light
-        }
         subView.layer.masksToBounds = false
         subView?.layer.shadowColor = UIColor.lightGray.cgColor
         subView?.layer.shadowOffset =  CGSize.zero
@@ -107,8 +100,11 @@ extension ListWidgetDetailsViewController: UITableViewDelegate,UITableViewDataSo
             let listView = cell.templateView
             listView.populateListItemView(listItem)
             listView.buttonActionHandler = { [weak self] (action) in
-                self?.viewDelegate?.optionsButtonTapNewAction(text: (action?.title!)! , payload:(action?.payload!)! )
-                self?.dismiss(animated: true, completion: nil)
+                if let title = action?.title{
+                    self?.viewDelegate?.optionsButtonTapNewAction(text: title , payload: action?.payload ?? title )
+                    self?.dismiss(animated: true, completion: nil)
+                }
+                
             }
 //            listView.menuActionHandler = { [weak self] (actions) in
 //               // self?.delegate?.populateActions(actions, in: self?.widget, in: self?.panelItem)
@@ -142,3 +138,4 @@ extension ListWidgetDetailsViewController: UITableViewDelegate,UITableViewDataSo
     }
     
 }
+

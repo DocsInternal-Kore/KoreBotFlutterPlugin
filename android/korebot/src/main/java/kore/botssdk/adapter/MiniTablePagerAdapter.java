@@ -1,6 +1,6 @@
 package kore.botssdk.adapter;
 
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -34,7 +34,7 @@ public class MiniTablePagerAdapter extends RecyclerView.Adapter<MiniTablePagerAd
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        MiniTablePagerAdapter.ViewHolder holder = new ViewHolder(layoutInflater.inflate(R.layout.mini_table_page, parent, false));
+        ViewHolder holder = new ViewHolder(layoutInflater.inflate(R.layout.mini_table_page, parent, false));
 
         holder.rvHeader.setClipToPadding(false);
         holder.rvContent.setClipToPadding(false);
@@ -54,7 +54,7 @@ public class MiniTablePagerAdapter extends RecyclerView.Adapter<MiniTablePagerAd
         BotMiniTableModel miniTableModel = getItem(position);
         if (miniTableModel == null) return;
         TableHeaderAdapter headerAdapter = new TableHeaderAdapter(holder.itemView.getContext(), miniTableModel.getPrimary(), isEnabled);
-        TableRowAdapter itemAdapter = new TableRowAdapter(holder.itemView.getContext(), miniTableModel.getAdditional(), miniTableModel.getPrimary());
+        TableRowAdapter itemAdapter = new TableRowAdapter(holder.itemView.getContext(), miniTableModel.getAdditional(), miniTableModel.getPrimary(), isEnabled);
         holder.rvHeader.setLayoutManager(new GridLayoutManager(holder.itemView.getContext(), miniTableModel.getPrimary().size()));
         holder.rvContent.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext(), LinearLayoutManager.VERTICAL, false));
         holder.rvHeader.setAdapter(headerAdapter);

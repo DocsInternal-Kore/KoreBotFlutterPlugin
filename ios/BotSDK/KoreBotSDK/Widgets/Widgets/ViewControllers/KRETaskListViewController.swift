@@ -7,7 +7,6 @@
 
 import UIKit
 import Foundation
-import korebotplugin
 
 public class KRETaskListViewController: UIViewController {
     let bundle = Bundle.sdkModule

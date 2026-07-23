@@ -43,7 +43,7 @@ public class RequestTextTemplateHolder extends BaseViewHolder {
     @Override
     public void bind(BaseBotMessage baseBotMessage) {
         RestResponse.BotMessage message = ((BotRequest) baseBotMessage).getMessage();
-        String msg = message != null ? message.getBody() : "";
+        String msg = message != null ? (String) message.getBody() : "";
         setRequestText(msg, ((BotRequest) baseBotMessage).getStatus(), baseBotMessage);
     }
 

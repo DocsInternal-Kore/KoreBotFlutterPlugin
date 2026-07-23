@@ -7,16 +7,13 @@
 //
 
 import UIKit
-import korebotplugin
-#if SWIFT_PACKAGE
-import ObjcSupport
-#endif
+
 class QuickReplyWelcomeBubbleView: BubbleView {
     static let elementsLimit: Int = 4
     
     public var maskview: UIView!
     var tileBgv: UIView!
-    var titleLbl: KREAttributedLabel!
+    var titleLbl: UILabel!
     var tableView: UITableView!
     var cardView: UIView!
     let kMaxTextWidth: CGFloat = BubbleViewMaxWidth - 20.0
@@ -44,8 +41,8 @@ class QuickReplyWelcomeBubbleView: BubbleView {
     var variation = ""
     var quickReplyView: KREQuickSelectView!
     
-   // public var optionsAction: ((_ text: String?, _ payload: String?) -> Void)!
-   // public var linkAction: ((_ text: String?) -> Void)!
+    //public var optionsAction: ((_ text: String?, _ payload: String?) -> Void)!
+    //public var linkAction: ((_ text: String?) -> Void)!
     public var selectBtnState: ((_ Index: Int?) -> Void)!
     override func applyBubbleMask() {
         //nothing to put here
@@ -80,7 +77,7 @@ class QuickReplyWelcomeBubbleView: BubbleView {
         self.tileBgv.backgroundColor = .lightGray
         self.cardView.addSubview(self.tileBgv)
         self.tileBgv.backgroundColor = BubbleViewLeftTint
-        
+       
         let layout = TagFlowLayout()
         layout.scrollDirection = .vertical
         self.collectionView = UICollectionView(frame: CGRect.zero, collectionViewLayout: layout)
@@ -121,17 +118,15 @@ class QuickReplyWelcomeBubbleView: BubbleView {
         
         
         
-        self.titleLbl = KREAttributedLabel(frame: CGRect.zero)
+        self.titleLbl = UILabel(frame: CGRect.zero)
         self.titleLbl.textColor = BubbleViewBotChatTextColor
-        self.titleLbl.mentionTextColor = Common.UIColorRGB(0x8ac85a)
-        self.titleLbl.hashtagTextColor = Common.UIColorRGB(0x8ac85a)
-        self.titleLbl.linkTextColor = Common.UIColorRGB(0x0076FF)
         self.titleLbl.font = UIFont(name: mediumCustomFont, size: 16.0)
-        self.titleLbl.numberOfLines = 0
-        self.titleLbl.lineBreakMode = NSLineBreakMode.byWordWrapping
+        self.titleLbl.backgroundColor = .clear
         self.titleLbl.isUserInteractionEnabled = true
+        self.titleLbl.numberOfLines = 0
         self.titleLbl.contentMode = UIView.ContentMode.topLeft
         self.titleLbl.translatesAutoresizingMaskIntoConstraints = false
+        self.titleLbl.tintColor = BubbleViewBotChatTextColor
         self.tileBgv.addSubview(self.titleLbl)
         
         let subView: [String: UIView] = ["titleLbl": titleLbl]
@@ -140,7 +135,7 @@ class QuickReplyWelcomeBubbleView: BubbleView {
         self.tileBgv.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-16-[titleLbl(>=textLabelMinWidth,<=textLabelMaxWidth)]-16-|", options: [], metrics: metrics, views: subView))
         
         if isReloadBtnLink {
-            print("yeReload")
+            //print("yeReload")
             isReloadBtnLink = false
             Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { (_) in
               NotificationCenter.default.post(name: Notification.Name(reloadTableNotification), object: nil)
@@ -150,27 +145,21 @@ class QuickReplyWelcomeBubbleView: BubbleView {
     }
     
     func setCornerRadiousToTitleView(){
-        let bubbleStyle = brandingShared.bubbleShape
-        var radius = 10.0
+        let bubbleStyle = brandingBodyDic.bubble_style
+        let radius = 10.0
         let borderWidth = 0.0
         let borderColor = UIColor.clear
         if #available(iOS 11.0, *) {
             if bubbleStyle == "balloon"{
                 self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "rounded" || bubbleStyle == "circle"{
-                radius = 15.0
+            }else if bubbleStyle == "rounded"{
                 self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "rectangle"{
-                radius = 8.0
-                self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "square"{
+                
+        }else if bubbleStyle == "rectangle"{
                 self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else{
-                self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: 20.0, borderColor: UIColor.lightGray, borderWidth: 0.0)
             }
         }
     }
-    
     
     func intializeCardLayout(){
         self.cardView = UIView(frame:.zero)
@@ -194,16 +183,11 @@ class QuickReplyWelcomeBubbleView: BubbleView {
                     let titleStr = jsonObject["text"] as? String
                     let newString = titleStr?.replacingOccurrences(of: ":)", with: "\u{1f642}")
                     
-                    if let parsedString = KREUtilities.formatHTMLEscapedString(newString) {
-                        var replaceStr = parsedString.replacingOccurrences(of: ":)", with: "😊")
-                        replaceStr = replaceStr.replacingOccurrences(of: "&quot;", with: "\"")
-                        self.titleLbl.setHTMLString(replaceStr, withWidth: kMaxTextWidth)
+                    if jsonObject["text"] is String{
+                        self.titleLbl.text = newString
                     }else{
-                        var replaceStr = newString?.replacingOccurrences(of: ":)", with: "😊")
-                        replaceStr = replaceStr?.replacingOccurrences(of: "&quot;", with: "\"")
-                        self.titleLbl.text = replaceStr
+                        self.titleLbl.text = ""
                     }
-                    
                     let jsonDecoder = JSONDecoder()
                     guard let jsonData = try? JSONSerialization.data(withJSONObject: jsonObject as Any , options: .prettyPrinted),
                           let allItems = try? jsonDecoder.decode(Componentss.self, from: jsonData) else {
@@ -219,6 +203,7 @@ class QuickReplyWelcomeBubbleView: BubbleView {
                         
                         arrayOfElements = allItems.quickReplies ?? []
                     }
+                    
                     isFullWidth = false
                     if let fullWidth = jsonObject["fullWidth"] as? Bool, fullWidth == true{
                         isFullWidth = true
@@ -290,9 +275,10 @@ extension QuickReplyWelcomeBubbleView : UICollectionViewDelegate, UICollectionVi
             let elements = arrayOfButtons[indexPath.row]
             cell.textlabel.text = elements.title
         }
-        let bgColor = (brandingShared.buttonActiveBgColor) ?? "#f3f3f5"
-        let textColor = (brandingShared.buttonActiveTextColor) ?? "#2881DF"
+        var bgColor = btnBgActiveColor
+        var textColor = btnActiveTextColor
         cell.bgV.backgroundColor = UIColor.init(hexString: bgColor)
+        cell.layer.borderColor =  UIColor.init(hexString: bgColor).cgColor
         
         cell.textlabel.font = UIFont(name: mediumCustomFont, size: 12.0)
         cell.textlabel.textAlignment = .center
@@ -300,7 +286,6 @@ extension QuickReplyWelcomeBubbleView : UICollectionViewDelegate, UICollectionVi
         cell.textlabel.numberOfLines = 2
         cell.imagvWidthConstraint.constant = 0.0
         
-        cell.layer.borderColor =  UIColor.init(hexString: bgColor).cgColor
         if variation == "plain"{
             cell.bgV.backgroundColor = UIColor.clear
             cell.textlabel.textColor = BubbleViewBotChatTextColor
@@ -310,14 +295,9 @@ extension QuickReplyWelcomeBubbleView : UICollectionViewDelegate, UICollectionVi
             cell.textlabel.textColor = BubbleViewRightTint
             cell.layer.borderColor =  BubbleViewLeftTint.cgColor
         }
-
-        if buttonTemplteBtnsTextBoraderColor != nil{
-            cell.bgV.backgroundColor = UIColor.clear
-            cell.textlabel.textColor = buttonTemplteBtnsTextBoraderColor
-            cell.layer.borderColor =  buttonTemplteBtnsTextBoraderColor?.cgColor
-        }
+        
         cell.layer.borderWidth = 1.5
-        cell.layer.cornerRadius = buttonTemplteBtnsCornerRadious
+        cell.layer.cornerRadius = 5
         cell.backgroundColor = .clear
         
         return cell
@@ -330,7 +310,6 @@ extension QuickReplyWelcomeBubbleView : UICollectionViewDelegate, UICollectionVi
                     self.linkAction?(elements.url)
             }else{
                 self.optionsAction?(elements.title, elements.payload)
-                self.maskview.isHidden = false
             }
         }else{
             let elements = arrayOfButtons[indexPath.row]
@@ -338,7 +317,6 @@ extension QuickReplyWelcomeBubbleView : UICollectionViewDelegate, UICollectionVi
                 self.linkAction?(elements.url)
             }else{
                 self.optionsAction?(elements.title, elements.payload)
-                self.maskview.isHidden = false
             }
         }
         
@@ -360,10 +338,19 @@ extension QuickReplyWelcomeBubbleView : UICollectionViewDelegate, UICollectionVi
         }
         
         if isFullWidth{
+            if isLandscape{
+                return CGSize(width: BubbleViewMaxWidth - 20  , height: 40)
+            }
             return CGSize(width: BubbleViewMaxWidth - 5  , height: 40)
         }else{
             return CGSize(width: min(Int(maxContentWidth()) - 10 , textWidth + 28) , height: 40)
         }
+        
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        collectionView.collectionViewLayout.invalidateLayout()
     }
     
     func maxContentWidth() -> CGFloat {

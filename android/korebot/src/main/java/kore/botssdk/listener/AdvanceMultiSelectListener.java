@@ -8,6 +8,7 @@ import kore.botssdk.models.AdvanceMultiSelectCollectionModel;
 
 @SuppressLint("UnknownNullness")
 public interface AdvanceMultiSelectListener {
-    void itemSelected(AdvanceMultiSelectCollectionModel checkedItems);
-    void allItemsSelected(boolean addRemove, ArrayList<AdvanceMultiSelectCollectionModel> allCheckedItems);
+    public void itemSelected(AdvanceMultiSelectCollectionModel checkedItems);
+
+    public void allItemsSelected(boolean addRemove, ArrayList<AdvanceMultiSelectCollectionModel> allCheckedItems);
 }

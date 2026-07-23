@@ -14,17 +14,21 @@ import java.util.concurrent.TimeUnit;
 public abstract class AsyncTasks<Params, S, S1> {
     public static final String TAG = "AsyncTaskRunner";
 
-    private static final Executor THREAD_POOL_EXECUTOR =
-            new ThreadPoolExecutor(5, 128, 1,
-                    TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    private static final Executor THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(5, 128, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private boolean mIsInterrupted = false;
 
-    protected void onPreExecute(){}
+    protected void onPreExecute() {
+    }
+
     protected abstract void doInBackground(Params... params);
-    protected void onPostExecute(){}
-    protected void onCancelled() {}
+
+    protected void onPostExecute() {
+    }
+
+    protected void onCancelled() {
+    }
 
     @SafeVarargs
     public final void executeAsync(Params... params) {
@@ -47,12 +51,12 @@ public abstract class AsyncTasks<Params, S, S1> {
     }
 
     private void checkInterrupted() throws InterruptedException {
-        if (isInterrupted()){
+        if (isInterrupted()) {
             throw new InterruptedException();
         }
     }
 
-    public void cancel(boolean mayInterruptIfRunning){
+    public void cancel(boolean mayInterruptIfRunning) {
         setInterrupted(mayInterruptIfRunning);
     }
 

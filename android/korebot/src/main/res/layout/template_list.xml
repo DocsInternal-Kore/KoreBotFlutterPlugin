@@ -13,7 +13,6 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bottom_right_rounded_rectangle"
         android:orientation="vertical"
         android:paddingLeft="@dimen/dimen_10dp"
         android:paddingTop="@dimen/dimen_10dp"
@@ -38,7 +37,6 @@
             android:id="@+id/botCustomListView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#eeeef2"
             android:nestedScrollingEnabled="false" />
 
         <kore.botssdk.view.CustomTextView
@@ -46,7 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:minHeight="@dimen/button_min_height"
+            android:minHeight="@dimen/dimen_40dp"
             android:textColor="@android:color/holo_blue_dark"
             android:visibility="visible" />
     </androidx.appcompat.widget.LinearLayoutCompat>

@@ -7,7 +7,6 @@
 
 import UIKit
 #if SWIFT_PACKAGE
-import ObjcSupport
 #endif
 class MiniTableHorizontalBubbuleView: BubbleView {
 
@@ -133,23 +132,18 @@ class MiniTableHorizontalBubbuleView: BubbleView {
         setCornerRadiousToTitleView()
     }
     func setCornerRadiousToTitleView(){
-        let bubbleStyle = brandingShared.bubbleShape
-        var radius = 10.0
+        let bubbleStyle = brandingBodyDic.bubble_style
+        let radius = 10.0
         let borderWidth = 0.0
         let borderColor = UIColor.clear
         if #available(iOS 11.0, *) {
             if bubbleStyle == "balloon"{
                 self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "rounded" || bubbleStyle == "circle"{
-                radius = 15.0
+            }else if bubbleStyle == "rounded"{
                 self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "rectangle"{
-                radius = 8.0
-                self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "square"{
+                
+        }else if bubbleStyle == "rectangle"{
                 self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else{
-                self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: 20.0, borderColor: UIColor.lightGray, borderWidth: 0.0)
             }
         }
     }

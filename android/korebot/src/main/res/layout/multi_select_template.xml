@@ -3,7 +3,6 @@
     android:id="@+id/multi_select_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_gravity="center"
     android:background="@drawable/round_rect"
     android:orientation="vertical"
     android:paddingBottom="2dp">
@@ -12,7 +11,6 @@
         android:id="@+id/multi_select_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:divider="@null"
         android:visibility="visible" />
 </LinearLayout>

@@ -1,10 +1,9 @@
 package kore.botssdk.listener;
 
-import java.util.HashMap;
-
+import kore.botssdk.models.BotBrandingModel;
 import kore.botssdk.models.BotRequest;
 import kore.botssdk.models.BotResponse;
-import kore.botssdk.models.BrandingModel;
+import kore.botssdk.models.EventModel;
 
 @SuppressWarnings("UnKnownNullness")
 public interface BotChatViewListener extends BaseView {
@@ -12,7 +11,7 @@ public interface BotChatViewListener extends BaseView {
 
     void onConnectionStateChanged(BaseSocketConnectionManager.CONNECTION_STATE state, boolean isReconnection);
 
-    void onBrandingDetails(BrandingModel brandingModel);
+    void onBrandingDetails(BotBrandingModel brandingModel);
 
     void updateContentListOnSend(BotRequest botRequest);
 
@@ -33,9 +32,16 @@ public interface BotChatViewListener extends BaseView {
     void showReconnectionStopped();
 
     void getBrandingDetails();
-    void loadOnConnectionHistory(boolean isReconnect);
-    void addAttachmentToAdapter(HashMap<String, String> attachmentKey);
+
     void uploadBulkFile(String fileName, String filePath, String extn, String filePathThumbnail, String orientation);
+
+    void showAlertDialog(EventModel eventModel);
+
+    void hideAlertDialog();
+
+    void loadOnConnectionHistory(boolean isReconnect);
+
     void addStreamingMessage(String message, boolean endFlag);
+
     void updateMessageStatus(BotRequest botRequest);
 }

@@ -91,8 +91,7 @@ class KREPanelRequestOperation: KREOperation {
     
     func panelsUrl(with userId: String, server: String, email: String) -> String {
         let timezone = TimeZone.current.identifier
-        /*
-        KRELocationManager.shared.updateLastKnowLocation()
+        /*KRELocationManager.shared.updateLastKnowLocation()
         let lastKnownRegion = KRELocationManager.shared.lastKnowRegion
         if let latitude = lastKnownRegion?.latitude, let longitude = lastKnownRegion?.longitude {
             return String(format: "\(server)widgetsdk/\(userId)/panels?resolveWidgets=true&from=\(email)")

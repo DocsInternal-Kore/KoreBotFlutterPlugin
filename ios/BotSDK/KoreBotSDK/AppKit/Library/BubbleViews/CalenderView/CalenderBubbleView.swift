@@ -46,11 +46,8 @@ class CalenderBubbleView: BubbleView {
         self.tileBgv.layer.borderWidth = 1.0
         self.cardView.addSubview(self.tileBgv)
         self.tileBgv.backgroundColor = BubbleViewLeftTint
-        if #available(iOS 11.0, *) {
-            self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: 15.0, borderColor: UIColor.lightGray, borderWidth: 1.5)
-        }
         let views: [String: UIView] = ["tileBgv": tileBgv]
-               self.cardView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-15-[tileBgv]-5-|", options: [], metrics: nil, views: views))
+               self.cardView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[tileBgv]-0-|", options: [], metrics: nil, views: views))
         self.cardView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[tileBgv]", options: [], metrics: nil, views: views))
              
         self.titleLbl = UILabel(frame: CGRect.zero)
@@ -71,8 +68,24 @@ class CalenderBubbleView: BubbleView {
         let subView: [String: UIView] = ["titleLbl": titleLbl]
         let metrics: [String: NSNumber] = ["textLabelMaxWidth": NSNumber(value: Float(kMaxTextWidth)), "textLabelMinWidth": NSNumber(value: Float(kMinTextWidth))]
         self.tileBgv.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[titleLbl]-10-|", options: [], metrics: metrics, views: subView))
-        self.tileBgv.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-16-[titleLbl(>=textLabelMinWidth,<=textLabelMaxWidth)]-16-|", options: [], metrics: metrics, views: subView))
+        self.tileBgv.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[titleLbl(>=textLabelMinWidth,<=textLabelMaxWidth)]-10-|", options: [], metrics: metrics, views: subView))
         setCornerRadiousToTitleView()
+    }
+    func setCornerRadiousToTitleView(){
+        let bubbleStyle = brandingBodyDic.bubble_style
+        let radius = 10.0
+        let borderWidth = 0.0
+        let borderColor = UIColor.clear
+        if #available(iOS 11.0, *) {
+            if bubbleStyle == "balloon"{
+                self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
+            }else if bubbleStyle == "rounded"{
+                self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
+                
+        }else if bubbleStyle == "rectangle"{
+                self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
+            }
+        }
     }
     
     func intializeCardLayout(){
@@ -84,28 +97,6 @@ class CalenderBubbleView: BubbleView {
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[cardView]-0-|", options: [], metrics: nil, views: cardViews))
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[cardView]-0-|", options: [], metrics: nil, views: cardViews))
         
-    }
-    
-    func setCornerRadiousToTitleView(){
-        let bubbleStyle = brandingShared.bubbleShape
-        var radius = 10.0
-        let borderWidth = 0.0
-        let borderColor = UIColor.clear
-        if #available(iOS 11.0, *) {
-            if bubbleStyle == "balloon"{
-                self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "rounded" || bubbleStyle == "circle"{
-                radius = 15.0
-                self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "rectangle"{
-                radius = 8.0
-                self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "square"{
-                self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else{
-                self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: 20.0, borderColor: UIColor.lightGray, borderWidth: 0.0)
-            }
-        }
     }
     
     // MARK: populate components
@@ -121,7 +112,7 @@ class CalenderBubbleView: BubbleView {
                     let allItems = try? jsonDecoder.decode(Componentss.self, from: jsonData) else {
                                                 return
                     }
-                self.titleLbl.text = allItems.text_message ?? ""
+                self.titleLbl.text = allItems.text_message ?? allItems.title
             }
         }
     }
@@ -134,7 +125,7 @@ class CalenderBubbleView: BubbleView {
         if textSize.height < self.titleLbl.font.pointSize {
             textSize.height = self.titleLbl.font.pointSize
         }
-        return CGSize(width: 0.0, height: textSize.height+20)
+        return CGSize(width: 0.0, height: textSize.height)
     }
     
     @objc fileprivate func SelectAllButtonAction(_ sender: AnyObject!) {

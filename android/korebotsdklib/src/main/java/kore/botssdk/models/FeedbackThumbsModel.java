@@ -5,15 +5,15 @@ public class FeedbackThumbsModel {
     private String value;
     private String reviewText;
 
-    public Object getThumpUpId() {
-        return thumpUpId;
+    public String getReviewText() {
+        return reviewText;
     }
 
     public String getValue() {
         return value;
     }
 
-    public String getReviewText() {
-        return reviewText;
+    public Object getThumpUpId() {
+        return thumpUpId;
     }
 }

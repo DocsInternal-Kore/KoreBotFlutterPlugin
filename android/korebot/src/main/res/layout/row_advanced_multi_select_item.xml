@@ -45,7 +45,6 @@
                 android:gravity="center"
                 android:padding="@dimen/dimen_5dp"
                 android:src="@drawable/check_icon" />
-
         </LinearLayout>
 
         <kore.botssdk.view.CustomTextView

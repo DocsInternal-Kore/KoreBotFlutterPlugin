@@ -160,7 +160,6 @@ open class BotClient: NSObject, RTMPersistentConnectionDelegate {
     open func disconnect() {
         if let connection = connection {
             connection.disconnect()
-            self.rtmConnectionDidClose(1000, reason: "User closed the bot")
             connection.connectionDelegate = nil
         }
         connection = nil
@@ -254,7 +253,6 @@ open class BotClient: NSObject, RTMPersistentConnectionDelegate {
             if let botToken = authInfoModel?.accessToken {
                 parameters["botToken"] = botToken
             }
-            parameters["currentBotLang"] = SDKConfiguration.botConfig.preferredLanguage
             dictionary?.forEach { (key, value) in parameters[key] = value }
             connection.sendMessage(message, parameters: parameters, options: options)
         }else{

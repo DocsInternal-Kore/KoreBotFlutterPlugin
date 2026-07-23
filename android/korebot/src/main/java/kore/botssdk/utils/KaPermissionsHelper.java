@@ -12,27 +12,28 @@ import android.provider.Settings;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
-/**
- * Created by Shiva Krishna on 11/15/2017.
- */
 public class KaPermissionsHelper {
     public static final int GET_ACCOUNT_PERMISSION = 82;
     public static boolean hasPermission(Activity activity,String... permission) {
         boolean shouldShowRequestPermissionRationale = true;
-        int permissionLength = permission.length;
-        for (int i=0;i<permissionLength;i++) {
-            shouldShowRequestPermissionRationale = shouldShowRequestPermissionRationale &&
-                    ActivityCompat.checkSelfPermission(activity, permission[i]) == PackageManager.PERMISSION_GRANTED;
+        if (Build.VERSION.SDK_INT >= 23) {
+            int permissionLength = permission.length;
+            for (int i=0;i<permissionLength;i++) {
+                shouldShowRequestPermissionRationale = shouldShowRequestPermissionRationale &&
+                        ActivityCompat.checkSelfPermission(activity, permission[i]) == PackageManager.PERMISSION_GRANTED;
+            }
         }
         return shouldShowRequestPermissionRationale;
     }
 
     public static boolean hasPermission(Context context,String... permission) {
         boolean shouldShowRequestPermissionRationale = true;
-        int permissionLength = permission.length;
-        for (int i=0;i<permissionLength;i++) {
-            shouldShowRequestPermissionRationale = shouldShowRequestPermissionRationale &&
-                    ActivityCompat.checkSelfPermission(context, permission[i]) == PackageManager.PERMISSION_GRANTED;
+        if (Build.VERSION.SDK_INT >= 23) {
+            int permissionLength = permission.length;
+            for (int i=0;i<permissionLength;i++) {
+                shouldShowRequestPermissionRationale = shouldShowRequestPermissionRationale &&
+                        ActivityCompat.checkSelfPermission(context, permission[i]) == PackageManager.PERMISSION_GRANTED;
+            }
         }
         return shouldShowRequestPermissionRationale;
     }
@@ -85,9 +86,9 @@ public class KaPermissionsHelper {
     }
 
     public static void requestForPermission(Fragment fragment, String permission, int requestCode) {
-        //TODO: check for all permissions shouldShowRequestPermissionRationale
+        //check for all permissions shouldShowRequestPermissionRationale
         if (fragment.shouldShowRequestPermissionRationale(permission)) {
-            //TODO: need to show a dialog with a message to the user why should he grant permission
+            //need to show a dialog with a message to the user why should he grant permission
             //call the below method on click OK of the dialog. For now if, else block code remains same
             fragment.requestPermissions(new String[]{permission},
                     requestCode);
@@ -98,9 +99,9 @@ public class KaPermissionsHelper {
     }
 
     public static void requestForPermission(Fragment fragment, String[] permissions, int requestCode) {
-        //TODO: check for all permissions shouldShowRequestPermissionRationale
+        //check for all permissions shouldShowRequestPermissionRationale
         if (fragment.shouldShowRequestPermissionRationale(permissions[0])) {
-            //TODO: need to show a dialog with a message to the user why should he grant permission
+            //need to show a dialog with a message to the user why should he grant permission
             //call the below method on click OK of the dialog. For now if, else block code remains same
             fragment.requestPermissions(permissions,
                     requestCode);

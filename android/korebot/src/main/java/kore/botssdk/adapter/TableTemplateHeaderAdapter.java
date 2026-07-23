@@ -18,17 +18,19 @@ import kore.botssdk.utils.BundleConstants;
 public class TableTemplateHeaderAdapter extends RecyclerView.Adapter<TableTemplateHeaderAdapter.ViewHolder> {
 
     private final List<List<String>> headers;
+    private final boolean isEnabled;
     private final LayoutInflater layoutInflater;
 
-    public TableTemplateHeaderAdapter(Context context, List<List<String>> headers) {
+    public TableTemplateHeaderAdapter(Context context, List<List<String>> headers, boolean isEnabled) {
         layoutInflater = LayoutInflater.from(context);
         this.headers = headers;
+        this.isEnabled = isEnabled;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new TableTemplateHeaderAdapter.ViewHolder(layoutInflater.inflate(R.layout.table_child_cell, parent, false));
+        return new ViewHolder(layoutInflater.inflate(R.layout.table_child_cell, parent, false));
     }
 
     @Override

@@ -18,12 +18,12 @@ public class DelayedOperation {
         boolean shouldExecuteDelayedOperation();
     }
 
-    private final long mDelay;
+    private long mDelay;
     private Operation mOperation;
     private Timer mTimer;
     private boolean started;
-    private final Context mContext;
-    private final String mTag;
+    private Context mContext;
+    private String mTag;
 
     public DelayedOperation(Context context, String tag, long delayInMilliseconds) {
         if (context == null) {

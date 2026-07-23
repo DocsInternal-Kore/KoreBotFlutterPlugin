@@ -1,6 +1,5 @@
 package kore.botssdk.models;
 
-
 public class Data {
     private String text;
 

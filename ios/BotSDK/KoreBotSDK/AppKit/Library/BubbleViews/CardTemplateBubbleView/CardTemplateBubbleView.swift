@@ -388,7 +388,7 @@ extension CardTemplateBubbleView: UITableViewDelegate, UITableViewDataSource{
             cardHView.subTilteLabel.text = headerDetails?.desc
             headerView.addSubview(cardHView)
             
-            cardHView.titleLabel.textColor = UIColor(hexString: textColor)
+            cardHView.titleLabel.textColor = BubbleViewBotChatTextColor
             cardHView.backgroundColor  = UIColor(hexString: bgColor)
             
             cardHView.imagVHeightConstraint.constant = 0.0
@@ -674,6 +674,10 @@ extension CardTemplateBubbleView{
         }
         colorDropDown.bottomOffset = CGPoint(x: Int(200), y: Int(dropDownPosition - 30))
         colorDropDown.dataSource = titles as! [String]
+        colorDropDown.reloadInputViews()
+        colorDropDown.reloadAllComponents()
+        colorDropDown.reloadAllData()
+        
         //colorDropDown.selectRow(0)
         // Action triggered on selection
         colorDropDown.selectionAction = { (index, item) in

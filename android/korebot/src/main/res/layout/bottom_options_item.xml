@@ -20,8 +20,8 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="5dp"
             android:clickable="false"
-            android:scaleType="centerCrop"
-            android:importantForAccessibility="no" />
+            android:importantForAccessibility="no"
+            android:scaleType="centerCrop" />
 
     </LinearLayout>
 
@@ -37,6 +37,4 @@
         android:text="@string/title"
         android:textColor="@color/left_bubble_text_color"
         android:textSize="@dimen/text_size_sub_header" />
-
-
 </LinearLayout>

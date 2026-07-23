@@ -15,14 +15,20 @@ var showTableTemplateNotification = "ShowTableTemplateNotificationName"
 var reloadTableNotification = "reloadTableNotification"
 var updateUserImageNotification = "updateUserImageNotification"
 var showListViewTemplateNotification = "ListViewTemplateNotificationName"
+var showArticleTemplateNotification = "ArticleTemplateNotificationName"
 var showListWidgetViewTemplateNotification = "ListWidgetViewTemplateNotificationName"
+var advancedMultiSelectTemplateNotification = "AdvancedMultiSelectTemplateNotification"
 var showAttachmentSendButtonNotification = "ShowAttachmentSendButton"
 var dropDownTemplateNotification = "DropDownTemplateNotificationName"
 var showCustomTableTemplateNotification = "ShowCustomTableTemplateNotificationName"
 var pdfcTemplateViewNotification = "pdfShowViewNotification"
-var pdfcTemplateViewErrorNotification = "pdfShowErrorNotification"
+var showToastMessageNotification = "showToastMessageNotification"
 var reloadVideoCellNotification = "ReloadVideoCellNotification"
+var callFromAgentNotification = "callFromAgentNotification"
 var tokenExipryNotification = "TokenExpiryNotification"
+var activityViewControllerNotification = "ActivityViewControllerNotificationName"
+/// Posted when a streaming message chunk is applied; userInfo["messageId"] = messageId. Reload that row to show text one-by-one.
+var streamingMessageDidUpdateNotification = "StreamingMessageDidUpdateNotification"
 
 var isSpeakingEnabled = false
 
@@ -30,60 +36,91 @@ let userColor: UIColor = UIColor(red: 38 / 255.0, green: 52 / 255.0, blue: 74 / 
 let botColor: UIColor = UIColor(red: 237 / 255.0, green: 238 / 255.0, blue: 241 / 255.0, alpha: 1)
 
 var themeColor: UIColor = UIColor.init(hexString: "#2881DF")
-var isShowUserIcon = false
-var isShowBotIconTop = false
-var AcccesssTokenn:String?
-var attachmentKeybord = false
-var jwtToken:String?
-var botHistoryIcon:String?
-var lastMessageID:String?
-var history = true
-var isShowWelcomeMsg = true
-
-var isShowComposeMenuBtn = false
-var isIntialiseFileUpload = false
-var regularCustomFont = "HelveticaNeue"
-var mediumCustomFont = "HelveticaNeue-Medium"
-var boldCustomFont = "HelveticaNeue-Bold"
-var semiBoldCustomFont = "HelveticaNeue-Semibold"
-var italicCustomFont =  "HelveticaNeue-Italic"
-
 var isAgentConnect = false
 
 var isTryConnect = true
 var isInternetAvailable = true
 var isBotConnectSucessFully = false
 
-var arrayOfViews = [BubbleView?]()
+var AcccesssTokenn:String?
+var attachmentKeybord = false
+var jwtToken:String?
+var botHistoryIcon:String?
+var lastMessageID:String?
+var isIntialiseFileUpload = false
+var history = true
+var isShowWelcomeMsg = true
+var calenderCloseTag = true
+
+var isShowComposeMenuBtn = false
+var isShowComposeAttachmentBtn = true
+
+var regularCustomFont = "HelveticaNeue"
+var mediumCustomFont = "HelveticaNeue-Medium"
+var boldCustomFont = "HelveticaNeue-Bold"
+var semiBoldCustomFont = "HelveticaNeue-Semibold"
+var italicCustomFont =  "HelveticaNeue-Italic"
+
+//SDKV3
+var brandingValues = BrandingModel()
+var brandingBodyDic = Body()
+var btnBgActiveColor = "#4B4EDE"
+var btnActiveTextColor = "#FFFFFF"
+var btnBoarderColor = "#4B4EDE"
+var templateBoarderColor = "#E4E5E7"
+
+var genaralPrimaryColor = "#D38A17"
+var genaralSecondaryColor = "#101828"
+var genaralPrimary_textColor = "#C1EDB9"
+var genaralSecondary_textColor = "#000000"
+var useColorPaletteOnly = false
+var headerTxt = SDKConfiguration.botConfig.chatBotName
+
+var arrayOfViews = [BubbleView.Type]()
 var arrayOfTemplateTypes = [String]()
+var quickRepliesIsHorizontal = false
+var feedBackTemplateSelectedValue = ""
+var isShowQuickRepliesBottom = true
+var arrayOfSelectedBtnIndex:NSMutableArray = NSMutableArray()
 
 var notDeliverdMsgsArray = [String]()
 var historyLimit = 0
-var RemovedTemplateCount = 0
+var removedTemplateCount = 0
 var isCallingHistoryApi = true
-
-var feedBackTemplateSelectedValue = ""
-var appDisplayName = "KoreBotSDK"
-var isShowQuickRepliesBottom = true
-var isShowVideoOption = false
-var arrayOfSelectedBtnIndex:NSMutableArray = NSMutableArray()
-
 var close_AgentChat_EventName = "close_agent_chat"
 var close_Button_EventName = "close_button_event"
 var minimize_Button_EventName = "minimize_button_event"
 var isZenDesk_Event = false
 
-var statusBarBackgroundColor = UIColor.clear
-var statusBarBottomBackgroundColor:UIColor? = nil
+
+var isRemoveTemplate = false
+var OTPValidationRemoveCount = 0
+var otpValidationTemplateNotification = "OTPvalidationTemplateNotificationName"
+var resetpinTemplateNotification = "ResetPinTemplateNotificationName"
+
 var connectModeString:String? = nil
-var localActiveTheme:ActiveTheme? = nil
 var loadReconnectionHistory = false
 var isNetworkOnResumeCallingHistory = true
+var statusBarBackgroundColor:UIColor? = nil
+var statusBarBottomBackgroundColor:UIColor? = nil
 
-var buttonTemplteBtnsCornerRadious = 5.0
-var buttonTemplteBtnsTextBoraderColor:UIColor? = nil
+var overRideBrandingTheme:BrandingModel? = nil
 
-var CallbacksNotification = "CallbacksNotification"
+var emojiDic = [String : Any]()
+var isEmojiDispaly = false
+var recentHistoryBatchSize = 10
+var isPaginatedScrollEnable = SDKConfiguration.botConfig.isShowChatHistory
+var paginatedScrollBatchSize = 10
+var isPopUpWebV = false
+
+var toastMessageStr = "Saved successfully under Files"
+var videoDownloadAlertTitle = "Download"
+var fileDownloadingToastMsg = "Downloading..."
+var fileSavedSuccessfullyToastMsg = "Saved successfully under Files"
+var videoDownloadAlertCancelTitle = "Cancel"
+var vileDownloadFailedToastMsg = "Download failed!"
+var downloadImage: UIImage?
+var downloadFileURL: URL?
 
 open class Common : NSObject {
     public static func UIColorRGB(_ rgb: Int) -> UIColor {
@@ -147,16 +184,17 @@ open class Utilities: NSObject {
     }
     
     public static func base64ToImage(base64String: String?) -> UIImage{
-           if (base64String?.isEmpty)! {
-               return #imageLiteral(resourceName: "no_image_found")
-           }else {
-               // Separation part is optional, depends on your Base64String !
-               let tempImage = base64String?.components(separatedBy: ",")
-               let dataDecoded : Data = Data(base64Encoded: tempImage![1], options: .ignoreUnknownCharacters)!
-               let decodedimage = UIImage(data: dataDecoded)
-               return decodedimage!
-           }
-       }
+        if (base64String?.isEmpty)! {
+            return #imageLiteral(resourceName: "no_image_found")
+        }else {
+            // Separation part is optional, depends on your Base64String !
+            let tempImage = base64String?.components(separatedBy: ",")
+            let dataDecoded : Data = Data(base64Encoded: tempImage![1], options: .ignoreUnknownCharacters)!
+            let decodedimage = UIImage(data: dataDecoded)
+            let pngImage = UIImage(named: "faceIcon", in: Bundle.sdkModule, compatibleWith: nil)
+            return decodedimage ?? UIImage(data: (pngImage?.pngData())!)!
+        }
+    }
     
     public static func isValidJson(check jsonString:String) -> Bool{
         if let jsonDataToVerify = jsonString.data(using: .utf8)
@@ -164,6 +202,150 @@ open class Utilities: NSObject {
             do {
                 _ = try JSONSerialization.jsonObject(with: jsonDataToVerify)
                 print("JSON is valid.")
+                return true
+            } catch {
+                //print("Error deserializing JSON: \(error.localizedDescription)")
+                return false
+            }
+        }
+        return false
+    }
+    
+    public static func getTimeformater(sentOn: Date) -> String{
+        var time = ""
+        let today = Date()
+        let yesterday = Date().yesterday
+        let dateFormt = DateFormatter()
+        dateFormt.dateFormat = "MMM dd yyyy"
+        
+        var todayOrYesterDay = Date()
+        var is12or24Format = false
+        if dateFormt.string(from: sentOn) == dateFormt.string(from: today){
+            todayOrYesterDay = today
+            is12or24Format = true
+        }else if dateFormt.string(from: sentOn) == dateFormt.string(from: yesterday){
+            todayOrYesterDay = yesterday
+            is12or24Format = true
+        }else{
+            is12or24Format = false
+            let dateFormatter = DateFormatter()
+            
+            var formatterStr = "\(brandingBodyDic.time_stamp?.date_format ?? "")"
+            if "dd/mm/yyyy" == formatterStr.lowercased(){
+                formatterStr = "dd/MM/yyyy"
+            }else if "mm/dd/yyyy" == formatterStr.lowercased(){
+                formatterStr = "MM/dd/yyyy"
+            }else if "mmm/dd/yyyy" == formatterStr.lowercased(){
+                formatterStr = "MMM/dd/yyyy"
+            }
+            
+            var formte = ""
+            formte = formatterStr.replacingOccurrences(of: "D", with: "d")
+            formte = formte.replacingOccurrences(of: "Y", with: "y")
+            dateFormatter.dateFormat = formte
+            let timeFormatter = DateFormatter()
+            if brandingBodyDic.time_stamp?.timeformat == "24"{
+                timeFormatter.dateFormat = "HH:mm"
+            }else{
+                timeFormatter.dateFormat = "h:mm a"
+            }
+            let date = dateFormatter.string(from: sentOn)
+            let timee = timeFormatter.string(from: sentOn)
+            time = "\(timee), \(date)"
+        }
+        
+        if is12or24Format{
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .medium
+            dateFormatter.doesRelativeDateFormatting = true
+            
+            if let time_format = brandingBodyDic.time_stamp?.timeformat, time_format == "24"{
+                let timeFormatter24 = DateFormatter()
+                timeFormatter24.dateFormat = "HH:mm"
+                time = "\(timeFormatter24.string(from: sentOn)), \(dateFormatter.string(from: todayOrYesterDay))"
+                
+            }else if let time_format = brandingBodyDic.time_stamp?.timeformat, time_format == "12"{
+                let timeFormatter12 = DateFormatter()
+                timeFormatter12.dateFormat = "h:mm a"
+                
+                time = "\(timeFormatter12.string(from: sentOn)), \(dateFormatter.string(from: todayOrYesterDay))"
+                
+            }
+        }
+        
+        return time
+    }
+    
+    public static func getDateformater(sentOn: Date) -> String{
+        var time = ""
+        let today = Date()
+        let yesterday = Date().yesterday
+        let dateFormt = DateFormatter()
+        dateFormt.dateFormat = "MMM dd yyyy"
+        
+        var todayOrYesterDay = Date()
+        var is12or24Format = false
+        if dateFormt.string(from: sentOn) == dateFormt.string(from: today){
+            todayOrYesterDay = today
+            is12or24Format = true
+        }else if dateFormt.string(from: sentOn) == dateFormt.string(from: yesterday){
+            todayOrYesterDay = yesterday
+            is12or24Format = true
+        }else{
+            is12or24Format = false
+            let dateFormatter = DateFormatter()
+            
+            var formatterStr = "\(brandingBodyDic.time_stamp?.date_format ?? "")"
+            if "dd/mm/yyyy" == formatterStr.lowercased(){
+                formatterStr = "dd/MM/yyyy"
+            }else if "mm/dd/yyyy" == formatterStr.lowercased(){
+                formatterStr = "MM/dd/yyyy"
+            }else if "mmm/dd/yyyy" == formatterStr.lowercased(){
+                formatterStr = "MMM/dd/yyyy"
+            }
+            
+            var formte = ""
+            formte = formatterStr.replacingOccurrences(of: "D", with: "d")
+            formte = formte.replacingOccurrences(of: "Y", with: "y")
+            dateFormatter.dateFormat = formte
+            let timeFormatter = DateFormatter()
+            if brandingBodyDic.time_stamp?.timeformat == "24"{
+                timeFormatter.dateFormat = "HH:mm"
+            }else{
+                timeFormatter.dateFormat = "h:mm a"
+            }
+            let date = dateFormatter.string(from: sentOn)
+            let timee = timeFormatter.string(from: sentOn)
+            time = "\(date)"
+        }
+        
+        if is12or24Format{
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .medium
+            dateFormatter.doesRelativeDateFormatting = true
+            
+            if let time_format = brandingBodyDic.time_stamp?.timeformat, time_format == "24"{
+                let timeFormatter24 = DateFormatter()
+                timeFormatter24.dateFormat = "HH:mm"
+                time = "\(timeFormatter24.string(from: sentOn)), \(dateFormatter.string(from: todayOrYesterDay))"
+                
+            }else if let time_format = brandingBodyDic.time_stamp?.timeformat, time_format == "12"{
+                let timeFormatter12 = DateFormatter()
+                timeFormatter12.dateFormat = "h:mm a"
+                
+                time = "\(dateFormatter.string(from: todayOrYesterDay))"
+                
+            }
+        }
+        
+        return time
+    }
+    public static func isValidJsonString(check jsonString:String) -> Bool{
+        if let jsonDataToVerify = jsonString.data(using: .utf8)
+        {
+            do {
+                _ = try JSONSerialization.jsonObject(with: jsonDataToVerify)
+                //print("JSON is valid.")
                 return true
             } catch {
                 //print("Error deserializing JSON: \(error.localizedDescription)")
@@ -205,7 +387,7 @@ open class Utilities: NSObject {
         else if (templateType == "tableList") {
             return .tableList
         }
-        else if (templateType == "daterange" || templateType == "dateTemplate") {
+        else if (templateType == "daterange" || templateType == "dateTemplate" || templateType == "clockTemplate") {
             return .calendarView
         }
         else if (templateType == "quick_replies_welcome" || templateType == "button"){
@@ -235,11 +417,32 @@ open class Utilities: NSObject {
             return .advancedListTemplate
         }else if (templateType == "cardTemplate"){
             return .cardTemplate
+        }else if (templateType == "stacked"){
+            return .stackedCarousel
+        }else if templateType == "advanced_multi_select"{
+            return .advanced_multi_select
+        }else if templateType == "radioOptionTemplate"{
+            return .radioOptionTemplate
         }else if templateType == "quick_replies_top"{
             return .quick_replies_top
-        }
-        else if templateType == "text"{
+        }else if templateType == "articleTemplate"{
+            return .articleTemplate
+        }else if templateType == "answerTemplate"{
+            return .answerTemplate
+        }else if templateType == "otpValidationTemplate" || templateType == "resetPinTemplate"{
+            return .OtpOrResetTemplate
+        }else if templateType == "text"{
             return .text
+        }else if templateType == "link" || templateType == "pdfdownload"{
+            return .linkDownload
+        }else if templateType == "video"{
+                    return .video
+        }else if templateType == "image"{
+                    return .image
+        }else if templateType == "audio"{
+                    return .audio
+        }else if templateType == "digitalForm"{
+            return .digital_form
         }
         return .noTemplate
     }

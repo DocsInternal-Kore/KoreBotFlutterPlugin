@@ -10,19 +10,18 @@ import UIKit
 import AVFoundation
 import SafariServices
 import CoreData
-import AssetsPickerViewController
+import FMPhotoPicker
 import Photos
 import MobileCoreServices
-
 import Alamofire
 import AlamofireImage
 import ObjectMapper
 
 #if SWIFT_PACKAGE
-import ObjcSupport
+//import KoreBotSDKAgent
 #endif
 
-public class ChatMessagesViewController: UIViewController, BotMessagesViewDelegate, ComposeBarViewDelegate, KREGrowingTextViewDelegate, NewListViewDelegate, TaskMenuNewDelegate, calenderSelectDelegate, ListWidgetViewDelegate, feedbackViewDelegate, CustomTableTemplateDelegate {
+public class ChatMessagesViewController: UIViewController, BotMessagesViewDelegate, ComposeBarViewDelegate, KREGrowingTextViewDelegate, NewListViewDelegate, TaskMenuNewDelegate, calenderSelectDelegate, ListWidgetViewDelegate, feedbackViewDelegate, CustomTableTemplateDelegate, WelcomeScreenViewDelegate, ArticleViewDelegate, OTPValidationDelegate, resetPinDelegate, AdvancedMultiSelectDelegate {
     // MARK: properties
     var messagesRequestInProgress: Bool = false
     var historyRequestInProgress: Bool = false
@@ -31,7 +30,6 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     var tapToDismissGestureRecognizer: UITapGestureRecognizer!
     var kaBotClient: KABotClient!
     
-    @IBOutlet weak var backBtn: UIButton!
     @IBOutlet weak var threadContainerView: UIView!
     @IBOutlet weak var quickSelectContainerView: UIView!
     @IBOutlet weak var composeBarContainerView: UIView!
@@ -57,7 +55,7 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     }()
     
     @IBOutlet weak var quickSelectContainerHeightConstraint: NSLayoutConstraint!
-    
+    @IBOutlet weak var headerViewTopConstraint: NSLayoutConstraint!
     @IBOutlet weak var attachmentContainerView: UIView!
     @IBOutlet weak var attachmentContainerHeightConstraint: NSLayoutConstraint!
     var attachmentArray = NSMutableArray()
@@ -91,7 +89,6 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     public var user: KREUser?
     public var sheetController: KABottomSheetController?
     var isShowAudioComposeView = false
-    private var isBrandingReady = false
     var insets: UIEdgeInsets = .zero
     @IBOutlet weak var panelCollectionViewContainerHeightConstraint: NSLayoutConstraint!
     
@@ -112,105 +109,67 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     }
     @IBOutlet weak var dropDownBtn: UIButton!
     
-    var isAppEnterBackground = false
     let bundleImage = Bundle.sdkModule
     var phassetToUpload: PHAsset?
     var componentSelectedToupload: Component?
     public weak var account = KoraApplication.sharedInstance.account
-    
-    public var closeAndMinimizeEvent: ((_ dic: [String:Any]?) -> Void)!
+    var isShowWelcomeScreen = false
+    @IBOutlet weak var statusBarView: UIView!
+    var welcomeScreenView: WelcomeScreenView!
+    @IBOutlet weak var chatWelcomeScreenContainerView: UIView!
+    @IBOutlet weak var headerTitleLbl: UILabel!
+    var headerDic = HeaderModel()
     @IBOutlet weak var headerViewHeightConstraint: NSLayoutConstraint!
-    public var isShowHeaderView = true
+    @IBOutlet weak var incomingCallContainerView: UIView!
+    var inComingCallView: InComingCallView!
+    var callFromAgentData: [String: Any]? = [:]
+    var appDisplayName = "Kore Bot SDK"
+    var isAppEnterBackground = false
+    public var closeAndMinimizeEvent: ((_ dic: [String:Any]?) -> Void)!
+    var quickReplyViewLeadingConstraint: NSLayoutConstraint!
+    
+    @IBOutlet weak var closeOrMinimizePopupContainerView: UIView!
+    var closeOrMinimizePopupCardView: UIView?
     
     @IBOutlet weak var footerStatusBarView: UIView!
-    
-    @IBOutlet weak var statusBarView: UIView!
-    
+#if SWIFT_PACKAGE
+    //let agentConnect = AgentConnect()
+#endif
     // MARK: init
     public init() {
         super.init(nibName: "ChatMessagesViewController", bundle: .sdkModule)
     }
-    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
     public override func viewDidLoad() {
         super.viewDidLoad()
-
-        let direction: UISemanticContentAttribute = SDKConfiguration.botConfig.isRTL()
-            ? .forceRightToLeft
-            : .forceLeftToRight
-        view.semanticContentAttribute = direction
-        headerView.semanticContentAttribute = direction
-        
-        if !isShowHeaderView{
-            headerViewHeightConstraint.constant = 0.0
-            headerView.isHidden = true
-        }else{
-            headerViewHeightConstraint.constant = 56.0
-            headerView.isHidden = false
-        }
-        
         appDisplayName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? SDKConfiguration.botConfig.chatBotName
-
-        linerProgressBar.frame = CGRect(x: 0, y: 0 , width: UIScreen.main.bounds.size.width, height:1)
-        headerView.addSubview(linerProgressBar)
-        if #available(iOS 13.0, *) {
-            overrideUserInterfaceStyle = .light
-        }
         isAppEnterBackground = false
         isTryConnect = true
         isBotConnectSucessFully = false
         networkMonitoringForReachability()
+        if #available(iOS 13.0, *) {
+            overrideUserInterfaceStyle = .light
+        }
+        self.incomingCallContainerView.isHidden = true
+        linerProgressBar.frame = CGRect(x: 0, y: 0 , width: UIScreen.main.bounds.size.width, height:1)
+        headerView.addSubview(linerProgressBar)
         //Initialize elements
-        self.configureComposeBar()
-        self.configureAudioComposer()
-        //self.configureQuickReplyView()
         self.configureTypingStatusView()
         self.configureSTTClient()
-        self.configureViewForKeyboard(true)
         self.configAttachmentCollectionView()
         self.botConnectingMethod()
         panelCollectionViewContainerHeightConstraint.constant = 0
         isSpeakingEnabled = false
         self.speechSynthesizer = AVSpeechSynthesizer()
-        headerView.backgroundColor = UIColor.init(hexString: "#FFFFFF")
-        composeView.backgroundColor = UIColor.init(hexString: "#eaeaea")
-        self.view.backgroundColor = UIColor.init(hexString: "#f3f3f5")
         self.view.bringSubviewToFront(chatMaskview)
-        
-        if isShowComposeMenuBtn{
-            leftMenuAddgesture()
-        }
-    }
-    
-    func leftMenuAddgesture() {
-        let leftMenuDismissGestureRecognizer = UITapGestureRecognizer.init(target: self, action: #selector(leftMenuDismissGesture))
-        leftMenuDismissGestureRecognizer.delegate = self
-        self.leftMenuContainerView.addGestureRecognizer(leftMenuDismissGestureRecognizer)
-    }
-    @objc func leftMenuDismissGesture() {
-        self.leftMenuBackBtnAct(self)
     }
     
     override open func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         addNotifications()
         navigationController?.setNavigationBarHidden(true, animated: false)
-        if let headerColorString = brandingShared.widgetHeaderColor, headerColorString != "" {
-            statusBarView.backgroundColor = UIColor.init(hexString: headerColorString)
-        } else {
-            statusBarView.backgroundColor = statusBarBackgroundColor
-        }
-    }
-    
-    func setStatusBarBackgroundColor(){
-        if #available(iOS 13.0, *) {
-            let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero)
-            statusBar.backgroundColor = statusBarBackgroundColor
-            UIApplication.shared.keyWindow?.addSubview(statusBar)
-        }
     }
     
     override open func viewDidAppear(_ animated: Bool) {
@@ -228,6 +187,11 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     
     public override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
+        if view.bounds.width > view.bounds.height {
+            headerViewTopConstraint.constant = 18.0
+        }else{
+            headerViewTopConstraint.constant = 10.0
+        }
     }
     
 //    override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -257,13 +221,14 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         KABotClient.shared.deConfigureBotClient()
         self.deConfigureSTTClient()
         self.stopTTS()
-        if self.composeView != nil{
+        if composeView != nil{
             self.composeView.growingTextView.viewDelegate = nil
             self.composeView.delegate = nil
         }
-        if self.audioComposeView != nil{
+        if audioComposeView != nil{
             self.audioComposeView.prepareForDeinit()
         }
+        
         if botMessagesView != nil{
             self.botMessagesView.prepareForDeinit()
             self.botMessagesView.viewDelegate = nil
@@ -281,59 +246,78 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     
     func botClosed(){
         isTryConnect = false
-        prepareForDeinit()
-        navigationController?.dismiss(animated: false)
+        //isShowWelcomeMsg = true // Set fasle here.. when you go back and come chat sceen new welcome message not displied.
+        if isAgentConnect{
+            self.botClient.sendEventToAgentChat(eventName: "close_agent_chat",messageId: "")
+            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { (_) in
+                self.prepareForDeinit()
+                self.navigationController?.dismiss(animated: false)
+            }
+        }else{
+            prepareForDeinit()
+            navigationController?.dismiss(animated: false)
+        }
     }
-    
     @IBAction func tapsOnBackBtnAct(_ sender: Any) {
-        if !chatMaskview.isHidden{
+        if isBotConnectSucessFully{
+            if self.isShowWelcomeScreen{
+                view.endEditing(true)
+                chatWelcomeScreenContainerView.isHidden = false
+            }else{
+                //botClosed()
+                //isShowWelcomeMsg = true
+                //showCloseOrMinimiseAlert()
+                self.showCloseOrMinimizePopup()
+                self.dismissKeyboardManually()
+            }
+        }else{
             let dic = ["event_code": "BotClosed", "event_message": "Bot connection error"]
             if self.closeAndMinimizeEvent != nil{
                 self.closeAndMinimizeEvent(dic)
             }
             self.botClosed()
-        }else{
-            let alertController = UIAlertController(title: "", message: closeOrMinimizeMsg, preferredStyle:.alert)
-
-            alertController.addAction(UIAlertAction(title: closeMsg, style: .default)
-                      { action -> Void in
-                            self.unsubscribeNotifications()
-                            isShowWelcomeMsg = true
-                            let dic = ["event_code": "BotClosed", "event_message": "Bot closed by the user"]
-                            if self.closeAndMinimizeEvent != nil{
-                                    self.closeAndMinimizeEvent(dic)
-                            }
-                           if isAgentConnect{
-                               self.botClient.sendEventToAgentChat(eventName: close_AgentChat_EventName,messageId: "")
-                               Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { (_) in
-                                   isAgentConnect = false
-                                   self.botClosed()
-                               }
-                           }else{
-                               self.botClient.sendEventToAgentChat(eventName: close_Button_EventName,messageId: "")
-                               Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { (_) in
-                                   isAgentConnect = false
-                                   self.botClosed()
-                               }
-                           }
-                            
-                      })
-            alertController.addAction(UIAlertAction(title: minimizeMsg, style: .default)
-                      { action -> Void in
-                            isAgentConnect = false
-                            let dic = ["event_code": "BotMinimized", "event_message": "Bot Minimized by the user"]
-                            if self.closeAndMinimizeEvent != nil{
-                                    self.closeAndMinimizeEvent(dic)
-                            }
-                            self.botClient.sendEventToAgentChat(eventName: minimize_Button_EventName,messageId: "")
-                            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { (_) in
-                                    self.botClosed()
-                            }
-                      })
-            self.present(alertController, animated: true, completion: nil)
         }
     }
     
+   /* func showCloseOrMinimiseAlert(){
+        let alertController = UIAlertController(title: "", message: closeOrMinimizeMsg, preferredStyle:.alert)
+        alertController.addAction(UIAlertAction(title: closeBtnTitle, style: .default)
+                                  { action -> Void in
+            isShowWelcomeMsg = true
+            self.unsubscribeNotifications()
+            let dic = ["event_code": "BotClosed", "event_message": "Bot closed by the user"]
+            if self.closeAndMinimizeEvent != nil{
+                self.closeAndMinimizeEvent(dic)
+            }
+            if isAgentConnect{
+                self.botClient.sendEventToAgentChat(eventName: close_AgentChat_EventName,messageId: "")
+            }else{
+                self.botClient.sendEventToAgentChat(eventName: close_Button_EventName,messageId: "")
+            }
+            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { (_) in
+                isAgentConnect = false
+                self.botClosed()
+            }
+        })
+        alertController.addAction(UIAlertAction(title: minimizeBtnTitle, style: .default)
+                                  { action -> Void in
+            
+            let dic = ["event_code": "BotMinimized", "event_message": "Bot Minimized by the user"]
+            if self.closeAndMinimizeEvent != nil{
+                self.closeAndMinimizeEvent(dic)
+            }
+            self.botClient.sendEventToAgentChat(eventName: minimize_Button_EventName,messageId: "")
+            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { (_) in
+                isAgentConnect = false
+                self.botClosed()
+            }
+        })
+        self.present(alertController, animated: true, completion: nil)
+    }*/
+    
+    @objc func dismissAlertOnTapOutside() {
+        self.dismiss(animated: true, completion: nil)
+    }
     
     //MARK: Menu Button Action
     @IBAction func menuButtonAction(_ sender: Any) {
@@ -370,7 +354,7 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         self.threadContainerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[botMessagesView]|", options:[], metrics:nil, views:["botMessagesView" : self.botMessagesView!]))
         self.threadContainerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[botMessagesView]|", options:[], metrics:nil, views:["botMessagesView" : self.botMessagesView!]))
     }
-
+    
     func configureComposeBar() {
         self.composeView = ComposeBarView()
         self.composeView.translatesAutoresizingMaskIntoConstraints = false
@@ -403,7 +387,7 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         
         self.audioComposeView.voiceRecordingStarted = { [weak self] (composeBar) in
             self?.stopTTS()
-            //self?.composeView.isHidden = true
+            self?.composeView.changeBgColorForAudioComposeBar()
         }
         self.audioComposeView.voiceRecordingStopped = { [weak self] (composeBar) in
             self?.sttClient.stopRecording()
@@ -412,10 +396,17 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
             return 0.0
         }
         self.audioComposeView.onKeyboardButtonAction = { [weak self] () in
-            self?.closeWidgetPanelView()
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "ClosePanel"), object: nil)
+            self?.composeView.changeBgColorForComposeBar()
             self?.isShowAudioComposeView = false
             _ = self?.composeView.becomeFirstResponder()
             self?.configureViewForKeyboard(true)
+        }
+        self.audioComposeView.audioComposeBarTaskMenuButtonAction = { [weak self] () in
+            self?.audioComposeBarTaskMenuButtonAction()
+        }
+        self.audioComposeView.audioComposeBarAttachmentButtonAction = { [weak self] () in
+            self?.openAcionSheet()
         }
     }
     
@@ -423,8 +414,8 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         self.quickReplyView = KREQuickSelectView()
         self.quickReplyView.translatesAutoresizingMaskIntoConstraints = false
         self.quickSelectContainerView.addSubview(self.quickReplyView)
-        let bgColor = (brandingShared.buttonActiveBgColor) ?? "#f3f3f5"
-        let textColor = (brandingShared.buttonActiveTextColor) ?? "#2881DF"
+        let bgColor = btnBgActiveColor
+        let textColor = btnActiveTextColor
         self.quickReplyView.bgColor = bgColor
         self.quickReplyView.textColor = textColor
         self.quickReplyView.boarderColor = textColor
@@ -432,6 +423,8 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         self.quickSelectContainerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-40-[quickReplyView]-15-|", options:[], metrics:nil, views:["quickReplyView" : self.quickReplyView as Any]))
         self.quickSelectContainerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[quickReplyView]-5-|", options:[], metrics:nil, views:["quickReplyView" : self.quickReplyView as Any]))
         
+        quickReplyViewLeadingConstraint = NSLayoutConstraint(item:self.quickReplyView as Any, attribute:.leading, relatedBy:.equal, toItem:self.quickSelectContainerView, attribute:.leading, multiplier:1.0, constant:40)
+        self.quickSelectContainerView.addConstraints([quickReplyViewLeadingConstraint])
         self.quickReplyView.sendQuickReplyAction = { [weak self] (text, payload) in
             if let text = text, let payload = payload {
                 self?.sendTextMessage(text, options: ["body": payload])
@@ -561,7 +554,7 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         else if (templateType == "tableList") {
             return .tableList
         }
-        else if (templateType == "daterange" || templateType == "dateTemplate") {
+        else if (templateType == "daterange" || templateType == "dateTemplate" || templateType == "clockTemplate") {
             return .calendarView
         }
         else if (templateType == "quick_replies_welcome" || templateType == "button"){
@@ -584,23 +577,44 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         }
         else if (templateType == "dropdown_template") {
             return .dropdown_template
-        }else if (templateType == "custom_table")
-        {
+        }else if (templateType == "custom_table"){
             return .custom_table
         }else if (templateType == "advancedListTemplate"){
             return .advancedListTemplate
         }else if (templateType == "cardTemplate"){
             return .cardTemplate
+        }else if (templateType == "stacked"){
+            return .stackedCarousel
+        }else if templateType == "advanced_multi_select"{
+            return .advanced_multi_select
+        }else if templateType == "radioOptionTemplate"{
+            return .radioOptionTemplate
         }else if templateType == "quick_replies_top"{
             return .quick_replies_top
-        }
-        else if templateType == "text"{
+        }else if templateType == "articleTemplate"{
+            return .articleTemplate
+        }else if templateType == "answerTemplate"{
+            return .answerTemplate
+        }else if templateType == "otpValidationTemplate" || templateType == "resetPinTemplate"{
+            return .OtpOrResetTemplate
+        }else if templateType == "link" || templateType == "pdfdownload"{
+            return .linkDownload
+        }else if templateType == "video"{
+            return .video
+        }else if templateType == "image"{
+            return .image
+        }else if templateType == "audio"{
+            return .audio
+        }else if templateType == "digitalForm"{
+            return .digital_form
+        }else if templateType == "text"{
             return .text
         }
         return .noTemplate
     }
     
     func onReceiveMessage(object: BotMessageModel?) -> (Message?, String?) {
+        isRemoveTemplate = false
         var ttsBody: String?
         var textMessage: Message! = nil
         let message: Message = Message()
@@ -635,6 +649,15 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                     ttsBody = text as String
                     
                     if(text.contains("use a web form")){
+                        let range: NSRange = text.range(of: "use a web form - ")
+//                        let urlString: String? = text.substring(with: NSMakeRange(range.location+range.length, 44))
+//                        if (urlString != nil) {
+//                            let url: URL = URL(string: urlString!)!
+//                            webViewController = SFSafariViewController(url: url)
+//                            webViewController.modalPresentationStyle = .custom
+//                            present(webViewController, animated: true, completion:nil)
+//                        }
+                        ttsBody = "Ok, Please fill in the details and submit"
                     }
                     message.addComponent(textComponent)
                 }else{
@@ -657,6 +680,28 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                         return (message, ttsBody)
                     }
                 }
+            }else if (componentModel.type == "link") {
+                if let payload = componentModel.payload as? [String: Any] {
+                    if let dictionary = payload["payload"] as? [String: Any] {
+                        let optionsComponent: Component = Component(.linkDownload)
+                        optionsComponent.payload = Utilities.stringFromJSONObject(object: dictionary)
+                        message.sentDate = object?.createdOn
+                        message.addComponent(optionsComponent)
+                        return (message, ttsBody)
+                    }
+                }
+            }else if (componentModel.type == "message"){
+                if let payload = componentModel.payload as? [String: Any] {
+                    if let dictionary = payload["payload"] as? [String: Any],dictionary.keys.contains("audioUrl") {
+                        let optionsComponent: Component = Component(.audio)
+                        optionsComponent.payload = Utilities.stringFromJSONObject(object: dictionary)
+                        message.sentDate = object?.createdOn
+                        message.addComponent(optionsComponent)
+                        return (message, ttsBody)
+                    }else{
+                        return (nil, ttsBody)
+                    }
+                }
             }else if (componentModel.type == "template") {
                 let payload: NSDictionary = componentModel.payload! as! NSDictionary
                 let text: String = payload["text"] != nil ? payload["text"] as! String : ""
@@ -668,17 +713,27 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                     var templateType: String = dictionary["template_type"] as? String ?? ""
                     var tabledesign: String
                     
+                    tabledesign  = (dictionary["table_design"] != nil ? dictionary["table_design"] as? String : "responsive")!
+                    
                     if templateType == "mini_table"{
                         if let layOut = dictionary["layout"] as? String, layOut == "horizontal"{
                             templateType = "mini_table_horizontal"
                         }
+                    }else if templateType == "carousel"{
+                        
+                        if dictionary["carousel_type"] as? String ?? ""  == "stacked"{
+                            templateType = "stacked"
+                        }
                     }
                     
-                    tabledesign  = (dictionary["table_design"] != nil ? dictionary["table_design"] as? String : "responsive")!
                     let componentType = self.getComponentType(templateType,tabledesign)
                     
                     if componentType != .quickReply {
                         
+                    }
+                    if templateType == "otpValidationTemplate" || templateType == "resetPinTemplate"{
+                        //isRemoveTemplate = true
+                        //OTPValidationRemoveCount += 1
                     }
                     
                     let tText: String = dictionary["text"] != nil ? dictionary["text"] as! String : ""
@@ -696,7 +751,7 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                         textComponent.payload = tText
                         textMessage?.addComponent(textComponent)
                     }
-                    if templateType == "SYSTEM" || templateType == "live_agent" || templateType == ""{
+                    if templateType == "SYSTEM" || templateType == "live_agent"{
                         let textComponent = Component(.text)
                         let text = dictionary["text"] as? String ?? ""
                         textComponent.payload = text
@@ -782,12 +837,10 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         if let m = message, m.components.count > 0 {
             let delayInMilliSeconds = 500
             DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(delayInMilliSeconds)) {
-                if self.thread != nil{
-                    let dataStoreManager = DataStoreManager.sharedManager
-                    dataStoreManager.createNewMessageIn(thread: self.thread, message: m, completion: { (success) in
-                        
-                    })
-                }
+                let dataStoreManager = DataStoreManager.sharedManager
+                dataStoreManager.createNewMessageIn(thread: self.thread, message: m, completion: { (success) in
+                    
+                })
                 
                 if let tts = ttsBody {
                     NotificationCenter.default.post(name: Notification.Name(startSpeakingNotification), object: tts)
@@ -917,9 +970,20 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         NotificationCenter.default.addObserver(self, selector: #selector(showCustomTableTemplateView), name: NSNotification.Name(rawValue: showCustomTableTemplateNotification), object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(showPDFViewController), name: NSNotification.Name(rawValue: pdfcTemplateViewNotification), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(showPDFErrorMeesage), name: NSNotification.Name(rawValue: pdfcTemplateViewErrorNotification), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(showToastMeesage), name: NSNotification.Name(rawValue: showToastMessageNotification), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(callFromAgent), name: NSNotification.Name(rawValue: callFromAgentNotification), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(willTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(tokenExpiry), name: NSNotification.Name(rawValue: tokenExipryNotification), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(showArticleTemplateView), name: NSNotification.Name(rawValue: showArticleTemplateNotification), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(OTPvalidateTemplateActtion), name: NSNotification.Name(rawValue: otpValidationTemplateNotification), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(resetPinTemplateAction), name: NSNotification.Name(rawValue: resetpinTemplateNotification), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(aAdvancedMultiSelectAction), name: NSNotification.Name(rawValue: advancedMultiSelectTemplateNotification), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(showActivityViewController), name: NSNotification.Name(rawValue: activityViewControllerNotification), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(streamingMessageDidUpdate(_:)), name: NSNotification.Name(rawValue: streamingMessageDidUpdateNotification), object: nil)
+
     }
     
     func removeNotifications() {
@@ -927,32 +991,32 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardDidShowNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardDidHideNotification, object: nil)
-        
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: startSpeakingNotification), object: nil)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: stopSpeakingNotification), object: nil)
-        
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: showTableTemplateNotification), object: nil)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: reloadTableNotification), object: nil)
-        
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: showListViewTemplateNotification), object: nil)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: showListWidgetViewTemplateNotification), object: nil)
-        
         NotificationCenter.default.removeObserver(self, name: KREMessageAction.navigateToComposeBar.notification, object: nil)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: showAttachmentSendButtonNotification), object: nil)
-        
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: "StartTyping"), object: nil)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: "StopTyping"), object: nil)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: dropDownTemplateNotification), object: nil)
-        
-        
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: showCustomTableTemplateNotification), object: nil)
-        
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: reloadVideoCellNotification), object: nil)
-        
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: pdfcTemplateViewNotification), object: nil)
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: pdfcTemplateViewErrorNotification), object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: showToastMessageNotification), object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: callFromAgentNotification), object: nil)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: tokenExipryNotification), object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: showArticleTemplateNotification), object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: otpValidationTemplateNotification), object: nil)
         
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: resetpinTemplateNotification), object: nil)
+        
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: advancedMultiSelectTemplateNotification), object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: activityViewControllerNotification), object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: streamingMessageDidUpdateNotification), object: nil)
+
     }
     
     // MARK: notification handlers
@@ -971,7 +1035,7 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                 keyboardHeight -= self.view.safeAreaInsets.bottom
             }
         } else {
-            // Fallback on earlier versions
+            
         };
         self.bottomConstraint.constant = keyboardHeight
         taskMenuHeight = Int(keyboardHeight)
@@ -1007,29 +1071,6 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     @objc func didEnterBackground(_ notification: Notification) {
         isAppEnterBackground = true
         stopMonitoringForReachability()
-    }
-    
-    @objc func willTerminate(_ notification: Notification) {
-        self.unsubscribeNotifications()
-        if(self.botClient != nil){
-            if isAgentConnect{
-                self.botClient.sendEventToAgentChat(eventName: close_AgentChat_EventName,messageId: "")
-            }else{
-                self.botClient.sendEventToAgentChat(eventName: close_Button_EventName,messageId: "")
-            }
-        }
-        prepareForDeinit()
-        sleep(1)
-    }
-    func showTypingToAgent(_: ComposeBarView){
-        if isAgentConnect{
-            self.botClient.sendEventToAgentChat(eventName: "typing", messageId: "")
-        }
-    }
-    func stopTypingToAgent(_: ComposeBarView){
-        if isAgentConnect{
-            self.botClient.sendEventToAgentChat(eventName: "stop_typing", messageId: "")
-        }
     }
     
     @objc func startMonitoringForReachability() {
@@ -1069,10 +1110,6 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         })
     }
     
-    @objc func stopMonitoringForReachability() {
-        NetworkReachabilityManager.default?.stopListening()
-    }
-    
     @objc func networkMonitoringForReachability() {
         let networkReachabilityManager = NetworkReachabilityManager.default
         networkReachabilityManager?.startListening(onUpdatePerforming: { (status) in
@@ -1110,6 +1147,33 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         })
     }
     
+    @objc func stopMonitoringForReachability() {
+        NetworkReachabilityManager.default?.stopListening()
+    }
+    
+    @objc func willTerminate(_ notification: Notification) {
+        self.unsubscribeNotifications()
+        if(self.botClient != nil){
+            if isAgentConnect{
+                self.botClient.sendEventToAgentChat(eventName: close_AgentChat_EventName,messageId: "")
+            }else{
+                self.botClient.sendEventToAgentChat(eventName: close_Button_EventName,messageId: "")
+            }
+        }
+        prepareForDeinit()
+        sleep(1)
+    }
+    func showTypingToAgent(_: ComposeBarView){
+        if isAgentConnect{
+            self.botClient.sendEventToAgentChat(eventName: "typing", messageId: "")
+        }
+    }
+    func stopTypingToAgent(_: ComposeBarView){
+        if isAgentConnect{
+            self.botClient.sendEventToAgentChat(eventName: "stop_typing", messageId: "")
+        }
+    }
+    
     @objc func navigateToComposeBar(_ notification: Notification) {
         DispatchQueue.main.async {
             self.minimizePanelWindow(false)
@@ -1126,19 +1190,16 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     
     // MARK: - establish BotSDK connection
     func establishBotConnection() {
-        KABotClient.shared.tryConnect()
+            KABotClient.shared.tryConnect()
     }
     
     @objc func keyboardDidShow(_ notification: Notification) {
         if (self.tapToDismissGestureRecognizer == nil) {
             self.taskMenuContainerHeightConstant.constant = 0
             self.tapToDismissGestureRecognizer = UITapGestureRecognizer.init(target: self, action: #selector(ChatMessagesViewController.dismissKeyboard(_:)))
-            if isShowHeaderView{
-                self.tapToDismissGestureRecognizer.delegate = self
-                self.headerView.addGestureRecognizer(tapToDismissGestureRecognizer)
-            }else{
-                self.botMessagesView.addGestureRecognizer(tapToDismissGestureRecognizer)
-            }
+            //self.botMessagesView.addGestureRecognizer(tapToDismissGestureRecognizer)
+            self.tapToDismissGestureRecognizer.delegate = self
+            self.headerView.addGestureRecognizer(tapToDismissGestureRecognizer)
         }
     }
     
@@ -1154,6 +1215,9 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     }
     
     @objc func dismissKeyboard(_ gesture: UITapGestureRecognizer) {
+        dismissKeyboardManually()
+    }
+    func dismissKeyboardManually() {
         self.bottomConstraint.constant = 0
         self.taskMenuContainerHeightConstant.constant = 0
         if (self.composeView.isFirstResponder) {
@@ -1163,8 +1227,8 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     
     // MARK: Helper functions
     func sendMessage(_ message: Message, dictionary: [String: Any]? = nil, options: [String: Any]?) {
-        
-        NotificationCenter.default.post(name: Notification.Name("StartTyping"), object: nil) // self.showTypingStatusForBot()
+        NotificationCenter.default.post(name: Notification.Name("StartTyping"), object: nil)
+        calenderCloseTag = false
         NotificationCenter.default.post(name: Notification.Name(stopSpeakingNotification), object: nil)
         let composedMessage: Message = message
         if (composedMessage.components.count > 0) {
@@ -1180,8 +1244,8 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                         self.botClient.sendMessage(text, dictionary: dictionary, options: options)
                     }
                 }
-                historyLimit += 1
                 arrayOfSelectedBtnIndex.insert(1000, at: 0)
+                historyLimit += 1
                 self.textMessageSent()
             })
         }
@@ -1197,8 +1261,8 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                 self?.callPollApi(pollID: dictionary["pollId"] as! NSString)
             }
             
-        }, failure: { (error) in
-            print(error)
+            }, failure: { (error) in
+                print(error)
         })
     }
     func callPollApi(pollID: NSString){
@@ -1210,17 +1274,17 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
             }else{
                 self?.receviceMessage(dictionary: dictionary)
             }
-        }, failure: { (error) in
-            print(error)
+            }, failure: { (error) in
+                print(error)
         })
     }
     
     func verifyIsObjectOfAnArray<T>(_ object: T) -> Bool {
-        if let _ = object as? [T] {
-            return true
-        }
-        
-        return false
+       if let _ = object as? [T] {
+          return true
+       }
+
+       return false
     }
     
     func dateFormatter() -> DateFormatter {
@@ -1233,13 +1297,13 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     func receviceMessage(dictionary:[String: Any]){
         let data: Array = dictionary["data"] != nil ? dictionary["data"] as! Array : []
         for i in 0..<data.count{
+            
             let message: Message = Message()
             message.messageType = .reply
             let textComponent: Component = Component()
             var templateType = ""
             var ttsBody: String?
-            
-            
+
             let valData: Dictionary<String, Any> = data[i] as! Dictionary<String, Any>
             var textMessage: Message! = nil
             message.sentDate = self.dateFormatter().date(from: valData["createdOn"] as? String ?? "")
@@ -1255,8 +1319,6 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
             
             let jsonString = valData["val"] as? String
             if ((jsonString?.contains("payload")) != nil), let jsonObject: [String: Any] = Utilities.jsonObjectFromString(jsonString: jsonString ?? "") as? [String : Any] {
-                
-                
                 let type = jsonObject["type"] as? String ?? ""
                 let text = jsonObject["text"] as? String
                 ttsBody = jsonObject["speech_hint"] as? String
@@ -1264,23 +1326,17 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                 case "template":
                     if let dictionary = jsonObject["payload"] as? [String: Any] {
                         var templateType = dictionary["template_type"] as? String ?? ""
+                        if templateType == "carousel"{
+                            if dictionary["carousel_type"] as? String ?? ""  == "stacked"{
+                                templateType = "stacked"
+                            }
+                        }
                         var tabledesign = "responsive"
                         if let value = dictionary["table_design"] as? String {
                             tabledesign = value
                         }
-                        if !isShowQuickRepliesBottom{
-                            if templateType == "quick_replies"{
-                                templateType = "quick_replies_top"
-                            }
-                        }
                         let componentType = getComponentType(templateType, tabledesign)
                         if componentType != .quickReply {
-                            
-                        }
-                        if templateType == "feedbackTemplate"{
-                            //if !history{
-                                feedBackTemplateSelectedValue = ""
-                            //}
                         }
                         ttsBody = dictionary["speech_hint"] != nil ? dictionary["speech_hint"] as? String : nil
                         if let tText = dictionary["text"] as? String, tText.count > 0 && (componentType == .carousel || componentType == .chart || componentType == .table || componentType == .minitable || componentType == .responsiveTable) {
@@ -1296,17 +1352,9 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                             textMessage?.addComponent(textComponent)
                         }
                         
-                        if templateType == "SYSTEM" || templateType == "live_agent" || templateType == ""{
-                           let textComponent = Component(.text)
-                           let text = dictionary["text"] as? String ?? ""
-                           textComponent.payload = text
-                           ttsBody = text
-                           message.addComponent(textComponent)
-                       }else{
-                          let optionsComponent: Component = Component(componentType)
-                          optionsComponent.payload = Utilities.stringFromJSONObject(object: dictionary)
-                          message.addComponent(optionsComponent)
-                       }
+                        let optionsComponent: Component = Component(componentType)
+                        optionsComponent.payload = Utilities.stringFromJSONObject(object: dictionary)
+                        message.addComponent(optionsComponent)
                     }
                 case "image":
                     if let _ = jsonObject["payload"] as? [String: Any] {
@@ -1342,13 +1390,6 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                         message.sentDate = self.dateFormatter().date(from: valData["createdOn"] as? String ?? "")
                         message.addComponent(optionsComponent)
                     }
-                case "link":
-                    if let dictionary = jsonObject["payload"] as? [String: Any] {
-                        let  componentType = Component(.linkDownload)
-                        let optionsComponent: Component = componentType
-                        optionsComponent.payload = Utilities.stringFromJSONObject(object: dictionary)
-                        message.addComponent(optionsComponent)
-                    }
                 case "error":
                     if let dictionary = jsonObject["payload"] as? [String: Any] {
                         let errorComponent: Component = Component(.error)
@@ -1361,14 +1402,6 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                         let textComponent: Component = Component()
                         textComponent.payload = text
                         message.addComponent(textComponent)
-                    }else{
-                        if let dictionary = jsonObject["payload"] as? [String: Any],
-                           let text = dictionary["text"] as? String{
-                            let textComponent = Component()
-                            textComponent.payload = text
-                            ttsBody = text
-                            message.addComponent(textComponent)
-                        }
                     }
                 }
             }else if let jsonObject: [String: Any] = valData["val"] as? [String : Any]{
@@ -1378,27 +1411,17 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                 switch type {
                 case "template":
                     if let dictionary = jsonObject["payload"] as? [String: Any] {
-                        var templateType = dictionary["template_type"] as? String ?? ""
+                        let templateType = dictionary["template_type"] as? String ?? ""
                         var tabledesign = "responsive"
                         if let value = dictionary["table_design"] as? String {
                             tabledesign = value
                         }
-                        if !isShowQuickRepliesBottom{
-                            if templateType == "quick_replies"{
-                                templateType = "quick_replies_top"
-                            }
-                        }
-                        
+
                         let componentType = getComponentType(templateType, tabledesign)
                         if componentType != .quickReply {
                             
                         }
                         
-                        if templateType == "feedbackTemplate"{
-                            //if !history{
-                                feedBackTemplateSelectedValue = ""
-                            //}
-                        }
                         ttsBody = dictionary["speech_hint"] != nil ? dictionary["speech_hint"] as? String : nil
                         if let tText = dictionary["text"] as? String, tText.count > 0 && (componentType == .carousel || componentType == .chart || componentType == .table || componentType == .minitable || componentType == .responsiveTable) {
                             textMessage = Message()
@@ -1413,17 +1436,9 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                             textMessage?.addComponent(textComponent)
                         }
                         
-                        if templateType == "SYSTEM" || templateType == "live_agent" || templateType == ""{
-                           let textComponent = Component(.text)
-                           let text = dictionary["text"] as? String ?? ""
-                           textComponent.payload = text
-                           ttsBody = text
-                           message.addComponent(textComponent)
-                       }else{
-                          let optionsComponent: Component = Component(componentType)
-                          optionsComponent.payload = Utilities.stringFromJSONObject(object: dictionary)
-                          message.addComponent(optionsComponent)
-                       }
+                        let optionsComponent: Component = Component(componentType)
+                        optionsComponent.payload = Utilities.stringFromJSONObject(object: dictionary)
+                        message.addComponent(optionsComponent)
                     }
                 case "image":
                     if let _ = jsonObject["payload"] as? [String: Any] {
@@ -1459,13 +1474,6 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                         message.sentDate = self.dateFormatter().date(from: valData["createdOn"] as? String ?? "")
                         message.addComponent(optionsComponent)
                     }
-                case "link":
-                    if let dictionary = jsonObject["payload"] as? [String: Any] {
-                        let  componentType = Component(.linkDownload)
-                        let optionsComponent: Component = componentType
-                        optionsComponent.payload = Utilities.stringFromJSONObject(object: dictionary)
-                        message.addComponent(optionsComponent)
-                    }
                 case "error":
                     if let dictionary = jsonObject["payload"] as? [String: Any] {
                         let errorComponent: Component = Component(.error)
@@ -1478,14 +1486,6 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                         let textComponent: Component = Component()
                         textComponent.payload = text
                         message.addComponent(textComponent)
-                    }else{
-                        if let dictionary = jsonObject["payload"] as? [String: Any],
-                           let text = dictionary["text"] as? String{
-                            let textComponent = Component()
-                            textComponent.payload = text
-                            ttsBody = text
-                            message.addComponent(textComponent)
-                        }
                     }
                 }
             }
@@ -1500,18 +1500,16 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                 message.addComponent(textComponent)
                 lastMessageID = valData["messageId"] as? String
             }
-            historyLimit += 1
-            addMessages(message, ttsBody)
-            NotificationCenter.default.post(name: Notification.Name("StopTyping"), object: nil)
-        }
+        addMessages(message, ttsBody)
+        NotificationCenter.default.post(name: Notification.Name("StopTyping"), object: nil)
     }
-    
+}
+
     func sendTextMessage(_ text: String, dictionary: [String: Any]? = nil, options: [String: Any]?) {
         if attachmentArray.count>0 {
             closeAndOpenAttachment(imageAttached: nil, height: 0.0)
             self.uploadAttachment(text: text)
         }else{
-            //closeAndOpenAttachment(imageAttached: nil, height: 0.0)
             let message: Message = Message()
             message.messageType = .default
             message.sentDate = Date()
@@ -1562,13 +1560,8 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         self.audioComposeContainerHeightConstraint.isActive = prepare
         self.audioComposeContainerView.clipsToBounds = prepare
         self.composeView.configureViewForKeyboard(prepare)
-        self.updateFooterVisibility()
-    }
-
-    private func updateFooterVisibility() {
-        self.footerStatusBarView.isHidden = !isBrandingReady
-        self.composeBarContainerView.isHidden = !isBrandingReady || !self.composeView.isKeyboardEnabled
-        self.audioComposeContainerView.isHidden = !isBrandingReady || self.composeView.isKeyboardEnabled
+        self.composeBarContainerView.isHidden = !prepare
+        self.audioComposeContainerView.isHidden = prepare
     }
     
     // MARK: BotMessagesDelegate methods
@@ -1586,12 +1579,21 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                 NotificationCenter.default.post(name: Notification.Name(stopSpeakingNotification), object: nil)
                 let url: URL = URL(string: urlString)!
                 let webViewController = SFSafariViewController(url: url)
-                present(webViewController, animated: true, completion:nil)
+                if isPopUpWebV{
+                    webViewController.modalPresentationStyle = .overFullScreen
+                }
+                present(webViewController, animated: true, completion: nil)
             }
         }
         
     }
-    
+    func keyBoardShow(){
+        self.composeView.becomeFirstResponder()
+    }
+    func updateMessage(messageId: String, componentDesc:String) {
+        let dataStoreManager = DataStoreManager.sharedManager
+        dataStoreManager.updateComponentDescription(messageId: messageId, newDescription: componentDesc)
+    }
     func verifyUrl(urlString: String?) -> Bool {
         if let urlString = urlString {
             if let url = URL(string: urlString) {
@@ -1626,8 +1628,8 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                     words.append(word)
                 }
                 self.quickReplyView.words = words
-                let bgColor = (brandingShared.buttonActiveBgColor) ?? "#f3f3f5"
-                let textColor = (brandingShared.buttonActiveTextColor) ?? "#2881DF"
+                let bgColor = btnBgActiveColor
+                let textColor = btnActiveTextColor
                 self.quickReplyView.bgColor = bgColor
                 self.quickReplyView.textColor = textColor
                 self.quickReplyView.boarderColor = textColor
@@ -1640,29 +1642,42 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
             self.closeQuickSelectViewConstraints()
         }
     }
-    
     func closeQuickReplyCards(){
         self.closeQuickSelectViewConstraints()
     }
-    
     func updateQuickSelectViewConstraints() {
-        //        self.closeAndOpenAttachment(imageAttached: nil, height: 0.0)
-        let height = self.quickReplyView.collectionView.collectionViewLayout.collectionViewContentSize.height
-        let maxHeight = height > 198.0 ? 198.0 : height //248.0
-        self.quickReplyView.collectionView.isScrollEnabled = false
-        if  maxHeight >= 198.0{
-            self.quickReplyView.collectionView.isScrollEnabled = true
-        }
-        var quickSelectCollVheight = maxHeight > 60.0 ? maxHeight : 60.0
-        //quickSelectCollVheight += CGFloat(quickReplySuggesstionLblHeight)
-        if self.quickSelectContainerHeightConstraint.constant == quickSelectCollVheight {return}
-        
-        self.quickSelectContainerHeightConstraint.constant = quickSelectCollVheight
-        UIView.animate(withDuration: 0.25, delay: 0.05, options: [], animations: {
-            self.view.layoutIfNeeded()
-        }) { (Bool) in
+        if quickRepliesIsHorizontal{
+            DispatchQueue.main.async {
+                self.quickReplyView.collectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .centeredHorizontally, animated: true)
+                }
+            self.quickReplyViewLeadingConstraint.constant = 0
+            if self.quickSelectContainerHeightConstraint.constant == 60.0 {return}
+            self.quickSelectContainerHeightConstraint.constant = 60.0
+            UIView.animate(withDuration: 0.25, delay: 0.05, options: [], animations: {
+                self.view.layoutIfNeeded()
+            }) { (Bool) in
+                
+            }
+        }else{
+            self.quickReplyViewLeadingConstraint.constant = 40
+            let height = self.quickReplyView.collectionView.collectionViewLayout.collectionViewContentSize.height
+            let maxHeight = height > 198.0 ? 198.0 : height //248.0
+            self.quickReplyView.collectionView.isScrollEnabled = false
+            if  maxHeight >= 198.0{
+                self.quickReplyView.collectionView.isScrollEnabled = true
+            }
+            var quickSelectCollVheight = maxHeight > 60.0 ? maxHeight : 60.0
+            //quickSelectCollVheight += CGFloat(quickReplySuggesstionLblHeight)
+            if self.quickSelectContainerHeightConstraint.constant == quickSelectCollVheight {return}
             
+            self.quickSelectContainerHeightConstraint.constant = quickSelectCollVheight
+            UIView.animate(withDuration: 0.25, delay: 0.05, options: [], animations: {
+                self.view.layoutIfNeeded()
+            }) { (Bool) in
+                
+            }
         }
+       
     }
     
     func closeQuickSelectViewConstraints() {
@@ -1696,10 +1711,36 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         }
     }
     
+    func populateClockView(with message: KREMessage?) {
+        var messageId = ""
+        if message?.templateType == (ComponentType.calendarView.rawValue as NSNumber) {
+            let component: KREComponent = message!.components![0] as! KREComponent
+            print(component)
+            if (!component.isKind(of: KREComponent.self)) {
+                return;
+            }
+            if (component.message != nil) {
+                messageId = component.message!.messageId!
+            }
+            if ((component.componentDesc) != nil) {
+                let jsonString = component.componentDesc
+                let clockViewController = ClockViewController(dataString: jsonString!)
+                //clockViewController.viewDelegate = self
+                clockViewController.modalPresentationStyle = .overFullScreen
+                self.navigationController?.present(clockViewController, animated: true, completion: nil)
+                
+                clockViewController.optionsButtonTapNewAction = { [weak self] (text, payload) in
+                    if let text = text, let payload = payload {
+                        self?.optionsButtonTapNewAction(text: text, payload: payload)
+                    }
+                }
+            }
+        }
+    }
+    
     func populateFeedbackSliderView(with message: KREMessage?) {
         if message?.templateType == (ComponentType.feedbackTemplate.rawValue as NSNumber) {
             let component: KREComponent = message!.components![0] as! KREComponent
-            print(component)
             if (!component.isKind(of: KREComponent.self)) {
                 return;
             }
@@ -1710,6 +1751,23 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
                 feedbackViewController.viewDelegate = self
                 feedbackViewController.modalPresentationStyle = .overFullScreen
                 self.navigationController?.present(feedbackViewController, animated: true, completion: nil)
+            }
+        }
+    }
+    
+    func populateAdvancedMultiSelectSliderView(with message: KREMessage?) {
+        if message?.templateType == (ComponentType.advanced_multi_select.rawValue as NSNumber) {
+            let component: KREComponent = message!.components![0] as! KREComponent
+            if (!component.isKind(of: KREComponent.self)) {
+                return;
+            }
+            
+            if ((component.componentDesc) != nil) {
+                let jsonString = component.componentDesc
+                let vc = AdvancedMultiSelectViewController(dataString: jsonString!)
+                vc.viewDelegate = self
+                vc.modalPresentationStyle = .overFullScreen
+                self.navigationController?.present(vc, animated: true, completion: nil)
             }
         }
     }
@@ -1741,29 +1799,34 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
             _ = self.composeView.resignFirstResponder()
         }
         
-        leftMenuContainerView.isHidden = false
-        let zero = CGAffineTransform(translationX: 0.0, y: 0.0)
-        self.leftMenuContainerView.transform = zero
+        let isleftMenuShow = false
+        if isleftMenuShow == true{
+            leftMenuContainerView.isHidden = false
+            let zero = CGAffineTransform(translationX: 0.0, y: 0.0)
+            self.leftMenuContainerView.transform = zero
+            
+                leftMenuContainerView.semanticContentAttribute = .forceLeftToRight
+                leftMenuContainerSubView.semanticContentAttribute = .forceLeftToRight
+                let transition = CATransition()
+                transition.type = .push
+                transition.subtype = .fromLeft
+                self.leftMenuContainerView.layer.add(CATransition().segueFromLeft(), forKey: nil)
+                self.leftMenuView.leftMenuTableviewReload()
+                leftMenuTitleLbl.text = leftMenuTitle
+        }else{
+            let taskMenuVC = TaskMenuViewController()
+            taskMenuVC.viewDelegate = self
+            taskMenuVC.modalPresentationStyle = .overFullScreen
+            self.navigationController?.present(taskMenuVC, animated: true, completion: nil)
+        }
         
-        let direction: UISemanticContentAttribute = SDKConfiguration.botConfig.isRTL()
-            ? .forceRightToLeft
-            : .forceLeftToRight
-        leftMenuContainerView.semanticContentAttribute = direction
-        leftMenuContainerSubView.semanticContentAttribute = direction
-        let transition = CATransition()
-        transition.type = .push
-        transition.subtype = .fromLeft
-        self.leftMenuContainerView.layer.add(CATransition().segueFromLeft(), forKey: nil)
-        self.leftMenuView.leftMenuTableviewReload()
-        leftMenuTitleLbl.text = leftMenuTitle
     }
     func composeBarAttachmentButtonAction(_: ComposeBarView) {
-        print("Attachment")
         self.openAcionSheet()
     }
     
     // MARK: KREGrowingTextViewDelegate methods
-    public  func growingTextView(_: KREGrowingTextView, changingHeight height: CGFloat, animate: Bool) {
+    public func growingTextView(_: KREGrowingTextView, changingHeight height: CGFloat, animate: Bool) {
         UIView.animate(withDuration: animate ? 0.25: 0.0) {
             self.view.layoutIfNeeded()
         }
@@ -1805,10 +1868,8 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     }
     
     func stopTTS(){
-        if self.speechSynthesizer != nil{
-            if(self.speechSynthesizer.isSpeaking){
-                self.speechSynthesizer.stopSpeaking(at: AVSpeechBoundary.immediate)
-            }
+        if(self.speechSynthesizer.isSpeaking){
+            self.speechSynthesizer.stopSpeaking(at: AVSpeechBoundary.immediate)
         }
     }
     
@@ -1825,6 +1886,7 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     @objc func showTableTemplateView(notification:Notification) {
         let dataString: String = notification.object as! String
         let tableTemplateViewController = TableTemplateViewController(dataString: dataString)
+        tableTemplateViewController.modalPresentationStyle = .overFullScreen
         self.navigationController?.present(tableTemplateViewController, animated: true, completion: nil)
     }
     
@@ -1836,7 +1898,7 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         self.navigationController?.present(customTableTemplateViewController, animated: true, completion: nil)
     }
     
-    @objc func showPDFErrorMeesage(notification:Notification){
+    @objc func showToastMeesage(notification:Notification){
         let dataString: String = notification.object as? String ?? ""
         self.toastMessage(dataString)
     }
@@ -1844,7 +1906,7 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     @objc func showPDFViewController(notification:Notification){
         let dataString: String = notification.object as? String ?? ""
         if dataString == "Show"{
-            self.toastMessage("Statement saved successfully under Files")
+            self.toastMessage("Saved successfully under Files")
         }else{
             if #available(iOS 11.0, *) {
                 let vc = PdfShowViewController(dataString: dataString)
@@ -1858,23 +1920,18 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         }
     }
     @objc func tokenExpiry(notification:Notification){
-//        let alertController = UIAlertController(title: appDisplayName, message: sessionExpiryMsg, preferredStyle: .alert)
-//        // Create the actions
-//        let okAction = UIAlertAction(title: alertOk, style: UIAlertAction.Style.default) {
-//            UIAlertAction in
-//            let dic = ["event_code": "BotMinimized", "event_message": "Bot Minimized by the user"]
-//            if self.closeAndMinimizeEvent != nil{
-//                self.closeAndMinimizeEvent(dic)
-//            }
-//            self.botClosed()
-//        }
-//        alertController.addAction(okAction)
-//        self.present(alertController, animated: true, completion: nil)
-        
-        let dic = ["event_code": "Error_STS", "event_message": "Token Expired"]
-        if self.closeAndMinimizeEvent != nil{
-            self.closeAndMinimizeEvent(dic)
+        let alertController = UIAlertController(title: appDisplayName, message: sessionExpiryMsg, preferredStyle: .alert)
+        // Create the actions
+        let okAction = UIAlertAction(title: alertOk, style: UIAlertAction.Style.default) {
+            UIAlertAction in
+            let dic = ["event_code": "BotMinimized", "event_message": "Bot Minimized by the user"]
+            if self.closeAndMinimizeEvent != nil{
+                self.closeAndMinimizeEvent(dic)
+            }
+            self.botClosed()
         }
+        alertController.addAction(okAction)
+        self.present(alertController, animated: true, completion: nil)
     }
     
     @objc func reloadTable(notification:Notification){
@@ -1901,10 +1958,66 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         self.navigationController?.present(listViewDetailsViewController, animated: true, completion: nil)
     }
     
-    @objc func dropDownTemplateActtion(notification:Notification){
+    @objc func showArticleTemplateView(notification:Notification) {
         let dataString: String = notification.object as! String
+        let articleDetailsViewController = ArticleDetailVC(dataString: dataString)
+        articleDetailsViewController.viewDelegate = self
+        articleDetailsViewController.modalPresentationStyle = .overFullScreen
+        self.navigationController?.present(articleDetailsViewController, animated: true, completion: nil)
+    }
+    
+    @objc func OTPvalidateTemplateActtion(notification:Notification){
+        let dataString: String = notification.object as! String
+        let otpValidationVC = OTPValidationVC(dataString: dataString)
+        otpValidationVC.viewDelegate = self
+        otpValidationVC.modalPresentationStyle = .overFullScreen
+        self.navigationController?.present(otpValidationVC, animated: true, completion: nil)
+    }
+    
+    @objc func resetPinTemplateAction(notification:Notification){
+        let dataString: String = notification.object as! String
+        let oresetPinVC = ResetPinViewController(dataString: dataString)
+        oresetPinVC.viewDelegate = self
+        oresetPinVC.modalPresentationStyle = .overFullScreen
+        self.navigationController?.present(oresetPinVC, animated: true, completion: nil)
+    }
+    
+    @objc func aAdvancedMultiSelectAction(notification:Notification){
+        let dataString: String = notification.object as! String
+        let vc = AdvancedMultiSelectViewController(dataString: dataString)
+        vc.viewDelegate = self
+        vc.modalPresentationStyle = .overFullScreen
+        self.navigationController?.present(vc, animated: true, completion: nil)
+    }
+    
+    @objc func dropDownTemplateActtion(notification:Notification){
+         let dataString: String = notification.object as! String
         composeView.setText(dataString)
     }
+    
+    @objc func showActivityViewController(notification:Notification){
+        let dataString: String = notification.object as? String ?? ""
+        if dataString == "Copy"{
+            self.toastMessage("Copied")
+        }else{
+            let activityItem: [Any] = [downloadFileURL as? Any, downloadImage as? Any]
+            let activityViewController = UIActivityViewController(activityItems: activityItem, applicationActivities: nil)
+            activityViewController.popoverPresentationController?.sourceView = self.view // so that iPads won't crash
+            
+            // exclude some activity types from the list (optional)
+            activityViewController.excludedActivityTypes = [ UIActivity.ActivityType.airDrop, UIActivity.ActivityType.postToFacebook ]
+            
+            // present the view controller
+            self.present(activityViewController, animated: true, completion: nil)
+        }
+    }
+    
+    @objc func streamingMessageDidUpdate(_ notification: Notification) {
+        guard let messageId = notification.userInfo?["messageId"] as? String else { return }
+        let streamingText = notification.userInfo?["text"] as? String
+        botMessagesView?.reloadRowForMessageId(messageId, streamingText: streamingText)
+    }
+
     
     // MARK: -
     public func maximizePanelWindow() {
@@ -1928,7 +2041,7 @@ extension ChatMessagesViewController {
             return
         }
         
-        botClient.getHistory(offset: offset,limit: SDKConfiguration.botConfig.history_batch_size, success: { [weak self] (responseObj) in
+        botClient.getHistory(offset: offset,limit: paginatedScrollBatchSize, success: { [weak self] (responseObj) in
             if let responseObject = responseObj as? [String: Any], let messages = responseObject["messages"] as? Array<[String: Any]> {
                 self?.insertOrUpdateHistoryMessages(messages)
             }
@@ -2012,7 +2125,7 @@ extension ChatMessagesViewController {
                     payloadObj["payload"] = jsonObject["payload"] as! [String : Any]
                     payloadObj["type"] = jsonObject["type"]
                     componentModel.payload = payloadObj
-                } else{
+                } else {
                     var payloadObj: [String: Any] = [String: Any]()
                     payloadObj["text"] = jsonString
                     if let tags = message.tags{
@@ -2027,16 +2140,16 @@ extension ChatMessagesViewController {
                     componentModel.payload = payloadObj
                     
                     if Utilities.isValidJson(check: jsonString) == true{
-                        if let jsonDicc: [String: Any] = Utilities.jsonObjectFromString(jsonString: jsonString) as? [String : Any]{
-                            if let textStr = jsonDicc["text"] as? String{
-                                payloadObj["text"] = textStr
-                                componentModel.payload = payloadObj
-                            }
-                        }
-                    }
-                    if jsonString == "Welpro"{
+                       if let jsonDicc: [String: Any] = Utilities.jsonObjectFromString(jsonString: jsonString) as? [String : Any]{
+                           if let textStr = jsonDicc["text"] as? String{
+                               payloadObj["text"] = textStr
+                               componentModel.payload = payloadObj
+                           }
+                       }
+                   }
+                    if jsonString == "Welpro" || jsonString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty{
                         removeTemplate = true
-                        RemovedTemplateCount  += 1
+                        removedTemplateCount  += 1
                     }
                 }
                 
@@ -2046,8 +2159,10 @@ extension ChatMessagesViewController {
                 let messageTuple = onReceiveMessage(object: botMessage)
                 if let object = messageTuple.0 {
                     if !removeTemplate{
-                        arrayOfSelectedBtnIndex.add(1001)
-                        allMessages.append(object)
+                        if !isRemoveTemplate{
+                            arrayOfSelectedBtnIndex.add(1001)
+                            allMessages.append(object)
+                        }
                     }
                 }
             }
@@ -2067,48 +2182,22 @@ extension ChatMessagesViewController {
             if count == 0 {
                 self?.getMessages(offset: 0)
             }else{
-                self?.offSet =  count + RemovedTemplateCount
+                self?.offSet =  count + removedTemplateCount + OTPValidationRemoveCount
                 if (self?.botMessagesView.spinner.isHidden)!{
-                    if !SDKConfiguration.botConfig.isWebhookEnabled{
-                        self?.getMessages(offset: self!.offSet)
-                    }else{
-                        self?.fetachWebhookHistory(offset: self!.offSet)
-                    }
+                    self?.getMessages(offset: self!.offSet)
                 }
             }
         })
     }
     func tableviewScrollDidEnd(){
-        if SDKConfiguration.botConfig.isShowChatHistory{
-            fetchMessages()
-        }
-    }
-    
-    func fetachWebhookHistory(offset:Int){
-        guard historyRequestInProgress == false else {
-            return
-        }
-        
-        kaBotClient.webhookHistoryApi(SDKConfiguration.botConfig.history_batch_size,offset: offset ,success: { [weak self] (responseObj) in
-            if let responseObject = responseObj as? [String: Any], let messages = responseObject["messages"] as? Array<[String: Any]> {
-                botHistoryIcon = responseObject["icon"] as? String
-                self?.insertOrUpdateHistoryMessages(messages)
+        if !SDKConfiguration.botConfig.isWebhookEnabled{
+            if isPaginatedScrollEnable{
+                fetchMessages()
             }
-            self?.historyRequestInProgress = false
-        }, failure: { [weak self] (error) in
-            self?.historyRequestInProgress = false
-            print("Unable to webhook history fetch messges \(error.localizedDescription)")
-        })
+        }
     }
 }
 extension ChatMessagesViewController: KABotClientDelegate {
-    public func showTopLoader(){
-        self.showLoader()
-    }
-    public func stopTopLoader(){
-        self.stopLoader()
-    }
-    
     public func showTypingStatusForBot() {
         self.typingStatusView?.isHidden = true
         self.typingStatusView?.startTypingStatus(using: botHistoryIcon,dotColor: themeColor)
@@ -2134,7 +2223,7 @@ extension ChatMessagesViewController: KABotClientDelegate {
         if SDKConfiguration.botConfig.isWebhookEnabled{
             urlString = botHistoryIcon?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
         }else{
-            urlString = botHistoryIcon?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+             urlString = botHistoryIcon?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
         }
         
         info.setValue(urlString ?? "kore", forKey: "imageName");
@@ -2166,10 +2255,8 @@ extension ChatMessagesViewController{
         let cancelAction: UIAlertAction = UIAlertAction(title: "Cancel", style: .cancel) { (action) in
             
         }
-        if isShowVideoOption{
-            actionSheetController.addAction(photoAction)
-            actionSheetController.addAction(videoAction)
-        }
+        actionSheetController.addAction(photoAction)
+        actionSheetController.addAction(videoAction)
         actionSheetController.addAction(cameraRollAction)
         actionSheetController.addAction(documentAction)
         actionSheetController.addAction(cancelAction)
@@ -2186,11 +2273,14 @@ extension ChatMessagesViewController{
     }
     
     public func cameraRollAction() {
-        let picker = AssetsPickerViewController()
-        picker.pickerDelegate = self
-        picker.pickerConfig.assetsMaximumSelectionCount = 1
-        picker.modalPresentationStyle = .overFullScreen
-        present(picker, animated: true, completion: nil)
+        var config = FMPhotoPickerConfig()
+        config.selectMode = .single
+        config.shouldReturnAsset = true
+        config.strings["permission_dialog_title"] = appDisplayName
+        config.strings["permission_dialog_message"] = "\(appDisplayName) wants to access Photo Library"
+        let picker = FMPhotoPickerViewController(config: config)
+        picker.delegate = self
+        present(picker, animated: true)
     }
     
     public func documentAction() {
@@ -2246,7 +2336,7 @@ extension ChatMessagesViewController{
             }
         }
         else{
-            let actionController: UIAlertController = UIAlertController(title: "Bot SDK Demo",message: "Camera is not available", preferredStyle: .alert)
+            let actionController: UIAlertController = UIAlertController(title: appDisplayName,message: "Camera is not available", preferredStyle: .alert)
             let cancelAction: UIAlertAction = UIAlertAction(title: "OK", style: .cancel) { action -> Void  in
                 //Just dismiss the action sheet
             }
@@ -2285,7 +2375,7 @@ extension ChatMessagesViewController{
         }
     }
 }
-extension ChatMessagesViewController: AssetsPickerViewControllerDelegate {
+extension ChatMessagesViewController: FMPhotoPickerViewControllerDelegate {
     func closeAndOpenAttachment(imageAttached: UIImage?, height: CGFloat){
         attachmentArray = []
         attachmentKeybord = false
@@ -2300,14 +2390,11 @@ extension ChatMessagesViewController: AssetsPickerViewControllerDelegate {
         }
     }
     
-    public func assetsPickerCannotAccessPhotoLibrary(controller: AssetsPickerViewController) {
+    public func fmPhotoPickerController(_ picker: FMPhotoPickerViewController, didFinishPickingPhotoWith photos: [UIImage]) {
         
     }
-    public func assetsPickerDidCancel(controller: AssetsPickerViewController) {
-        
-    }
-    public func assetsPicker(controller: AssetsPickerViewController, selected assets: [PHAsset]) {
-        
+    public func fmPhotoPickerController(_ picker: FMPhotoPickerViewController, didFinishPickingPhotoWith assets: [PHAsset]) {
+        self.dismiss(animated: false)
         // self.messageInputBar.presenter?.attachmentManager.invalidate()
         let phAsset:PHAsset  = assets.first!
         self.phassetToUpload = phAsset
@@ -2666,10 +2753,10 @@ extension ChatMessagesViewController{
             self.showLoader()
             kaBotClient.connect(block: { [weak self] (client, thread) in
                 self?.brandingApis(client: client, thread: thread)
-              
+                
             }) { (error) in
                 self.stopLoader()
-                self.showAlert(title: appDisplayName, message: pleaseTryAgain)
+                self.showAlert(title: self.appDisplayName, message: pleaseTryAgain)
             }
         } else {
             self.stopLoader()
@@ -2679,482 +2766,102 @@ extension ChatMessagesViewController{
     
     func brandingApis(client: BotClient?, thread: KREThread?){
         let brandingShared = BrandingSingleton.shared
-        self.kaBotClient.brandingApiRequest(AcccesssTokenn,success: { [weak self] (brandingDic) in
-            print(brandingDic)
-            let jsonDecoder = JSONDecoder()
-            guard let jsonData = try? JSONSerialization.data(withJSONObject: brandingDic as Any , options: .prettyPrinted),
-                  let activeTheme = try? jsonDecoder.decode(ActiveTheme.self, from: jsonData) else {
-                return
-            }
-            if activeTheme.widgetHeader?.bordercolor != nil{ //V2 branding response
-                self?.bradingValuesStoredInSingleton(responseTheme: activeTheme)
-                self?.sucessMethod(client: client, thread: thread)
-            }else{ //V3 branding response
-                if let v3Branding = brandingDic["v3"] as? [String: Any]{
-                    func stringValue(_ dictionary: [String: Any], _ keys: String...) -> String? {
-                        for key in keys {
-                            if let value = dictionary[key] as? String, value != "" {
-                                return value
-                            }
-                        }
-                        return nil
-                    }
-                    
-                    func dictionaryValue(_ dictionary: [String: Any], _ keys: String...) -> [String: Any]? {
-                        for key in keys {
-                            if let value = dictionary[key] as? [String: Any] {
-                                return value
-                            }
-                        }
-                        return nil
-                    }
-
-                    func boolValue(_ dictionary: [String: Any], _ keys: String...) -> Bool? {
-                        for key in keys {
-                            if let value = dictionary[key] as? Bool {
-                                return value
-                            }
-                            if let value = dictionary[key] as? NSNumber {
-                                return value.boolValue
-                            }
-                            if let value = dictionary[key] as? String {
-                                switch value.lowercased() {
-                                case "true", "1":
-                                    return true
-                                case "false", "0":
-                                    return false
-                                default:
-                                    continue
-                                }
-                            }
-                        }
-                        return nil
-                    }
-                    
-                    var widgetBorderColor = "#000000"
-                    var buttonInactiveBgColor = "#FFFFFF"
-                    var buttonInactiveTextColor = "#ff5e00"
-                    var buttonActiveBgColor = "#f3f3f5"
-                    var buttonActiveTextColor = "#2881DF"
-                    var widgetBgColor = "#ffffff"
-                    let theme = ""
-                    var botName = SDKConfiguration.botConfig.chatBotName
-                    var widgetDividerColor = "#c9c7c9"
-                    let bankLogo = ""
-                    var widgetBgImage = ""
-                    var widgetBodyColor = "#FFFFFFF"
-                    var botchatBgColor  = ""
-                    var botchatTextColor = ""
-                    var userchatBgColor = ""
-                    var userchatTextColor = ""
-                    var widgetTextColor = ""
-                    var widgetHeaderColor = ""
-                    var widgetFooterColor = ""
-                    var widgetFooterTextColor = "#000000"
-                    var widgetFooterPlaceholderColor = "#9A9A9A"
-                    var widgetFooterPlaceholderText: String?
-                    var widgetFooterBorderColor = ""
-                    var bubbleShape =  "square"
-                    
-                    if let body = v3Branding["body"] as? [String: Any]{
-                        //print(body)
-                        if let bg = body["background"] as? [String: Any]{
-                            if let bgColor = bg["color"] as? String{
-                                widgetBodyColor = bgColor
-                            }
-                            if let bgImage = bg["img"] as? String{
-                                widgetBgImage =  bgImage
-                            }
-                            if let bgType = bg["type"] as? String,  bgType == "color"{
-                                widgetBgImage = ""
-                            }
-                        }
-                        
-                        if let bot_message = body["bot_message"] as? [String: Any]{
-                            if let bot_message_bg_color = bot_message["bg_color"] as? String{
-                                botchatBgColor = bot_message_bg_color
-                            }
-                            if let bot_message_Txt_color = bot_message["color"] as? String{
-                                botchatTextColor = bot_message_Txt_color
-                                
-                            }
-                        }
-                        
-                        if let user_message = body["user_message"] as? [String: Any]{
-                            if let user_message_bg_color = user_message["bg_color"] as? String{
-                                userchatBgColor = user_message_bg_color
-                                buttonActiveBgColor = userchatBgColor
-                            }
-                            if let user_message_Txt_color = user_message["color"] as? String{
-                                userchatTextColor = user_message_Txt_color
-                                buttonActiveTextColor = userchatTextColor
-                            }
-                        }
-                        if let bubble_style = body["bubble_style"] as? String{
-                            bubbleShape = bubble_style
-                        }
-                        
-                    }
-                    if let footer = dictionaryValue(v3Branding, "footer"){
-                        //print(footer)
-                        if let footerBg = stringValue(footer, "bg_color", "bg-color", "backgroundColor", "background_color", "bgColor"){
-                            widgetFooterColor = footerBg
-                        }
-                        if let composeBar = dictionaryValue(footer, "compose_bar", "composeBar", "compose-bar"){
-                            if widgetFooterColor == "", let composeBarBg = stringValue(composeBar, "bg_color", "bg-color", "backgroundColor", "background_color", "bgColor"){
-                                widgetFooterColor = composeBarBg
-                            }
-                            if let borderColor = stringValue(composeBar, "outline-color", "outline_color", "outlineColor", "borderColor", "border_color"){
-                                widgetFooterBorderColor = borderColor
-                                widgetFooterPlaceholderColor = borderColor
-                            }
-                            if let placeholderColor = stringValue(composeBar, "placeholderColor", "placeholder_color", "placeholder-color", "hintColor", "hint_color"){
-                                widgetFooterPlaceholderColor = placeholderColor
-                            }
-                            if let textColor = stringValue(composeBar, "textColor", "text_color", "color"){
-                                widgetFooterTextColor = textColor
-                            }
-                            if let placeholderText = stringValue(composeBar, "placeholder", "placeHolder", "placeholderText", "placeholder_text"){
-                                widgetFooterPlaceholderText = placeholderText
-                            }
-                        }
-                        if let buttons = dictionaryValue(footer, "buttons") {
-                            if let microphone = dictionaryValue(buttons, "microphone"),
-                               let showMicrophone = boolValue(microphone, "show") {
-                                SDKConfiguration.botConfig.isShowSpeachToTextIcon = showMicrophone
-                            }
-                            if let attachment = dictionaryValue(buttons, "attachment"),
-                               let showAttachment = boolValue(attachment, "show") {
-                                SDKConfiguration.botConfig.isShowAttachmentIcon = showAttachment
-                            }
-                        }
-                    }
-                    if let header = dictionaryValue(v3Branding, "header"){
-                        //print(header)
-                        if let headerBg = stringValue(header, "bg_color", "bg-color", "backgroundColor", "background_color", "bgColor"){
-                            widgetHeaderColor = headerBg
-                        }
-                        if let title = dictionaryValue(header, "title"){
-                            if let titleName = stringValue(title, "name", "text", "title"){
-                                botName = titleName
-                            }
-                            if let titleColor = stringValue(title, "color", "fontColor", "font_color"){
-                                widgetTextColor = titleColor
-                            }
-                        }
-                        
-                    }
-                    if let general = v3Branding["general"] as? [String: Any], let generalColors = general["colors"] as? [String: Any] {
-                        //print(general)
-                        if let useColorPaletteOnly = generalColors["useColorPaletteOnly"] as? Bool, useColorPaletteOnly == true{
-                            var genaralPrimaryColor = "#D38A17"
-                            var genaralSecondaryColor = "#101828"
-                            var genaralPrimary_textColor = "#C1EDB9"
-                            var genaralSecondary_textColor = "#000000"
-                            
-                            if let primary = generalColors["primary"] as? String{
-                                genaralPrimaryColor = primary
-                            }
-                            if let primary_text = generalColors["primary_text"] as? String{
-                                genaralPrimary_textColor = primary_text
-                            }
-                            if let secondary = generalColors["secondary"] as? String{
-                                genaralSecondaryColor = secondary
-                            }
-                            if let secondary_text = generalColors["secondary_text"] as? String{
-                                genaralSecondary_textColor = secondary_text
-                            }
-                            userchatBgColor = genaralPrimaryColor
-                            userchatTextColor = genaralSecondary_textColor
-                            botchatBgColor = genaralSecondaryColor
-                            botchatTextColor = genaralPrimary_textColor
-                            widgetFooterColor = genaralSecondaryColor
-                            widgetHeaderColor = genaralSecondaryColor
-                            widgetTextColor = genaralPrimary_textColor
-                            buttonActiveBgColor = genaralPrimaryColor
-                            buttonActiveTextColor = genaralSecondary_textColor
-                        }
-                    }
-                    
-                    if let widgetHeaderBorderColor = localActiveTheme?.widgetHeader?.bordercolor, widgetHeaderBorderColor != ""{
-                        widgetBorderColor = widgetHeaderBorderColor
-                    }
-                    if let widgetHeaderTextColor = localActiveTheme?.widgetHeader?.fontcolor, widgetHeaderTextColor != ""{
-                        widgetTextColor = widgetHeaderTextColor
-                    }
-                    if let buttononHoverButtonColor = localActiveTheme?.buttons?.onHoverButtonColor, buttononHoverButtonColor != ""{
-                        buttonInactiveBgColor = buttononHoverButtonColor
-                    }
-                    if let buttononHoverFontColor = localActiveTheme?.buttons?.onHoverFontColor, buttononHoverFontColor != ""{
-                        buttonInactiveTextColor = buttononHoverFontColor
-                    }
-                    if let defaultButtonColor = localActiveTheme?.buttons?.defaultButtonColor, defaultButtonColor != ""{
-                        buttonActiveBgColor = defaultButtonColor
-                    }
-                    if let defaultBtnFontColor = localActiveTheme?.buttons?.defaultFontColor, defaultBtnFontColor != ""{
-                        buttonActiveTextColor = defaultBtnFontColor
-                    }
-                    if let widgetHeaderBgColor = localActiveTheme?.widgetHeader?.backGroundColor, widgetHeaderBgColor != ""{
-                        widgetBgColor = widgetHeaderBgColor
-                    }
-                    if let userchatBubbleBgColor = localActiveTheme?.userMessage?.bubbleColor, userchatBubbleBgColor != ""{
-                        userchatBgColor = userchatBubbleBgColor
-                    }
-                    if let userchatFontColor = localActiveTheme?.userMessage?.fontcolor, userchatFontColor != ""{
-                        userchatTextColor = userchatFontColor
-                    }
-                    if var botMessageBubbleColor = localActiveTheme?.botMessage?.bubbleColor, botMessageBubbleColor != ""{
-                        botchatBgColor = botMessageBubbleColor
-                    }
-                    if let botchatFontcolor = localActiveTheme?.botMessage?.fontcolor, botchatFontcolor != ""{
-                        botchatTextColor = botchatFontcolor
-                    }
-                     
-                    if let widgetFooterPlaceHolder = localActiveTheme?.widgetFooter?.placeHolder, widgetFooterPlaceHolder != ""{
-                        widgetDividerColor = widgetFooterPlaceHolder
-                    }
-                     if let userWidgetBgImage =  localActiveTheme?.widgetBody?.useBackgroundImage, userWidgetBgImage == true{
-                         widgetBgImage = localActiveTheme?.widgetBody?.backGroundImage ?? ""
-                     }
-                    if let widgetBodyBgColor = localActiveTheme?.widgetBody?.backGroundColor, widgetBodyBgColor != ""{
-                        widgetBodyColor = widgetBodyBgColor
-                    }
-                    if let widgetFooterBgColor = localActiveTheme?.widgetFooter?.backGroundColor, widgetFooterBgColor != ""{
-                        widgetFooterColor = widgetFooterBgColor
-                    }
-                    if let widgetHeaderBgColor = localActiveTheme?.widgetHeader?.backGroundColor, widgetHeaderBgColor != ""{
-                        widgetHeaderColor = widgetHeaderBgColor
-                    }
-                    
-                    if let widgetFooterFontColor = localActiveTheme?.widgetFooter?.fontcolor, widgetFooterFontColor != ""{
-                        widgetFooterTextColor = widgetFooterFontColor
-                    }
-                    if let widgetFooterPlaceholder = localActiveTheme?.widgetFooter?.placeHolder, widgetFooterPlaceholder != ""{
-                        widgetFooterPlaceholderColor = widgetFooterPlaceholder
-                    }
-                    if let widgetFooterBorderColour = localActiveTheme?.widgetFooter?.bordercolor, widgetFooterBorderColour != ""{
-                        widgetFooterBorderColor = widgetFooterBorderColour
-                    }
-                    if let bubbleshape = localActiveTheme?.generalAttributes?.bubbleShape, bubbleshape != ""{
-                        bubbleShape = bubbleshape
-                    }
-                    if let botNamee = localActiveTheme?.botName, botNamee != ""{
-                        botName = botNamee
-                    }
-                    
-                    brandingShared.widgetBorderColor = widgetBorderColor
-                    brandingShared.widgetTextColor = widgetTextColor
-                    brandingShared.buttonInactiveBgColor = buttonInactiveBgColor
-                    brandingShared.buttonInactiveTextColor = buttonInactiveTextColor
-                    brandingShared.widgetBgColor = widgetBgColor
-                    brandingShared.botchatTextColor = botchatTextColor
-                    brandingShared.buttonActiveBgColor = buttonActiveBgColor
-                    brandingShared.buttonActiveTextColor = buttonActiveTextColor
-                    brandingShared.userchatBgColor = userchatBgColor
-                    brandingShared.theme = theme
-                    brandingShared.botName = botName
-                    brandingShared.botchatBgColor = botchatBgColor
-                    brandingShared.userchatTextColor = userchatTextColor
-                    brandingShared.widgetDividerColor = widgetDividerColor
-                    brandingShared.bankLogo = bankLogo
-                    brandingShared.widgetBgImage = widgetBgImage
-                    brandingShared.widgetBodyColor = widgetBodyColor
-                    brandingShared.widgetFooterColor = widgetFooterColor
-                    brandingShared.widgetHeaderColor = widgetHeaderColor
-                    brandingShared.widgetFooterTextColor = widgetFooterTextColor
-                    brandingShared.widgetFooterPlaceholderColor = widgetFooterPlaceholderColor
-                    brandingShared.widgetFooterBorderColor = widgetFooterBorderColor
-                    brandingShared.bubbleShape = bubbleShape
-                    composeBarPlaceholder = widgetFooterPlaceholderText ?? "Type your message..."
-                    self?.sucessMethod(client: client, thread: thread)
-                }else{
-                    self?.getOfflineBrandingData(client: client, thread: thread)
+        self.kaBotClient.brandingApiRequest(AcccesssTokenn,success: { [weak self] (jsonResult) in
+            print("brandingDic : \(jsonResult)")
+            if let v3Dic = jsonResult["v3"]{
+                let jsonDecoder = JSONDecoder()
+                guard let jsonData = try? JSONSerialization.data(withJSONObject: jsonResult["v3"] as Any , options: .prettyPrinted),
+                let brandingDic = try? jsonDecoder.decode(BrandingModel.self, from: jsonData) else {
+                    return
                 }
+                //brandingValues = brandingDic
+                self?.overRideLocalBranding(responseTheme: brandingDic)
+                self?.sucessMethod(client: client, thread: thread)
+            }else{
+                self?.getOfflineBrandingData(client: client, thread: thread)
             }
-        
-    }, failure: { (error) in
+            
+        }, failure: { (error) in
             self.getOfflineBrandingData(client: client, thread: thread)
         })
     }
     
-    func bradingValuesStoredInSingleton(responseTheme: ActiveTheme){
-        let activeTheme = localActiveTheme != nil ? responseTheme.updateWith(configModel: localActiveTheme!) : responseTheme
-        let widgetBorderColor = activeTheme.widgetHeader?.bordercolor
-        let widgetTextColor = activeTheme.widgetHeader?.fontcolor
-        let buttonInactiveBgColor = activeTheme.buttons?.onHoverButtonColor
-        let buttonInactiveTextColor = activeTheme.buttons?.onHoverFontColor
-        let buttonActiveBgColor = activeTheme.buttons?.defaultButtonColor
-        let buttonActiveTextColor = activeTheme.buttons?.defaultFontColor
-        let widgetBgColor = activeTheme.widgetHeader?.backGroundColor
-        let userchatBgColor = activeTheme.userMessage?.bubbleColor
-        let userchatTextColor = activeTheme.userMessage?.fontcolor
-        let theme = ""
-        let botName =  (activeTheme.botName == nil || activeTheme.botName == "")  ? SDKConfiguration.botConfig.chatBotName : activeTheme.botName
-        let botchatBgColor = activeTheme.botMessage?.bubbleColor
-        let botchatTextColor = activeTheme.botMessage?.fontcolor
-         
-        let widgetDividerColor = activeTheme.widgetFooter?.placeHolder
-        let bankLogo = ""
-         var widgetBgImage = ""
-         if let userWidgetBgImage =  activeTheme.widgetBody?.useBackgroundImage, userWidgetBgImage == true{
-             widgetBgImage = activeTheme.widgetBody?.backGroundImage ?? ""
-         }
-        let widgetBodyColor = activeTheme.widgetBody?.backGroundColor
-        let widgetFooterColor = activeTheme.widgetFooter?.backGroundColor
-        let widgetHeaderColor = activeTheme.widgetHeader?.backGroundColor
-        
-        let widgetFooterTextColor = activeTheme.widgetFooter?.fontcolor
-        let widgetFooterPlaceholderColor = activeTheme.widgetFooter?.placeHolder
-        let widgetFooterBorderColor = activeTheme.widgetFooter?.bordercolor
-        let bubbleShape = activeTheme.generalAttributes?.bubbleShape
-        
-        brandingShared.widgetBorderColor = widgetBorderColor
-        brandingShared.widgetTextColor = widgetTextColor
-        brandingShared.buttonInactiveBgColor = buttonInactiveBgColor
-        brandingShared.buttonInactiveTextColor = buttonInactiveTextColor
-        brandingShared.widgetBgColor = widgetBgColor
-        brandingShared.botchatTextColor = botchatTextColor
-        brandingShared.buttonActiveBgColor = buttonActiveBgColor
-        brandingShared.buttonActiveTextColor = buttonActiveTextColor
-        brandingShared.userchatBgColor = userchatBgColor
-        brandingShared.theme = theme
-        brandingShared.botName = botName
-        brandingShared.botchatBgColor = botchatBgColor
-        brandingShared.userchatTextColor = userchatTextColor
-        brandingShared.widgetDividerColor = widgetDividerColor
-        brandingShared.bankLogo = bankLogo
-        brandingShared.widgetBgImage = widgetBgImage
-        brandingShared.widgetBodyColor = widgetBodyColor
-        brandingShared.widgetFooterColor = widgetFooterColor
-        brandingShared.widgetHeaderColor = widgetHeaderColor
-        brandingShared.widgetFooterTextColor = widgetFooterTextColor
-        brandingShared.widgetFooterPlaceholderColor = widgetFooterPlaceholderColor
-        brandingShared.widgetFooterBorderColor = widgetFooterBorderColor
-        brandingShared.bubbleShape = bubbleShape
+    func overRideLocalBranding(responseTheme: BrandingModel){
+        let overRideTheme = overRideBrandingTheme != nil ? responseTheme.updateWith(configModel: overRideBrandingTheme!) : responseTheme
+        brandingValues = overRideTheme
     }
     
     func getOfflineBrandingData(client: BotClient?, thread: KREThread?){
         
-        //let brandingShared = BrandingSingleton.shared
+        let brandingShared = BrandingSingleton.shared
         if let path = bundleImage.path(forResource: "branding", ofType: "json") {
             do {
                 let data = try Data(contentsOf: URL(fileURLWithPath: path), options: .mappedIfSafe)
                 let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
-                
-                    
-                let jsonDecoder = JSONDecoder()
-                guard let jsonData = try? JSONSerialization.data(withJSONObject: jsonResult as Any , options: .prettyPrinted),
-                      let activeTheme = try? jsonDecoder.decode(ActiveTheme.self, from: jsonData) else {
-                    return
+                if let jsonResult = jsonResult as? Dictionary<String, AnyObject> {
+                    let brandingDic = try DictionaryDecoder().decode(BrandingModel.self, from: jsonResult as [String : Any])
+                    //brandingValues = brandingDic
+                    self.overRideLocalBranding(responseTheme: brandingDic)
+                    self.sucessMethod(client: client, thread: thread)
                 }
-                 self.bradingValuesStoredInSingleton(responseTheme: activeTheme)
-                self.sucessMethod(client: client, thread: thread)
             } catch {
+                // handle error
             }
         }else{
             if let url = bundleImage.url(forResource: "branding", withExtension: "json", subdirectory: "BrandindFiles"){
                 if let data = try? Data(contentsOf:url, options: .mappedIfSafe){
                     let jsonResult = try? JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
-                    let jsonDecoder = JSONDecoder()
-                    guard let jsonData = try? JSONSerialization.data(withJSONObject: jsonResult as Any , options: .prettyPrinted),
-                          let activeTheme = try? jsonDecoder.decode(ActiveTheme.self, from: jsonData) else {
-                        return
+                    if let jsonResult = jsonResult as? Dictionary<String, AnyObject> {
+                        let brandingDic = try? DictionaryDecoder().decode(BrandingModel.self, from: jsonResult as [String : Any])
+                        //brandingValues = brandingDic ?? BrandingModel()
+                        self.overRideLocalBranding(responseTheme: brandingDic ?? BrandingModel())
+                        self.sucessMethod(client: client, thread: thread)
+                    }else{
+                        self.sucessMethod(client: client, thread: thread)
                     }
-                     self.bradingValuesStoredInSingleton(responseTheme: activeTheme)
+                }else{
                     self.sucessMethod(client: client, thread: thread)
                 }
-            }else{
-                self.sucessMethod(client: client, thread: thread)
-            }
-        }
-    }
-    
-    /*func brandingMapping(brandingValues: BrandingModel?){
-        let brandingShared = BrandingSingleton.shared
-        brandingShared.brandingInfoModel = brandingValues
-        brandingShared.widgetBorderColor = brandingShared.brandingInfoModel?.widgetBorderColor
-        brandingShared.widgetTextColor = brandingShared.brandingInfoModel?.widgetTextColor
-        brandingShared.buttonInactiveBgColor = brandingShared.brandingInfoModel?.buttonInactiveBgColor
-        brandingShared.buttonInactiveTextColor = brandingShared.brandingInfoModel?.buttonInactiveTextColor
-        brandingShared.widgetBgColor = brandingShared.brandingInfoModel?.widgetBgColor
-        brandingShared.botchatTextColor = brandingShared.brandingInfoModel?.botchatTextColor
-        brandingShared.buttonActiveBgColor = brandingShared.brandingInfoModel?.buttonActiveBgColor
-        brandingShared.buttonActiveTextColor = brandingShared.brandingInfoModel?.buttonActiveTextColor
-        brandingShared.userchatBgColor = brandingShared.brandingInfoModel?.userchatBgColor
-        brandingShared.theme = brandingShared.brandingInfoModel?.theme
-        brandingShared.botName = SDKConfiguration.botConfig.chatBotName
-        brandingShared.botchatBgColor = brandingShared.brandingInfoModel?.botchatBgColor
-        brandingShared.userchatTextColor = brandingShared.brandingInfoModel?.userchatTextColor
-        brandingShared.widgetDividerColor = brandingShared.brandingInfoModel?.widgetDividerColor
-        brandingShared.bankLogo = brandingShared.brandingInfoModel?.bankLogo
-        brandingShared.widgetBgImage = brandingShared.brandingInfoModel?.widgetBgImage
-        brandingShared.widgetBodyColor = brandingShared.brandingInfoModel?.widgetBodyColor
-        brandingShared.widgetFooterColor = brandingShared.brandingInfoModel?.widgetFooterColor
-        brandingShared.widgetHeaderColor = brandingShared.brandingInfoModel?.widgetHeaderColor
-        brandingShared.widgetFooterTextColor = brandingShared.brandingInfoModel?.widgetFooterColor
-        brandingShared.widgetFooterPlaceholderColor = brandingShared.brandingInfoModel?.widgetHeaderColor
-        brandingShared.widgetFooterBorderColor = brandingShared.brandingInfoModel?.widgetHeaderColor
-        brandingShared.bubbleShape = "square"
-    }*/
-    func fetachBrandingDataFromStr(client: BotClient?, thread: KREThread?){
-        let jsonStr = brandingShared.brandingjsonStr
-        let jsonResult = Utilities.jsonObjectFromString(jsonString: jsonStr)
-        if let brandingArray = jsonResult as? NSArray {
-            if brandingArray.count > 0{
-                brandingShared.hamburgerOptions = (((brandingArray as AnyObject).object(at: 0) as AnyObject).object(forKey: "hamburgermenu") as Any) as? Dictionary<String, Any>
-            }
-            if brandingArray.count>1{
-                let brandingDic = (((brandingArray as AnyObject).object(at: 1) as AnyObject).object(forKey: "brandingwidgetdesktop") as Any)
-                let jsonDecoder = JSONDecoder()
-                guard let jsonData = try? JSONSerialization.data(withJSONObject: brandingDic as Any , options: .prettyPrinted),
-                      let brandingValues = try? jsonDecoder.decode(BrandingModel.self, from: jsonData) else {
-                    return
-                }
                 
-                brandingShared.brandingInfoModel = brandingValues
+            }else{
                 self.sucessMethod(client: client, thread: thread)
             }
             
         }
     }
-    
-    func subscribeNotifications(){
-        if let deviceToken = SDKConfiguration.botConfig.deviceToken{
-            self.botClient.subscribeToNotifications(deviceToken) { succes in
-                print("subscribe Notifications")
-            } failure: { error in
-                print(error)
-            }
-        }
-    }
-    func unsubscribeNotifications(){
-        if let deviceToken = SDKConfiguration.botConfig.deviceToken{
-            self.botClient.unsubscribeToNotifications(deviceToken) { succes in
-                print("unsubscribe Notifications")
-            } failure: { error in
-                print(error)
-            }
-        }
-    }
-    
     func sucessMethod(client: BotClient?, thread: KREThread?){
-        let dic = ["event_code": "BotConnected", "event_message": "Bot connected successfully"]
-        if self.closeAndMinimizeEvent != nil{
-            self.closeAndMinimizeEvent(dic)
-        }
         isBotConnectSucessFully = true
+        chatMaskview.isHidden = true
+        self.getEmojisFromBrandingData()
         self.stopLoader()
         self.thread = thread
         self.botClient = client
-        self.configureThreadView()
         self.brandingValuesChanges()
         self.configureleftMenu()
+        self.configureWelcomeScreenView()
         self.configureQuickReplyView()
-        chatMaskview.isHidden = true
+        
+        self.configureThreadView()
+        self.configureComposeBar()
+        self.configureAudioComposer()
+        self.configureIncomingCallView()
         subscribeNotifications()
-        if isShowWelcomeMsg{
-            NotificationCenter.default.post(name: Notification.Name("StartTyping"), object: nil)
+        setupCloseOrMinimizePopup()
+        if let footerDic = brandingValues.footer{
+            if statusBarBottomBackgroundColor == nil{
+                footerStatusBarView.backgroundColor = UIColor.init(hexString: footerDic.bg_color ?? "#FFFFFF")
+            }else{
+                footerStatusBarView.backgroundColor = statusBarBottomBackgroundColor
+            }
+            if let layout = footerDic.layout, layout == "keypad"{
+                self.configureViewForKeyboard(true)
+            }else{
+                self.configureViewForKeyboard(false)
+            }
+        }else{
+            self.configureViewForKeyboard(true)
         }
+        
         if SDKConfiguration.botConfig.isWebhookEnabled{
             NotificationCenter.default.post(name: Notification.Name("StartTyping"), object: nil)
             self.kaBotClient.webhookBotMetaApi(success: { (dictionary) in
@@ -3162,9 +2869,9 @@ extension ChatMessagesViewController{
                 if let userIcon: String = dictionary["icon"] as? String  {
                     botHistoryIcon = userIcon
                 }
-                
-            }, failure: { (error) in
-                print(error)
+                 
+                }, failure: { (error) in
+                    print(error)
             })
             
             self.kaBotClient.webhookSendMessage("ON_CONNECT", "event",[:], success: { [weak self] (dictionary) in
@@ -3176,8 +2883,8 @@ extension ChatMessagesViewController{
                     self?.callPollApi(pollID: dictionary["pollId"] as! NSString)
                 }
                 
-            }, failure: { (error) in
-                print(error)
+                }, failure: { (error) in
+                    print(error)
             })
         }
         
@@ -3210,14 +2917,43 @@ extension ChatMessagesViewController{
                 })
                 
             }else{
-                self.showAlert(title: "Bot SDK Demo", message: "YOU MUST SET WIDGET 'clientId', 'clientSecret', 'chatBotName', 'identity' and 'botId'. Please check the documentation.")
+                self.showAlert(title: appDisplayName, message: "YOU MUST SET WIDGET 'clientId', 'clientSecret', 'chatBotName', 'identity' and 'botId'. Please check the documentation.")
             }
-            
+
         } else {
             panelCollectionViewContainerHeightConstraint.constant = 0
         }
         
-        //self.composeView.becomeFirstResponder()
+    }
+    func showdDynamicError(messageString:String){
+        let payloadStr = ["text":messageString,"color": "#fc0307"]
+        let message: Message = Message()
+        message.messageType = .reply
+        message.sentDate = Date()
+        message.messageId = UUID().uuidString
+        let textComponent: Component = Component(.error)
+        textComponent.payload = Utilities.stringFromJSONObject(object: payloadStr)
+        message.addComponent(textComponent)
+        addMessages(message, "")
+    }
+
+    func subscribeNotifications(){
+        if let deviceToken = SDKConfiguration.botConfig.deviceToken{
+            self.botClient.subscribeToNotifications(deviceToken) { succes in
+                print("subscribe Notifications")
+            } failure: { error in
+                print(error)
+            }
+        }
+    }
+    func unsubscribeNotifications(){
+        if let deviceToken = SDKConfiguration.botConfig.deviceToken{
+            self.botClient.unsubscribeToNotifications(deviceToken) { succes in
+                print("unsubscribe Notifications")
+            } failure: { error in
+                print(error)
+            }
+        }
     }
     
     func showAlert(title: String, message: String) {
@@ -3266,62 +3002,89 @@ extension ChatMessagesViewController{
     
     func brandingValuesChanges(){
         let font:UIFont? = UIFont(name: boldCustomFont, size:16)
-        let titleStr = brandingShared.botName
+        let titleStr = SDKConfiguration.botConfig.chatBotName
         headerTitileLbl.text = titleStr
         headerTitileLbl.font = font
-        let widgetTxtColor = UIColor.init(hexString: (brandingShared.widgetTextColor) ?? "#000000")
-        headerTitileLbl.textColor = widgetTxtColor
+        headerTitileLbl.textColor = UIColor.init(hexString: "#000000")
         
-        if let bgUrlString = brandingShared.widgetBgImage!.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed){
-            let bgUrl = URL(string: bgUrlString)
-            if let imgUrl = bgUrl{
-                backgroungImageView.af.setImage(withURL: imgUrl, placeholderImage: UIImage(named: ""))
-                backgroungImageView.contentMode = .scaleAspectFit
-            }else{
-                self.view.backgroundColor = UIColor.init(hexString: (brandingShared.widgetBodyColor) ?? "#f3f3f5")
+        self.view.backgroundColor = UIColor.init(hexString: "#F8FAFC")
+        BubbleViewRightTint = UIColor.init(hexString: "#2881DF")
+        themeColor = BubbleViewRightTint
+        BubbleViewLeftTint = UIColor.init(hexString: "#F0F1F2")
+        BubbleViewUserChatTextColor = UIColor.init(hexString: "#FFFFFF")
+        BubbleViewBotChatTextColor = UIColor.init(hexString: "#000000")
+        headerView.backgroundColor = UIColor.init(hexString: "#FFFFFF")
+
+    }
+    func getEmojisFromBrandingData(){
+        isEmojiDispaly = false
+        if let override_kore_config = brandingValues.override_kore_config{
+            if let isemoji_short_cut = override_kore_config.emoji_short_cut{
+                isEmojiDispaly = isemoji_short_cut
+            }
+            if let history = override_kore_config.history, let isHistoryEnable = history.enable as? Bool{
+                SDKConfiguration.botConfig.isShowChatHistory = isHistoryEnable
+                if let recentHistory = history.recent, let recentHistoryBatch_size = recentHistory.batch_size as? Int{
+                    recentHistoryBatchSize = recentHistoryBatch_size
+                }
+                
+                if let paginated_scroll = history.paginated_scroll, let paginated_scroll_Enable = paginated_scroll.enable as? Bool{
+                    isPaginatedScrollEnable = paginated_scroll_Enable
+                }
+                if let paginated_scroll = history.paginated_scroll, let paginated_scroll_Batch_size = paginated_scroll.batch_size as? Int{
+                    paginatedScrollBatchSize = paginated_scroll_Batch_size
+                }
             }
         }
-        let footerColor = UIColor.init(hexString: (brandingShared.widgetFooterColor) ?? "#eaeaea")
-        composeBarContainerView.backgroundColor = footerColor
-        composeView.backgroundColor = footerColor
-        quickSelectContainerView.backgroundColor = footerColor
-        attachmentContainerView.backgroundColor = footerColor
-        attachmentCollectionView.backgroundColor = footerColor
-        audioComposeContainerView.backgroundColor = footerColor
-        panelCollectionViewContainerView.backgroundColor = footerColor
-        if statusBarBottomBackgroundColor == nil{
-            footerStatusBarView.backgroundColor = footerColor
+        if let path = bundleImage.path(forResource: "branding", ofType: "json") {
+            if let data = try? Data(contentsOf: URL(fileURLWithPath: path), options: .mappedIfSafe){
+                let jsonResult = try? JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
+                emojiDic = jsonResult as? [String : Any] ?? [:]
+            }
         }else{
-            footerStatusBarView.backgroundColor = statusBarBottomBackgroundColor
+            if let url = bundleImage.url(forResource: "branding", withExtension: "json", subdirectory: "BrandindFiles"){
+                if let data = try? Data(contentsOf:url, options: .mappedIfSafe){
+                    let jsonResult = try? JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
+                    emojiDic = jsonResult as? [String : Any] ?? [:]
+                }
+            }
         }
-        composeView.brandingChnages()
-        composeView.applyFooterButtonConfiguration()
-        audioComposeView.backgroundColor = footerColor
-        
-        BubbleViewRightTint = UIColor.init(hexString: (brandingShared.userchatBgColor) ?? "#2881DF")
-        BubbleViewLeftTint = UIColor.init(hexString: (brandingShared.botchatBgColor) ?? "#FFFFFF")
-        BubbleViewUserChatTextColor = UIColor.init(hexString: (brandingShared.userchatTextColor) ?? "#FFFFFF")
-        BubbleViewBotChatTextColor = UIColor.init(hexString: (brandingShared.botchatTextColor) ?? "#000000")
-    
-        bubbleViewBotChatButtonBgColor = UIColor.init(hexString: (brandingShared.buttonActiveBgColor) ?? "#f3f3f5")
-        bubbleViewBotChatButtonTextColor = UIColor.init(hexString: (brandingShared.buttonActiveTextColor) ?? "#2881DF")
-        themeColor = UIColor.init(hexString: (brandingShared.buttonActiveBgColor) ?? "#f3f3f5") //BubbleViewRightTint //bubbleViewBotChatButtonTextColor
-        let headerColor = UIColor.init(hexString: (brandingShared.widgetHeaderColor) ?? "#FFFFFF")
-        headerView.backgroundColor = headerColor
-        statusBarView.backgroundColor = headerColor
-        
-        let backImage = UIImage(named: "keyboard-arrow-left", in: bundleImage, compatibleWith: nil)
-        let tintedBackImage = backImage?.withRenderingMode(.alwaysTemplate)
-        self.backBtn.setBackgroundImage(tintedBackImage, for: .normal)
-        self.backBtn.tintColor = widgetTxtColor
-
-        isBrandingReady = true
-        updateFooterVisibility()
-        
     }
+
 }
 // MARK: - LeftMenu
 extension ChatMessagesViewController: LeftMenuViewDelegate{
+    func leftMenuSelectedText(text: String, payload: String) {
+        leftMenuBackBtnAct(self as Any)
+        Timer.scheduledTimer(withTimeInterval: 0.6, repeats: false) { (_) in
+            self.optionsButtonTapNewAction(text: text, payload: payload)
+        }
+    }
+    func leftMenulinkAction(urlString: String) {
+        if verifyUrl(urlString: urlString){
+            if (urlString.count > 0) {
+                NotificationCenter.default.post(name: Notification.Name(stopSpeakingNotification), object: nil)
+                leftMenuBackBtnAct(self as Any)
+                Timer.scheduledTimer(withTimeInterval: 0.6, repeats: false) { (_) in
+                    let url: URL = URL(string: urlString)!
+                    let webViewController = SFSafariViewController(url: url)
+                    self.present(webViewController, animated: true, completion:nil)
+                }
+            }
+        }
+        
+    }
+    
+    @IBAction func leftMenuBackBtnAct(_ sender: Any) {
+        let frame = UIScreen.main.bounds.size
+            UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseIn, animations: {
+                let moveLeft = CGAffineTransform(translationX: frame.width * -1, y: 0.0)
+                self.leftMenuContainerView.transform = moveLeft
+            }) { (finished) in
+                self.leftMenuContainerView.isHidden = true
+            }
+    }
+    
     func configureleftMenu(){
         leftMenuContainerView.isHidden = true
         self.view.bringSubviewToFront(leftMenuContainerView)
@@ -3336,21 +3099,8 @@ extension ChatMessagesViewController: LeftMenuViewDelegate{
         self.leftMenuContainerSubView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-70-[leftMenuView]|", options:[], metrics:nil, views:["leftMenuView" : self.leftMenuView!]))
         
     }
-    func leftMenuSelectedText(text: String, payload: String) {
-        leftMenuBackBtnAct(self as Any)
-        Timer.scheduledTimer(withTimeInterval: 0.6, repeats: false) { (_) in
-            self.optionsButtonTapNewAction(text: text, payload: payload)
-        }
-    }
-    @IBAction func leftMenuBackBtnAct(_ sender: Any) {
-        let frame = UIScreen.main.bounds.size
-        UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseIn, animations: {
-            let moveLeft = CGAffineTransform(translationX: frame.width * -1, y: 0.0)
-            self.leftMenuContainerView.transform = moveLeft
-        }) { (finished) in
-            self.leftMenuContainerView.isHidden = true
-        }
-    }
+    
+    
 }
 
 // MARK: - Widgets
@@ -3416,7 +3166,7 @@ extension ChatMessagesViewController {
             break
         }
     }
-    
+
     public func showHomePanel(_ isOnboardingInProgress: Bool = false, completion block:(()->Void)? = nil) {
         let panelItems = KREWidgetManager.shared.panelItems
         guard launchOptions == nil else {
@@ -3517,18 +3267,6 @@ extension ChatMessagesViewController: UIGestureRecognizerDelegate{
         }
         return true
     }
-    public func socketDisconnect(){
-        isShowWelcomeMsg = true
-        if(self.botClient != nil){
-            kaBotClient.socketDisconnect()
-        }
-    }
-    public func socketConnect(isReconnect:Bool){
-        if(self.botClient != nil){
-            isShowWelcomeMsg = isReconnect
-            kaBotClient.tryConnect()
-        }
-    }
     public func minimizeChatBotWindow(){
         isAgentConnect = false
         removeNotificationCenter()
@@ -3542,5 +3280,486 @@ extension ChatMessagesViewController: UIGestureRecognizerDelegate{
         NotificationCenter.default.removeObserver(self, name: UIApplication.didBecomeActiveNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
+    }
+}
+//SDK V3
+extension ChatMessagesViewController{
+    func audioComposeBarTaskMenuButtonAction() {
+        self.bottomConstraint.constant = 0
+        self.taskMenuContainerHeightConstant.constant = 0
+        if (self.composeView.isFirstResponder) {
+            _ = self.composeView.resignFirstResponder()
+        }
+        leftMenuContainerView.isHidden = false
+        let zero = CGAffineTransform(translationX: 0.0, y: 0.0)
+        self.leftMenuContainerView.transform = zero
+        
+            leftMenuContainerView.semanticContentAttribute = .forceLeftToRight
+            leftMenuContainerSubView.semanticContentAttribute = .forceLeftToRight
+            let transition = CATransition()
+            transition.type = .push
+            transition.subtype = .fromLeft
+            self.leftMenuContainerView.layer.add(CATransition().segueFromLeft(), forKey: nil)
+            self.leftMenuView.leftMenuTableviewReload()
+            leftMenuTitleLbl.text = "Menu"
+    }
+    
+    func configureWelcomeScreenView() {
+        
+//        if let path = Bundle.main.path(forResource: "Branding", ofType: "json") {
+//            do {
+//                let data = try Data(contentsOf: URL(fileURLWithPath: path), options: .mappedIfSafe)
+//                let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
+//                if let jsonResult = jsonResult as? Dictionary<String, AnyObject> {
+//                    let brandingDic = try DictionaryDecoder().decode(BrandingModel.self, from: jsonResult as [String : Any])
+//                    brandingValues = brandingDic
+//                }
+//            } catch {
+//                // handle error
+//            }
+//        }
+        
+        if let genaralDic = brandingValues.general{
+            if let generalColors = genaralDic.generalColors, generalColors.useColorPaletteOnly == true{
+                 useColorPaletteOnly = true
+                 genaralPrimaryColor = generalColors.primaryColor ?? "#D38A17"
+                 genaralSecondaryColor = generalColors.secondaryColor ?? "#101828"
+                 genaralPrimary_textColor = generalColors.primary_text ?? "#C1EDB9"
+                 genaralSecondary_textColor = generalColors.secondary_text ?? "#000000"
+            }
+        }
+        
+        if let bodyDic = brandingValues.body{
+            brandingBodyDic = bodyDic
+            if let background = bodyDic.background{
+                if background.type == "image"{
+                    if let img = background.img, let url = URL(string: img){
+                        backgroungImageView.af.setImage(withURL: url, placeholderImage: UIImage(named: "", in: bundleImage, compatibleWith: nil))
+                    }
+                }else{
+                    if let color = bodyDic.background?.color{
+                        self.view.backgroundColor = UIColor.init(hexString: color)
+                    }
+                }
+            }
+            
+            if let userMessage = bodyDic.user_message{
+                if let bg_color =  userMessage.bg_color{
+                    themeColor  = UIColor.init(hexString: bg_color)
+                    if statusBarBackgroundColor != nil{
+                        statusBarView.backgroundColor = statusBarBackgroundColor
+                        statusBarView.isHidden = false
+                    }else{
+                        statusBarView.backgroundColor = UIColor.init(hexString: bg_color)
+                        statusBarView.isHidden = true
+                    }
+                    
+                    BubbleViewRightTint = UIColor.init(hexString: bg_color)
+                    btnBgActiveColor = bg_color
+                }
+                if let textColor = userMessage.color{
+                    BubbleViewUserChatTextColor  = UIColor.init(hexString: textColor)
+                    btnActiveTextColor = textColor
+                }
+            }
+            
+            if let botMessage = bodyDic.bot_message{
+                if let bg_color =  botMessage.bg_color{
+                    BubbleViewLeftTint = UIColor.init(hexString: bg_color)
+                }
+                if let textColor = botMessage.color{
+                    BubbleViewBotChatTextColor = UIColor.init(hexString: textColor)
+                }
+            }
+            
+            if  useColorPaletteOnly == true{
+                BubbleViewRightTint = UIColor.init(hexString:genaralPrimaryColor)
+                BubbleViewUserChatTextColor = UIColor.init(hexString:genaralSecondary_textColor)
+                BubbleViewLeftTint = UIColor.init(hexString:genaralSecondaryColor)
+                BubbleViewBotChatTextColor = UIColor.init(hexString:genaralPrimary_textColor)
+                
+                btnBgActiveColor = genaralPrimaryColor
+                btnActiveTextColor = genaralSecondary_textColor
+            }
+            
+        }
+        
+        
+        chatWelcomeScreenContainerView.isHidden = true
+        if isShowWelcomeMsg{
+            if let welcomeScreenDic = brandingValues.welcome_screen{
+                if let isShowWelcomeScreen = welcomeScreenDic.show, isShowWelcomeScreen == true{
+                    self.view.bringSubviewToFront(chatWelcomeScreenContainerView)
+                    chatWelcomeScreenContainerView.isHidden = false
+                    self.isShowWelcomeScreen = isShowWelcomeScreen
+                     
+                    self.welcomeScreenView = WelcomeScreenView()
+                    self.welcomeScreenView.viewDelegate = self
+                    self.welcomeScreenView.translatesAutoresizingMaskIntoConstraints = false
+                    self.welcomeScreenView.configure(with: welcomeScreenDic, generalDic: brandingValues.general)
+                    self.welcomeScreenView.backgroundColor = UIColor(hexString: "#F8FAFC")
+                    self.chatWelcomeScreenContainerView.addSubview(self.welcomeScreenView!)
+                    
+                    self.chatWelcomeScreenContainerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[welcomeScreenView]|", options:[], metrics:nil, views:["welcomeScreenView" : self.welcomeScreenView!]))
+                    self.chatWelcomeScreenContainerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[welcomeScreenView]|", options:[], metrics:nil, views:["welcomeScreenView" : self.welcomeScreenView!]))
+                }
+            }
+        }
+    
+        if let headerDic = brandingValues.header{
+            configureHeaderView(headerDic: headerDic)
+        }
+        headerView.bringSubviewToFront(linerProgressBar)
+    }
+    
+    func configureHeaderView(headerDic: HeaderModel){
+        self.headerDic = headerDic
+        var titleTxt = headerDic.title?.name
+        if titleTxt == ""{
+            titleTxt = SDKConfiguration.botConfig.chatBotName
+        }
+        let titleTxtColor = headerDic.title?.color
+        let titleFont = UIFont(name: "HelveticaNeue-Bold", size: 16.0)
+        let subTitleTxt = headerDic.sub_title?.name
+        let subTitleTxtColor = headerDic.sub_title?.color
+        let subTitleFont = UIFont(name: "HelveticaNeue", size: 14.0)
+        let deafaultColor = "#ffffff"
+        let bgColor = headerDic.bg_color
+        let size = headerDic.size
+        let showIcon  = headerDic.icon?.show ?? true
+        let iconUrl  = headerDic.icon?.icon_url
+        
+        var headerVHeight = 0.0
+        if size == "compact"{
+            headerVHeight = 70.0
+            self.headerViewHeightConstraint.constant = headerVHeight
+        }else if size == "regular"{
+            headerVHeight  = 112.0
+            self.headerViewHeightConstraint.constant = headerVHeight
+        }
+        else if size == "large"{
+            headerVHeight  = 170.0
+            self.headerViewHeightConstraint.constant = headerVHeight
+        }
+        
+        let chatVCHeaderView = ChatVCHeaderView()
+        chatVCHeaderView.translatesAutoresizingMaskIntoConstraints = false
+        chatVCHeaderView.configure(headerDic: self.headerDic,headerHeight: Float(headerVHeight))
+        headerView.addSubview(chatVCHeaderView)
+        if useColorPaletteOnly == true{
+            headerView.backgroundColor = UIColor.init(hexString: genaralSecondaryColor)
+        }
+        
+        chatVCHeaderView.chatHeaderVBackBtnAct = { [weak self] (text) in
+            self?.tapsOnBackBtnAct((Any).self)
+        }
+        chatVCHeaderView.chatHeaderVHelpBtnAct = { [weak self] (text) in
+            self?.tapsOnHelpBtnAct((Any).self)
+        }
+        chatVCHeaderView.chatHeaderVSupportBtnAct = { [weak self] (text) in
+            self?.tapsOnSupportBtnAct((Any).self)
+        }
+        chatVCHeaderView.chatHeaderVCloseBtnAct = { [weak self] (text) in
+            self?.tapsOnCloseBtnAct((Any).self)
+        }
+        self.headerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[chatVCHeaderView]|", options:[], metrics:nil, views:["chatVCHeaderView" : chatVCHeaderView]))
+        self.headerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[chatVCHeaderView]|", options:[], metrics:nil, views:["chatVCHeaderView" : chatVCHeaderView]))
+    }
+    
+    func welcomeScreenBtnsAction(text:String, payload:String){
+        chatWelcomeScreenContainerView.isHidden = true
+        self.sendTextMessage(text, options: ["body": payload])
+    }
+    func hidewelcomeScreenView(){
+        chatWelcomeScreenContainerView.isHidden = true
+    }
+    
+    @IBAction func tapsOnSupportBtnAct(_ sender: Any) {
+        if let liveAgent = headerDic.buttons?.live_agent{
+            if let actionType = liveAgent.action?.type, actionType == "postback"{
+                if let value = liveAgent.action?.value{
+                    optionsButtonTapNewAction(text: value, payload: value)
+                }
+            }else if let actionType = liveAgent.action?.type, actionType == "url"{
+                if let value = liveAgent.action?.value{
+                    linkButtonTapAction(urlString: value)
+                }
+            }
+            else if let actionType = liveAgent.action?.type, actionType == "postback|url"{
+                if let value = liveAgent.action?.value{
+                    optionsButtonTapNewAction(text: value, payload: value)
+                }
+            }
+        }
+        
+    }
+    @IBAction func tapsOnHelpBtnAct(_ sender: Any) {
+        if let help = headerDic.buttons?.help{
+            if let actionType = help.action?.type, actionType == "postback"{
+                if let value = help.action?.value{
+                    optionsButtonTapNewAction(text: value, payload: value)
+                }
+            }else if let actionType = help.action?.type, actionType == "url"{
+                if let value = help.action?.value{
+                    linkButtonTapAction(urlString: value)
+                }
+            }else if let actionType = help.action?.type, actionType == "postback|url"{
+                if let value = help.action?.value{
+                    linkButtonTapAction(urlString: value)
+                }
+            }
+        }
+        
+    }
+    @IBAction func tapsOnCloseBtnAct(_ sender: Any) {
+        //botClosed()
+        //isShowWelcomeMsg = true
+        //showCloseOrMinimiseAlert()
+        self.showCloseOrMinimizePopup()
+        self.dismissKeyboardManually()
+    }
+    
+    // MARK: - Close or Minimize Popup
+    func setupCloseOrMinimizePopup() {
+        closeOrMinimizePopupContainerView.isHidden = true
+        closeOrMinimizePopupContainerView.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        
+        let dismissTap = UITapGestureRecognizer(target: self, action: #selector(dismissCloseOrMinimizePopup))
+        closeOrMinimizePopupContainerView.addGestureRecognizer(dismissTap)
+        
+        let cardView = UIView()
+        cardView.backgroundColor = .white
+        cardView.layer.cornerRadius = 14
+        cardView.layer.shadowColor = UIColor.black.cgColor
+        cardView.layer.shadowOpacity = 0.15
+        cardView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        cardView.layer.shadowRadius = 8
+        cardView.translatesAutoresizingMaskIntoConstraints = false
+        closeOrMinimizePopupContainerView.addSubview(cardView)
+        closeOrMinimizePopupCardView = cardView
+        
+        NSLayoutConstraint.activate([
+            cardView.centerXAnchor.constraint(equalTo: closeOrMinimizePopupContainerView.centerXAnchor),
+            cardView.centerYAnchor.constraint(equalTo: closeOrMinimizePopupContainerView.centerYAnchor),
+            cardView.leadingAnchor.constraint(greaterThanOrEqualTo: closeOrMinimizePopupContainerView.leadingAnchor, constant: 32),
+            cardView.trailingAnchor.constraint(lessThanOrEqualTo: closeOrMinimizePopupContainerView.trailingAnchor, constant: -32),
+            cardView.widthAnchor.constraint(lessThanOrEqualToConstant: 320)
+        ])
+        
+        let messageLabel = UILabel()
+        messageLabel.text = closeOrMinimizeMsg
+        messageLabel.font = UIFont.systemFont(ofSize: 15, weight: .regular)
+        messageLabel.textColor = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1.0)
+        messageLabel.numberOfLines = 0
+        messageLabel.translatesAutoresizingMaskIntoConstraints = false
+        cardView.addSubview(messageLabel)
+        
+        let separator = UIView()
+        separator.backgroundColor = UIColor(red: 0.88, green: 0.88, blue: 0.88, alpha: 1.0)
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        cardView.addSubview(separator)
+        
+        let buttonContainer = UIView()
+        buttonContainer.translatesAutoresizingMaskIntoConstraints = false
+        cardView.addSubview(buttonContainer)
+        
+        let cancelButton = UIButton(type: .system)
+        cancelButton.setTitle(cancelBtnTitle, for: .normal)
+        cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        cancelButton.setTitleColor(.lightRoyalBlue, for: .normal)
+        cancelButton.addTarget(self, action: #selector(dismissCloseOrMinimizePopup), for: .touchUpInside)
+        cancelButton.translatesAutoresizingMaskIntoConstraints = false
+        buttonContainer.addSubview(cancelButton)
+        
+        let vertSep1 = UIView()
+        vertSep1.backgroundColor = UIColor(red: 0.88, green: 0.88, blue: 0.88, alpha: 1.0)
+        vertSep1.translatesAutoresizingMaskIntoConstraints = false
+        buttonContainer.addSubview(vertSep1)
+        
+        let closeButton = UIButton(type: .system)
+        closeButton.setTitle(closeBtnTitle, for: .normal)
+        closeButton.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        closeButton.setTitleColor(.lightRoyalBlue, for: .normal)
+        closeButton.addTarget(self, action: #selector(closePopupAction), for: .touchUpInside)
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        buttonContainer.addSubview(closeButton)
+        
+        let vertSep2 = UIView()
+        vertSep2.backgroundColor = UIColor(red: 0.88, green: 0.88, blue: 0.88, alpha: 1.0)
+        vertSep2.translatesAutoresizingMaskIntoConstraints = false
+        buttonContainer.addSubview(vertSep2)
+        
+        let minimizeButton = UIButton(type: .system)
+        minimizeButton.setTitle(minimizeBtnTitle, for: .normal)
+        minimizeButton.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        minimizeButton.setTitleColor(.lightRoyalBlue, for: .normal)
+        minimizeButton.addTarget(self, action: #selector(minimizePopupAction), for: .touchUpInside)
+        minimizeButton.translatesAutoresizingMaskIntoConstraints = false
+        buttonContainer.addSubview(minimizeButton)
+        
+        NSLayoutConstraint.activate([
+            messageLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 20),
+            messageLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 20),
+            messageLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -20),
+            
+            separator.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 16),
+            separator.leadingAnchor.constraint(equalTo: cardView.leadingAnchor),
+            separator.trailingAnchor.constraint(equalTo: cardView.trailingAnchor),
+            separator.heightAnchor.constraint(equalToConstant: 0.5),
+            
+            buttonContainer.topAnchor.constraint(equalTo: separator.bottomAnchor),
+            buttonContainer.leadingAnchor.constraint(equalTo: cardView.leadingAnchor),
+            buttonContainer.trailingAnchor.constraint(equalTo: cardView.trailingAnchor),
+            buttonContainer.bottomAnchor.constraint(equalTo: cardView.bottomAnchor),
+            buttonContainer.heightAnchor.constraint(equalToConstant: 48),
+            
+            cancelButton.topAnchor.constraint(equalTo: buttonContainer.topAnchor),
+            cancelButton.bottomAnchor.constraint(equalTo: buttonContainer.bottomAnchor),
+            cancelButton.leadingAnchor.constraint(equalTo: buttonContainer.leadingAnchor),
+            
+            vertSep1.topAnchor.constraint(equalTo: buttonContainer.topAnchor, constant: 8),
+            vertSep1.bottomAnchor.constraint(equalTo: buttonContainer.bottomAnchor, constant: -8),
+            vertSep1.leadingAnchor.constraint(equalTo: cancelButton.trailingAnchor),
+            vertSep1.widthAnchor.constraint(equalToConstant: 0.5),
+            
+            closeButton.topAnchor.constraint(equalTo: buttonContainer.topAnchor),
+            closeButton.bottomAnchor.constraint(equalTo: buttonContainer.bottomAnchor),
+            closeButton.leadingAnchor.constraint(equalTo: vertSep1.trailingAnchor),
+            closeButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor),
+            
+            vertSep2.topAnchor.constraint(equalTo: buttonContainer.topAnchor, constant: 8),
+            vertSep2.bottomAnchor.constraint(equalTo: buttonContainer.bottomAnchor, constant: -8),
+            vertSep2.leadingAnchor.constraint(equalTo: closeButton.trailingAnchor),
+            vertSep2.widthAnchor.constraint(equalToConstant: 0.5),
+            
+            minimizeButton.topAnchor.constraint(equalTo: buttonContainer.topAnchor),
+            minimizeButton.bottomAnchor.constraint(equalTo: buttonContainer.bottomAnchor),
+            minimizeButton.leadingAnchor.constraint(equalTo: vertSep2.trailingAnchor),
+            minimizeButton.trailingAnchor.constraint(equalTo: buttonContainer.trailingAnchor),
+            minimizeButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor)
+        ])
+    }
+    
+    func showCloseOrMinimizePopup() {
+        closeOrMinimizePopupContainerView.isHidden = false
+        closeOrMinimizePopupContainerView.alpha = 0
+        closeOrMinimizePopupCardView?.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
+        self.view.bringSubviewToFront(closeOrMinimizePopupContainerView)
+        UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseOut) {
+            self.closeOrMinimizePopupContainerView.alpha = 1
+            self.closeOrMinimizePopupCardView?.transform = .identity
+        }
+    }
+    
+    @objc func dismissCloseOrMinimizePopup() {
+        UIView.animate(withDuration: 0.15, delay: 0, options: .curveEaseIn, animations: {
+            self.closeOrMinimizePopupContainerView.alpha = 0
+            self.closeOrMinimizePopupCardView?.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }) { _ in
+            self.closeOrMinimizePopupContainerView.isHidden = true
+            self.closeOrMinimizePopupCardView?.transform = .identity
+        }
+    }
+    
+    @objc func closePopupAction() {
+        dismissCloseOrMinimizePopup()
+        self.unsubscribeNotifications()
+        isShowWelcomeMsg = true
+        let dic = ["event_code": "BotClosed", "event_message": "Bot closed by the user"]
+        if self.closeAndMinimizeEvent != nil{
+            self.closeAndMinimizeEvent(dic)
+        }
+        if isAgentConnect{
+            self.botClient.sendEventToAgentChat(eventName: close_AgentChat_EventName,messageId: "")
+            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { (_) in
+                isAgentConnect = false
+                self.botClosed()
+            }
+        }else{
+            self.botClient.sendEventToAgentChat(eventName: close_Button_EventName,messageId: "")
+            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { (_) in
+                isAgentConnect = false
+                self.botClosed()
+            }
+        }
+    }
+    
+    @objc func minimizePopupAction() {
+        dismissCloseOrMinimizePopup()
+        isAgentConnect = false
+        let dic = ["event_code": "BotMinimized", "event_message": "Bot Minimized by the user"]
+        if self.closeAndMinimizeEvent != nil{
+            self.closeAndMinimizeEvent(dic)
+        }
+        self.botClient.sendEventToAgentChat(eventName: minimize_Button_EventName,messageId: "")
+        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { (_) in
+            self.botClosed()
+        }
+    }
+}
+
+extension ChatMessagesViewController: inComingCallDelegate{
+    func configureIncomingCallView(){
+        self.incomingCallContainerView.isHidden = true
+        self.inComingCallView = InComingCallView()
+        self.inComingCallView.viewDelegate = self
+        self.inComingCallView.translatesAutoresizingMaskIntoConstraints = false
+        self.incomingCallContainerView.addSubview(self.inComingCallView)
+        self.view.bringSubviewToFront(incomingCallContainerView)
+        self.incomingCallContainerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[inComingCallView]-10-|", options:[], metrics:nil, views:["inComingCallView" : self.inComingCallView!]))
+        let inComingCallViewHeight = 120.0
+        let screenTopConstraint = UIScreen.main.bounds.height/2 - inComingCallViewHeight
+        self.incomingCallContainerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-\(screenTopConstraint)-[inComingCallView]|", options:[], metrics:nil, views:["inComingCallView" : self.inComingCallView!]))
+    }
+    
+    func acceptCallIncomingCall() {
+        guard let window = UIApplication.shared.keyWindow else {
+            return
+        }
+        incomingCallContainerView.isHidden = true
+        if let domain = callFromAgentData?["domain"] as? String{
+            let dynamicRemotePort = 5080
+            guard let sipUser = callFromAgentData?["sipUser"] as? String else {
+               return
+            }
+            guard let videoCall = callFromAgentData?["videoCall"] as? Bool else{
+                return
+            }
+            #if SWIFT_PACKAGE
+            //agentConnect.showAgentWindow(window:window, domain: domain, dynamicRemoteHost: domain, port: dynamicRemotePort, sipUser: sipUser, isVideoCall: videoCall)
+            #endif
+           
+        }
+        
+    }
+    
+    func rejectIncomingCall() {
+        incomingCallContainerView.isHidden = true
+        var typeDic = callFromAgentData
+        typeDic?["type"] = "call_agent_webrtc_rejected"
+        self.botClient.sendMessage("", options: ["body": typeDic ?? [:]])
+    }
+    
+    @objc func callFromAgent(notification:Notification){
+        view.endEditing(true) //KeyBoard Hide
+        
+        let dataString: String = notification.object as! String
+        if let agentCallData = Utilities.jsonObjectFromString(jsonString: dataString){
+            callFromAgentData = agentCallData as? [String : Any]
+        }
+        incomingCallContainerView.isHidden = false
+        var imageStr = ""
+        var nameStr = ""
+        var isVideoCall = false
+        if let imgStr = callFromAgentData?["profileIcon"] as? String{
+            imageStr = imgStr
+        }
+        if let firstName = callFromAgentData?["firstName"] as? String{
+            nameStr = firstName
+        }
+        if let videoCall = callFromAgentData?["videoCall"] as? Bool{
+            isVideoCall = videoCall
+        }
+        self.inComingCallView.configure(imageUrlStr: imageStr, nameStr: nameStr, isVideoCall: isVideoCall)
     }
 }

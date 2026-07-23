@@ -9,7 +9,6 @@
 import UIKit
 import UIKit
 import Foundation
-import korebotplugin
 
 public class KREDriveListViewController: UIViewController {
     let bundle = Bundle.sdkModule

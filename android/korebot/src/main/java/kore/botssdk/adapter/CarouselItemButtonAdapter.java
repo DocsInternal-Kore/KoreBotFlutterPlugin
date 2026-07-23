@@ -1,8 +1,13 @@
 package kore.botssdk.adapter;
 
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static android.content.Context.MODE_PRIVATE;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_BG_COLOR;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_TEXT_COLOR;
+import static kore.botssdk.models.BotResponse.THEME_NAME;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
@@ -29,9 +34,11 @@ public class CarouselItemButtonAdapter extends RecyclerView.Adapter<CarouselItem
     private ComposeFooterInterface composeFooterInterface;
     private InvokeGenericWebViewInterface invokeGenericWebViewInterface;
     private final LayoutInflater layoutInflater;
+    private final SharedPreferences prefs;
 
     public CarouselItemButtonAdapter(Context context) {
         layoutInflater = LayoutInflater.from(context);
+        prefs = context.getSharedPreferences(THEME_NAME, MODE_PRIVATE);
     }
 
     @NonNull
@@ -47,9 +54,9 @@ public class CarouselItemButtonAdapter extends RecyclerView.Adapter<CarouselItem
         KaFontUtils.applyCustomFont(holder.button.getContext(), holder.itemView);
 
         GradientDrawable gradientDrawable = (GradientDrawable)holder.button.getBackground().mutate();
-        gradientDrawable.setColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-        gradientDrawable.setStroke((int) (1 * dp1), Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-        holder.button.setTextColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyTextColor));
+        gradientDrawable.setColor(Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
+        gradientDrawable.setStroke((int) (1 * dp1), Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
+        holder.button.setTextColor(Color.parseColor(prefs.getString(BUBBLE_RIGHT_TEXT_COLOR, "#ffffff")));
 
         holder.button.setText(carouselButtonModel.getTitle());
         holder.button.setOnClickListener(view -> {

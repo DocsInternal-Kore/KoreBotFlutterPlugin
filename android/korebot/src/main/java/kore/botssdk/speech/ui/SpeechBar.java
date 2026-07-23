@@ -6,7 +6,7 @@ public class SpeechBar {
 
     private int x;
     private int y;
-    private final int radius;
+    private int radius;
     private int height;
 
     private final int maxHeight;

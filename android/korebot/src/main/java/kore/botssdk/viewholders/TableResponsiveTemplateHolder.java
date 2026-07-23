@@ -1,6 +1,6 @@
 package kore.botssdk.viewholders;
 
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -56,6 +56,7 @@ public class TableResponsiveTemplateHolder extends BaseViewHolder {
         setResponseText(itemView.findViewById(R.id.layoutBubble), payloadInner.getText(), baseBotMessage.getTimeStamp());
         List<BotTableDataModel> rows = payloadInner.getTable_elements_data();
         List<List<String>> columns = payloadInner.getColumns();
+//        tvShowMore.setTextColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
         rvTableView.setBackgroundColor(Color.parseColor(SDKConfiguration.BubbleColors.leftBubbleSelected));
         setRoundedCorner(rvTableView, 4 * dp1);
 
@@ -86,7 +87,7 @@ public class TableResponsiveTemplateHolder extends BaseViewHolder {
         GradientDrawable gradientDDrawable = (GradientDrawable) rlRootView.getBackground().mutate();
         gradientDDrawable.setStroke((int) (1 * dp1), Color.parseColor(SDKConfiguration.BubbleColors.leftBubbleSelected));
 
-        rvTableView.setAdapter(new TableRowAdapter(context, rowValues, cols));
+        rvTableView.setAdapter(new TableRowAdapter(context, rowValues, cols, isLastItem()));
         rvTableViewHeader.setLayoutManager(new GridLayoutManager(context, cols.size()));
         rvTableViewHeader.setAdapter(new TableHeaderAdapter(context, cols, isLastItem()));
         dialog.show();

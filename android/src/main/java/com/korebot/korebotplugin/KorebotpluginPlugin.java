@@ -15,19 +15,12 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import kore.botssdk.activity.NewBotChatActivity;
-import kore.botssdk.models.JWTTokenResponse;
-import kore.botssdk.net.BotJWTRestBuilder;
+import kore.botssdk.activity.BotChatActivity;
 import kore.botssdk.net.RestResponse;
 import kore.botssdk.net.SDKConfig;
 import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.utils.BundleUtils;
-import kore.botssdk.utils.LogUtils;
-import kore.botssdk.utils.SharedPreferenceUtils;
 import kore.botssdk.utils.StringUtils;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 /**
  * KorebotpluginPlugin
@@ -54,7 +47,7 @@ public class KorebotpluginPlugin implements FlutterPlugin, MethodCallHandler {
             case "getChatWindow":
                 configureSdk(call);
 
-                Intent intent = new Intent(context, NewBotChatActivity.class);
+                Intent intent = new Intent(context, BotChatActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 Bundle bundle = new Bundle();
                 bundle.putBoolean(BundleUtils.SHOW_PROFILE_PIC, false);
@@ -68,9 +61,6 @@ public class KorebotpluginPlugin implements FlutterPlugin, MethodCallHandler {
                 break;
             case "initialize":
                 configureSdk(call);
-
-                //For jwtToken
-                makeStsJwtCallWithConfig();
                 result.success("OK");
                 break;
             case "getSearchResults":
@@ -99,23 +89,15 @@ public class KorebotpluginPlugin implements FlutterPlugin, MethodCallHandler {
 
     private void applyOptionalSdkConfig(@NonNull MethodCall call) {
         SDKConfiguration.OverrideKoreConfig.history_initial_call = boolArg(call, "callHistory", false);
-        SDKConfiguration.OverrideKoreConfig.showHamburgerMenu = boolArg(call, "showHamburgerMenu", false);
         SDKConfiguration.OverrideKoreConfig.showTextToSpeech = boolArg(call, "showTextToSpeech", false);
         SDKConfig.setIsShowIcon(boolArg(call, "showIcon", true));
 
         applyBoolean(call, "isWebHook", SDKConfig::isWebHook);
         applyBoolean(call, "is_webhook", SDKConfig::isWebHook);
-        applyString(call, "deviceId", SDKConfig::setDeviceId);
-        applyString(call, "notificationDeviceId", SDKConfig::setDeviceId);
-        applyBoolean(call, "showHeader", SDKConfig::setIsShowHeader);
-        applyBoolean(call, "showHeaderMinimize", SDKConfig::showHeaderMinimize);
         applyBoolean(call, "showActionBar", SDKConfig::setIsShowActionBar);
         applyBoolean(call, "showIconTop", SDKConfig::setIsShowIconTop);
         applyBoolean(call, "timeStampsRequired", SDKConfig::setIsTimeStampsRequired);
         applyBoolean(call, "updateStatusBarColor", SDKConfig::setIsUpdateStatusBarColor);
-        applyString(call, "bubbleDateFormat", SDKConfig::setBubbleDateFormat);
-        String preferredLanguage = firstStringArg(call, "preferredLanguage", "preferred_language");
-        SDKConfig.setPreferredLanguage(preferredLanguage == null ? "en" : preferredLanguage);
 
         HashMap<String, Object> queryParams = mapArg(call, "queryParams") ;
         if (queryParams != null) SDKConfig.setQueryParams(queryParams);
@@ -142,17 +124,11 @@ public class KorebotpluginPlugin implements FlutterPlugin, MethodCallHandler {
         applyBoolean(call, "showAttachment", value -> SDKConfiguration.OverrideKoreConfig.showAttachment = value);
         applyBoolean(call, "showASRMicroPhone", value -> SDKConfiguration.OverrideKoreConfig.showASRMicroPhone = value);
         applyBoolean(call, "showMicrophone", value -> SDKConfiguration.OverrideKoreConfig.showASRMicroPhone = value);
-        applyBoolean(call, "disableActionBar", value -> SDKConfiguration.OverrideKoreConfig.disable_action_bar = value);
         applyBoolean(call, "disableAlertOnMaxReconnection", value -> SDKConfiguration.OverrideKoreConfig.disable_alert_on_max_reconnection = value);
         applyBoolean(call, "updateCustomDataToUserMessage", value -> SDKConfiguration.OverrideKoreConfig.update_custom_data_to_user_message = value);
         applyBoolean(call, "showLocalNotification", value -> SDKConfiguration.OverrideKoreConfig.showLocalNotification = value);
-        applyBoolean(call, "reconnectionBySDK", value -> SDKConfiguration.OverrideKoreConfig.reconnectionBySDK = value);
-        applyBoolean(call, "sendAllDeepLink", value -> SDKConfiguration.OverrideKoreConfig.sendAllDeepLink = value);
-        applyBoolean(call, "defaultNotifications", value -> SDKConfiguration.OverrideKoreConfig.default_notifications = value);
 
         applyString(call, "botIconUrl", SDKConfiguration.BubbleColors::setIcon_url);
-        applyString(call, "agentIconUrl", value -> SDKConfig.setAgentAvatar(null, value));
-        applyString(call, "footerHintText", value -> SDKConfiguration.BubbleColors.footer_hint_text = value);
     }
 
     private interface BooleanSetter {
@@ -205,29 +181,6 @@ public class KorebotpluginPlugin implements FlutterPlugin, MethodCallHandler {
         return value instanceof Map ? new HashMap<>((Map<String, Object>) value) : null;
     }
 
-    private void makeStsJwtCallWithConfig() {
-        retrofit2.Call<JWTTokenResponse> getBankingConfigService = BotJWTRestBuilder.getBotJWTRestAPI()
-                .getJWTToken(SDKConfiguration.JWTServer.getJwtServerUrl(), getRequestObject());
-        getBankingConfigService.enqueue(new Callback<JWTTokenResponse>() {
-            @Override
-            public void onResponse(@NonNull retrofit2.Call<JWTTokenResponse> call, @NonNull Response<JWTTokenResponse> response) {
-
-                if (response.isSuccessful()) {
-                    JWTTokenResponse jwtTokenResponse = response.body();
-                    if (jwtTokenResponse != null) {
-                        String jwt = jwtTokenResponse.getJwt();
-                        SharedPreferenceUtils.getInstance(context).putKeyValue("JwtToken", jwt);
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<JWTTokenResponse> call, @NonNull Throwable t) {
-                LogUtils.d("token refresh", t.getMessage());
-            }
-        });
-    }
-
     private void getSearchResults(String searchQuery) {
         channel.invokeMethod("Callbacks", "Search query callbacks are not available in the latest native Android SDK.");
     }
@@ -237,14 +190,4 @@ public class KorebotpluginPlugin implements FlutterPlugin, MethodCallHandler {
         channel.setMethodCallHandler(null);
     }
 
-    private HashMap<String, Object> getRequestObject() {
-        HashMap<String, Object> hsh = new HashMap<>();
-        hsh.put("clientId", SDKConfiguration.Client.client_id);
-        hsh.put("clientSecret", SDKConfiguration.Client.client_secret);
-        hsh.put("identity", SDKConfiguration.Client.identity);
-        hsh.put("aud", "https://idproxy.kore.com/authorize");
-        hsh.put("isAnonymous", false);
-
-        return hsh;
-    }
 }

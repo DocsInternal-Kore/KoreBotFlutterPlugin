@@ -1,7 +1,8 @@
 package kore.botssdk.viewholders;
 
 import static org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4;
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -21,11 +22,8 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.Objects;
-
 import kore.botssdk.R;
 import kore.botssdk.adapter.ButtonLinkTemplateAdapter;
-import kore.botssdk.itemdecoration.VerticalSpaceItemDecoration;
 import kore.botssdk.models.BaseBotMessage;
 import kore.botssdk.models.BotResponse;
 import kore.botssdk.models.PayloadInner;
@@ -38,7 +36,6 @@ public class ButtonLinkTemplateHolder extends BaseViewHolder {
     private final RecyclerView recyclerView;
     private final TextView tvButtonLinkTitle;
     private final Context context;
-    private final LinearLayout llButtonLinkRoot;
 
     public static ButtonLinkTemplateHolder getInstance(ViewGroup parent) {
         return new ButtonLinkTemplateHolder(createView(R.layout.template_button_link, parent));
@@ -50,7 +47,7 @@ public class ButtonLinkTemplateHolder extends BaseViewHolder {
         recyclerView = itemView.findViewById(R.id.botCustomButtonList);
         recyclerView.setLayoutManager(new LinearLayoutManager(itemView.getContext()));
         tvButtonLinkTitle = itemView.findViewById(R.id.tvButtonLinkTitle);
-        llButtonLinkRoot = itemView.findViewById(R.id.llButtonLinkRoot);
+        LinearLayout llButtonLinkRoot = itemView.findViewById(R.id.llButtonLinkRoot);
 
         SharedPreferences sharedPreferences = context.getSharedPreferences(BotResponse.THEME_NAME, Context.MODE_PRIVATE);
         String leftBgColor = sharedPreferences.getString(BotResponse.BUBBLE_LEFT_BG_COLOR, "#FFFFFF");
@@ -70,17 +67,17 @@ public class ButtonLinkTemplateHolder extends BaseViewHolder {
             tvButtonLinkTitle.setTextColor(Color.parseColor(titleColor));
         }
 
-            DividerItemDecoration divider = new DividerItemDecoration(
+        DividerItemDecoration divider = new DividerItemDecoration(
                 recyclerView.getContext(),
                 DividerItemDecoration.VERTICAL
         );
 
-        if(dividerDrawable != null) {
+        if (dividerDrawable != null) {
             dividerDrawable.setColor(Color.parseColor(dividerColor));
             divider.setDrawable(dividerDrawable);
         }
 
-        if(listDrawable != null) {
+        if (listDrawable != null) {
             listDrawable.setColor(Color.parseColor(listBgColor));
             llButtonLinkRoot.setBackground(listDrawable);
         }

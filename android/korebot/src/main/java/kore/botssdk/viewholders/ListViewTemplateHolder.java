@@ -1,9 +1,13 @@
 package kore.botssdk.viewholders;
 
+import static android.content.Context.MODE_PRIVATE;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
+import static kore.botssdk.models.BotResponsePayLoadText.THEME_NAME;
+
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.text.Html;
 import android.view.View;
@@ -27,11 +31,14 @@ import kore.botssdk.models.BaseBotMessage;
 import kore.botssdk.models.BotButtonModel;
 import kore.botssdk.models.BotListModel;
 import kore.botssdk.models.BotListViewMoreDataModel;
+import kore.botssdk.models.BotResponse;
 import kore.botssdk.models.PayloadInner;
 import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.utils.LogUtils;
+import kore.botssdk.utils.SharedPreferenceUtils;
 
 public class ListViewTemplateHolder extends BaseViewHolder {
+    private SharedPreferences prefs;
     public static ListViewTemplateHolder getInstance(ViewGroup parent) {
         return new ListViewTemplateHolder(createView(R.layout.template_list_view, parent));
     }
@@ -40,6 +47,7 @@ public class ListViewTemplateHolder extends BaseViewHolder {
         super(itemView, itemView.getContext());
         LinearLayoutCompat layoutBubble = itemView.findViewById(R.id.layoutBubble);
         initBubbleText(layoutBubble, false);
+        prefs = itemView.getContext().getSharedPreferences(THEME_NAME, MODE_PRIVATE);
     }
 
     @Override
@@ -71,12 +79,13 @@ public class ListViewTemplateHolder extends BaseViewHolder {
             if (isLastItem()) botListTemplateAdapter.setComposeFooterInterface(composeFooterInterface);
             botListTemplateAdapter.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
             if (botButtonModelArrayList != null && !botButtonModelArrayList.isEmpty()) {
-                botCustomListViewButton.setTextColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
+                botCustomListViewButton.setTextColor(Color.parseColor(prefs.getString(BotResponse.BUBBLE_RIGHT_BG_COLOR, "#ffffff")));
                 botCustomListViewButton.setText(Html.fromHtml("<u>" + botButtonModelArrayList.get(0).getTitle() + "</u>"));
                 botCustomListViewButton.setOnClickListener(v -> {
                     ListActionSheetFragment bottomSheetDialog = new ListActionSheetFragment();
+                    bottomSheetDialog.setIsFromFullView(false);
+                    bottomSheetDialog.setSkillName("skillName", "trigger");
                     bottomSheetDialog.setData(payloadInner.getHeading() != null ? payloadInner.getHeading() : payloadInner.getText(), botListViewMoreDataModel);
-                    bottomSheetDialog.setLanguage(payloadInner.getLang());
                     bottomSheetDialog.setHeaderVisible(true);
                     if (isLastItem()) bottomSheetDialog.setComposeFooterInterface(composeFooterInterface);
                     bottomSheetDialog.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
@@ -92,8 +101,9 @@ public class ListViewTemplateHolder extends BaseViewHolder {
 
                 botCustomListViewButton.setOnClickListener(v -> {
                     ListMoreActionSheetFragment bottomSheetDialog = new ListMoreActionSheetFragment();
+                    bottomSheetDialog.setisFromFullView(false);
+                    bottomSheetDialog.setSkillName("skillName", "trigger");
                     bottomSheetDialog.setData(payloadInner.getText(), listElements);
-                    bottomSheetDialog.setLanguage(payloadInner.getLang());
                     if (isLastItem()) bottomSheetDialog.setComposeFooterInterface(composeFooterInterface);
                     bottomSheetDialog.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
                     bottomSheetDialog.show(((FragmentActivity) context).getSupportFragmentManager(), "add_tags");

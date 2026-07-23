@@ -28,7 +28,6 @@ import kore.botssdk.application.AppControl;
 import kore.botssdk.listener.ComposeFooterInterface;
 import kore.botssdk.listener.InvokeGenericWebViewInterface;
 import kore.botssdk.models.BaseBotMessage;
-import kore.botssdk.net.SDKConfiguration;
 
 public class TemplateBottomSheetFragment extends BottomSheetDialogFragment {
     private BottomSheetDialog bottomSheetDialog;
@@ -37,9 +36,6 @@ public class TemplateBottomSheetFragment extends BottomSheetDialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.template_bottom_sheet, container, false);
-        view.setLayoutDirection(SDKConfiguration.Server.isRtl()
-                ? View.LAYOUT_DIRECTION_RTL
-                : View.LAYOUT_DIRECTION_LTR);
         LinearLayout llCloseBottomSheet = view.findViewById(R.id.llCloseBottomSheet);
         RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));

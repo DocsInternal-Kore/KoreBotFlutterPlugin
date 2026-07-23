@@ -48,7 +48,7 @@ public class ListWidgetButtonAdapter extends RecyclerView.Adapter<ListWidgetButt
     int displayLimit = -1;
     private boolean isEnabled = true;
     private int type;
-    private final boolean isMenus;
+    private boolean isMenus = false;
 
     public ListWidgetButtonAdapter(Context context, ArrayList<Widget.Button> buttons, boolean isMenus) {
         this.buttons = buttons;

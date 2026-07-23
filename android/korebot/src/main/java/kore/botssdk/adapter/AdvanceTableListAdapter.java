@@ -31,41 +31,34 @@ import kore.botssdk.utils.StringUtils;
 public class AdvanceTableListAdapter extends RecyclerView.Adapter<AdvanceTableListAdapter.ButtonViewHolder> {
     private final LayoutInflater inflater;
     private final ArrayList<AdvanceListTableModel.AdvanceTableRowDataModel> buttons;
-    private final Context context;
 
     public AdvanceTableListAdapter(@NonNull Context context, @NonNull ArrayList<AdvanceListTableModel.AdvanceTableRowDataModel> buttons) {
         this.buttons = buttons;
         this.inflater = LayoutInflater.from(context);
-        this.context = context;
     }
 
     @NonNull
     @Override
-    public AdvanceTableListAdapter.ButtonViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+    public ButtonViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         return new ButtonViewHolder(inflater.inflate(R.layout.advance_table_list_cell, viewGroup, false));
     }
 
     @Override
-    public void onBindViewHolder(@NonNull AdvanceTableListAdapter.ButtonViewHolder holder, int i) {
+    public void onBindViewHolder(@NonNull ButtonViewHolder holder, int i) {
 
         AdvanceListTableModel.AdvanceTableRowDataModel btn = buttons.get(i);
         holder.botListItemTitle.setText(btn.getTitle());
 
-        if (!StringUtils.isNullOrEmpty(btn.getIcon()))
-        {
+        if (!StringUtils.isNullOrEmpty(btn.getIcon())) {
             holder.botListItemImage.setVisibility(View.VISIBLE);
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(100, 100);
             layoutParams.setMargins(0, 0, 10, 0);
 
-            if(!StringUtils.isNullOrEmpty(btn.getIconSize()))
-            {
-                if(btn.getIconSize().equalsIgnoreCase("large"))
-                {
+            if (!StringUtils.isNullOrEmpty(btn.getIconSize())) {
+                if (btn.getIconSize().equalsIgnoreCase("large")) {
                     layoutParams.height = 180;
                     layoutParams.width = 180;
-                }
-                else if(btn.getIconSize().equalsIgnoreCase("small"))
-                {
+                } else if (btn.getIconSize().equalsIgnoreCase("small")) {
                     layoutParams.height = 60;
                     layoutParams.width = 60;
                 }
@@ -81,7 +74,7 @@ public class AdvanceTableListAdapter extends RecyclerView.Adapter<AdvanceTableLi
                     Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                     holder.botListItemImage.setImageBitmap(decodedByte);
                 } else {
-                    Glide.with(context)
+                    Glide.with(holder.botListItemImage)
                             .load(btn.getIcon())
                             .transform(
                                     new MultiTransformation<>(
@@ -106,6 +99,12 @@ public class AdvanceTableListAdapter extends RecyclerView.Adapter<AdvanceTableLi
     @Override
     public int getItemCount() {
         return buttons != null ? buttons.size() : 0;
+    }
+
+    boolean isFullView;
+
+    public void setIsFromFullView(boolean isFullView) {
+        this.isFullView = isFullView;
     }
 
     public static class ButtonViewHolder extends RecyclerView.ViewHolder {

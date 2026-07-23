@@ -18,8 +18,8 @@
             android:id="@+id/tvViewGroup1"
             android:layout_marginTop="@dimen/dimen_7dp"
             android:layout_marginBottom="@dimen/dimen_7dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
             android:textColor="@color/black" />
 
         <ImageView
@@ -27,17 +27,17 @@
             android:layout_width="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginStart="@dimen/dimen_10dp"
+            android:contentDescription="@string/app_name"
             android:visibility="gone"
             android:layout_height="wrap_content"
-            android:background="@mipmap/ic_arrow_table_resp_right"
-            android:importantForAccessibility="no" />
+            android:background="@mipmap/ic_arrow_table_resp_right"/>
 
     </LinearLayout>
 
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="@dimen/divider_height"
-        android:background="@color/colorSelected"
-        android:importantForAccessibility="no" />
+        android:contentDescription="@string/app_name"
+        android:background="@color/colorSelected"/>
 
 </LinearLayout>

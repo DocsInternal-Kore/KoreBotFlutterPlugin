@@ -22,12 +22,17 @@ import kore.botssdk.listener.InvokeGenericWebViewInterface;
 import kore.botssdk.listener.VerticalListViewActionHelper;
 
 public class WidgetActionSheetFragment extends BottomSheetDialogFragment {
-
+    private View view;
     private boolean isFromFullView;
+    private RecyclerView recycler_actions;
     private Object model;
     private VerticalListViewActionHelper verticalListViewActionHelper;
     private boolean isFromListMenu = false;
     private InvokeGenericWebViewInterface invokeGenericWebViewInterface;
+
+    public String getSkillName() {
+        return skillName;
+    }
 
     public void setSkillName(String skillName, String trigger) {
         this.skillName = skillName;
@@ -38,15 +43,11 @@ public class WidgetActionSheetFragment extends BottomSheetDialogFragment {
     private String trigger;
 
     @Override
-    public View onCreateView(LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-
-        View view = inflater.inflate(R.layout.widget_actions_sheet, container,
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        view = inflater.inflate(R.layout.widget_actions_sheet, container,
                 false);
-        RecyclerView recycler_actions = view.findViewById(R.id.recycler_actions);
+        recycler_actions = view.findViewById(R.id.recycler_actions);
         recycler_actions.setLayoutManager(new LinearLayoutManager(getActivity()));
-
 
         WidgetSelectActionsAdapter adapter = new WidgetSelectActionsAdapter(getActivity(), this,
                 model, isFromFullView, verticalListViewActionHelper, skillName, trigger, isFromListMenu);
@@ -85,7 +86,7 @@ public class WidgetActionSheetFragment extends BottomSheetDialogFragment {
         this.invokeGenericWebViewInterface = invokeGenericWebViewInterface;
     }
 
-    public void setIsFromFullView(boolean isFromFullView) {
+    public void setisFromFullView(boolean isFromFullView) {
         this.isFromFullView = isFromFullView;
     }
 

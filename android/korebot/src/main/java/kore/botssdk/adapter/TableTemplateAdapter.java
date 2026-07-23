@@ -18,28 +18,30 @@ public class TableTemplateAdapter extends RecyclerView.Adapter<TableTemplateAdap
 
     private final List<List<String>> headers;
     private final List<MiniTableModel> listItems;
+    private final boolean isEnabled;
     private final LayoutInflater layoutInflater;
     private final Context context;
 
-    public TableTemplateAdapter(Context context, List<List<String>> headers, List<MiniTableModel> items) {
+    public TableTemplateAdapter(Context context, List<List<String>> headers, List<MiniTableModel> items, boolean isEnabled) {
         layoutInflater = LayoutInflater.from(context);
         this.headers = headers;
         this.listItems = items;
+        this.isEnabled = isEnabled;
         this.context = context;
     }
 
     @NonNull
     @Override
-    public TableTemplateAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new TableTemplateAdapter.ViewHolder(layoutInflater.inflate(R.layout.table_row, parent, false));
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        return new ViewHolder(layoutInflater.inflate(R.layout.table_row, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(@NonNull TableTemplateAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if (listItems != null) {
             MiniTableModel values = listItems.get(position);
             holder.rvChildTableLayout.setLayoutManager(new GridLayoutManager(context, values.getElements().size()));
-            holder.rvChildTableLayout.setAdapter(new TableTemplateDataAdapter(context, headers, values.getElements()));
+            holder.rvChildTableLayout.setAdapter(new TableTemplateDataAdapter(context, headers, values.getElements(), isEnabled));
         }
     }
 

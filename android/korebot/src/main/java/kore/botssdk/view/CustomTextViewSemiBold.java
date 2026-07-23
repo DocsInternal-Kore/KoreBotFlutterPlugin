@@ -1,7 +1,6 @@
 package kore.botssdk.view;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 
@@ -13,6 +12,7 @@ import kore.botssdk.net.SDKConfiguration;
 
 public class CustomTextViewSemiBold extends AppCompatTextView {
 
+    String customFont;
 
     public CustomTextViewSemiBold(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -26,13 +26,10 @@ public class CustomTextViewSemiBold extends AppCompatTextView {
     }
 
     private void style(Context context, AttributeSet attrs) {
-
-        if(SDKConfiguration.getSemiBold() != null)
-        {
+        if (SDKConfiguration.getSemiBold() != null) {
             setTypeface(SDKConfiguration.getSemiBold());
             return;
         }
-
         Typeface tfRegular = ResourcesCompat.getFont(context, R.font.latosemibold);
         setTypeface(tfRegular);
     }

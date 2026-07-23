@@ -15,20 +15,17 @@ import kore.botssdk.R;
 import kore.botssdk.models.AdvanceListTableModel;
 import kore.botssdk.utils.KaFontUtils;
 
-public class AdvanceTableListOuterAdapter extends BaseAdapter
-{
+public class AdvanceTableListOuterAdapter extends BaseAdapter {
     private final Context context;
     private final ArrayList<AdvanceListTableModel> arrAdvanceListTableModels;
 
-    public AdvanceTableListOuterAdapter(@NonNull Context context, @NonNull ArrayList<AdvanceListTableModel> arrAdvanceListTableModels)
-    {
+    public AdvanceTableListOuterAdapter(@NonNull Context context, @NonNull ArrayList<AdvanceListTableModel> arrAdvanceListTableModels) {
         this.context = context;
         this.arrAdvanceListTableModels = arrAdvanceListTableModels;
     }
 
     @Override
-    public int getCount()
-    {
+    public int getCount() {
         return arrAdvanceListTableModels.size();
     }
 

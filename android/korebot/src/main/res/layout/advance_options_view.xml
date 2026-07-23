@@ -21,5 +21,6 @@
         android:layout_marginStart="@dimen/dimen_5dp"
         android:layout_marginEnd="@dimen/dimen_10dp"
         android:maxLines="1"
-        android:text="@string/about" />
+        android:text="@string/about"
+        android:textColor="@color/left_bubble_text_color" />
 </LinearLayout>

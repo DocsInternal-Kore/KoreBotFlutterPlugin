@@ -8,7 +8,6 @@
 
 import UIKit
 #if SWIFT_PACKAGE
-import ObjcSupport
 #endif
 class CustomTableData {
     var headers: Array<Header> = Array<Header>()

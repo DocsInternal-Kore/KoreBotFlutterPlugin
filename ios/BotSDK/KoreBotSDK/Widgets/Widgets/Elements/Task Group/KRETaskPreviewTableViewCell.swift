@@ -1,5 +1,4 @@
 import UIKit
-import korebotplugin
 
 open class KRETaskPreviewTableViewCell: UITableViewCell {
     // MARK: - properties

@@ -1,8 +1,11 @@
 package kore.botssdk.adapter;
 
 import static android.content.Context.MODE_PRIVATE;
+import static kore.botssdk.models.BotResponse.BUBBLE_LEFT_BG_COLOR;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_BG_COLOR;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_TEXT_COLOR;
 import static kore.botssdk.models.BotResponsePayLoadText.THEME_NAME;
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -11,7 +14,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -39,6 +41,7 @@ public class MultiSelectTemplateAdapter extends RecyclerView.Adapter<MultiSelect
     private ChatContentStateListener listener;
     private ComposeFooterInterface composeFooterInterface;
     private final String msgId;
+    private SharedPreferences prefs;
 
     public MultiSelectTemplateAdapter(String msgId, List<MultiSelectBase> multiSelectModels, boolean isEnabled) {
         this.msgId = msgId;
@@ -49,6 +52,8 @@ public class MultiSelectTemplateAdapter extends RecyclerView.Adapter<MultiSelect
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (prefs == null)
+            prefs = parent.getContext().getSharedPreferences(THEME_NAME, MODE_PRIVATE);
         int layoutId = viewType == MULTI_SELECT_ITEM ? R.layout.multi_select_item : R.layout.multiselect_button;
         return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false), viewType);
     }
@@ -63,12 +68,12 @@ public class MultiSelectTemplateAdapter extends RecyclerView.Adapter<MultiSelect
 
             GradientDrawable gradientDrawable = (GradientDrawable) holder.checkBox.getBackground().mutate();
             gradientDrawable.setColor(Color.parseColor("#ffffff"));
-            gradientDrawable.setStroke((int) dp1, Color.parseColor(SDKConfiguration.BubbleColors.leftBubbleSelected));
+            gradientDrawable.setStroke((int) dp1, Color.parseColor(prefs.getString(BUBBLE_LEFT_BG_COLOR, "#000000")));
             holder.checkBox.setTag(true);
 
             if (checkedItems.contains(item)) {
-                gradientDrawable.setStroke((int) dp1, Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-                gradientDrawable.setColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
+                gradientDrawable.setStroke((int) dp1, Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
+                gradientDrawable.setColor(Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
                 holder.checkBox.setTag(false);
             }
 
@@ -86,9 +91,9 @@ public class MultiSelectTemplateAdapter extends RecyclerView.Adapter<MultiSelect
             });
         } else {
             GradientDrawable gradientDrawable = (GradientDrawable) holder.textView.getBackground().mutate();
-            gradientDrawable.setStroke((int) (1 * dp1), Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-            gradientDrawable.setColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-            holder.textView.setTextColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyTextColor));
+            gradientDrawable.setStroke((int) (1 * dp1), Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
+            gradientDrawable.setColor(Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
+            holder.textView.setTextColor(Color.parseColor(prefs.getString(BUBBLE_RIGHT_TEXT_COLOR, "#ffffff")));
 
             holder.textView.setTag(item);
             holder.textView.setText(((BotButtonModel) item).getTitle());

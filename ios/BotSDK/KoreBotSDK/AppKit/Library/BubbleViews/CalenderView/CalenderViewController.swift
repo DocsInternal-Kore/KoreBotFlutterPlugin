@@ -22,6 +22,9 @@ class CalenderViewController: UIViewController {
     var selectedPayloadFromDate : String?
     var selectedPayloadToDate : String?
     
+    @IBOutlet weak var titleLblLeadingConstarint: NSLayoutConstraint!
+    
+    @IBOutlet weak var closeBtnTrailingConstarint: NSLayoutConstraint!
     var comp = NSDateComponents()
     var viewDelegate: calenderSelectDelegate?
     @IBOutlet weak var datePicker: UIDatePicker!
@@ -47,8 +50,9 @@ class CalenderViewController: UIViewController {
     var startdateString : String?
     var endDateString : String?
     let dateFormatter = DateFormatter()
+    var compareStartDate : String?
     var compareEndDate : String?
-    let bundle = Bundle.sdkModule
+    let bundle = Bundle(for: CalenderViewController.self)
       var isStartDateComing = false
     
     // MARK: init
@@ -66,7 +70,7 @@ class CalenderViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        headingLabel.font = UIFont(name: semiBoldCustomFont, size: 16.0)
+        headingLabel.font = UIFont(name: boldCustomFont, size: 16.0)
         confirmButton.titleLabel?.font = UIFont(name: mediumCustomFont, size: 17.0)
         
         fromYearLabel.font = UIFont(name: regularCustomFont, size: 17.0)
@@ -75,9 +79,9 @@ class CalenderViewController: UIViewController {
         fromDateRangeLabel.font = UIFont(name: boldCustomFont, size: 14.0)
         toDateRangeLabel.font = UIFont(name: boldCustomFont, size: 14.0)
         
-        confirmButton.backgroundColor = UIColor.init(hexString: brandingShared.buttonActiveBgColor ?? "#000000")
-        confirmButton.setTitleColor(UIColor.init(hexString: brandingShared.buttonActiveTextColor ?? "#ffffff"), for: .normal)
-        confirmButton.setTitle(confirm, for: .normal)
+        confirmButton.backgroundColor = UIColor.init(hexString: btnBgActiveColor)
+        confirmButton.setTitleColor(UIColor.init(hexString: btnActiveTextColor), for: .normal)
+        confirmButton.setTitle("Confirm", for: .normal)
         confirmButton.layer.cornerRadius = 5.0
         confirmButton.clipsToBounds = true
         if #available(iOS 14, *) {
@@ -98,6 +102,20 @@ class CalenderViewController: UIViewController {
         dateRangeSubView.layer.borderWidth = 1.0
         dateRangeSubView.layer.borderColor = UIColor.lightGray.cgColor
         getData()
+        updateTitleLeadingSpacing()
+    }
+
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        updateTitleLeadingSpacing()
+    }
+
+    private func updateTitleLeadingSpacing() {
+        // Treat landscape as width > height for robust behavior across devices
+        let isLandscape = view.bounds.width > view.bounds.height
+        // Default portrait spacing is 15 (as in XIB). Increase slightly in landscape for visual balance
+        titleLblLeadingConstarint?.constant = isLandscape ? 24 : 10
+        closeBtnTrailingConstarint?.constant = isLandscape ? 25 : 1
     }
 
     @IBAction func clickOnCloseButton(_ sender: Any) {
@@ -127,6 +145,7 @@ class CalenderViewController: UIViewController {
         endDateString = allItems.endDate ?? futureDateStr
         templateType = allItems.template_type ?? ""
         startdateString = allItems.startDate ?? todayDate
+        compareStartDate = allItems.startDate ?? ""
         compareEndDate = allItems.endDate ?? ""
         if allItems.startDate != nil{
             isStartDateComing = true
@@ -252,12 +271,23 @@ class CalenderViewController: UIViewController {
         if compareEndDate == ""{
             datePicker.minimumDate = Calendar.current.date(byAdding: .year, value: 0, to: minimumdate)
             datePicker.maximumDate = Calendar.current.date(byAdding: .year, value: 10, to: maximumDate)
+            datePicker.setDate(Date(), animated: true)
+            selectDate(datePicker: datePicker)
         }else{
-            datePicker.minimumDate = Calendar.current.date(byAdding: .year, value: -10, to: minimumdate)
-            datePicker.maximumDate = Calendar.current.date(byAdding: .year, value: 0, to: maximumDate)
+            if compareStartDate == ""{
+                datePicker.minimumDate = Calendar.current.date(byAdding: .year, value: -10, to: minimumdate)
+                datePicker.maximumDate = Calendar.current.date(byAdding: .year, value: 0, to: maximumDate)
+                datePicker.setDate(Date(), animated: true)
+                selectDate(datePicker: datePicker)
+            }else{
+                datePicker.maximumDate = Calendar.current.date(byAdding: .year, value: 0, to: maximumDate)
+                datePicker.minimumDate = Calendar.current.date(byAdding: .year, value: 0, to: minimumdate)
+                datePicker.setDate(minimumdate, animated: true)
+                selectDate(datePicker: datePicker)
+            }
+            
         }
-        datePicker.setDate(Date(), animated: true)
-        selectDate(datePicker: datePicker)
+        
     }
     
     @IBAction func clickConfirmBtn(_ sender: Any) {
@@ -334,12 +364,12 @@ class CalenderViewController: UIViewController {
             }
             let selectedFromatDates = ("\(changeFromDateformat!) to \(changeToDateformat!)")
             let selectedPayloadFromatDates = ("\(selectedPayloadFromDate!) to \(selectedPayloadToDate!)")
-            self.viewDelegate?.optionsButtonTapNewAction(text:selectedFromatDates , payload: selectedPayloadFromatDates)
+            self.viewDelegate?.optionsButtonTapNewAction(text:selectedPayloadFromatDates , payload: selectedPayloadFromatDates)
         }else{
             
             var convertDateformat = formattedDateFromString(dateString: selectedFromDate!, withFormat: formte!)
             var convertDateformatPayload = formattedDateFromString(dateString: selectedFromDate!, withFormat: formte!)
-            print(convertDateformat as Any)
+            //print(convertDateformat as Any)
             
             let dateFormatterUK = DateFormatter()
             dateFormatterUK.dateFormat = formte
@@ -371,11 +401,11 @@ class CalenderViewController: UIViewController {
                 let dayNumber = NSNumber(value: Int(dayString)!)
                 let day = numberFormatter.string(from: dayNumber)!
                 
-                convertDateformat = "\(monthString) \(day), \(yearString)"
-                convertDateformatPayload = "\(day) \(monthString) \(yearString)"
+                //convertDateformat = "\(monthString) \(day), \(yearString)"
+                //convertDateformatPayload = "\(day) \(monthString) \(yearString)"
             }
             
-            self.viewDelegate?.optionsButtonTapNewAction(text:convertDateformat! , payload:convertDateformatPayload!)
+            self.viewDelegate?.optionsButtonTapNewAction(text:selectedFromDate! , payload:selectedFromDate!)
         }
     }
     

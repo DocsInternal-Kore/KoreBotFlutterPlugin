@@ -20,7 +20,7 @@ import kore.botssdk.models.QuickRepliesPayloadModel;
 import kore.botssdk.models.QuickReplyTemplate;
 import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.utils.BundleConstants;
-import kore.botssdk.viewUtils.DimensionUtil;
+import kore.botssdk.view.viewUtils.DimensionUtil;
 import kore.botssdk.viewholders.QuickReplyViewHolder;
 
 /**
@@ -64,11 +64,10 @@ public class QuickRepliesAdapter extends RecyclerView.Adapter<QuickReplyViewHold
         QuickReplyTemplate quickReplyTemplate = quickReplyTemplateArrayList.get(position);
 
         if (quickReplyTemplate.getImage_url() != null && !quickReplyTemplate.getImage_url().isEmpty()) {
-            holder.getQuickReplyImage().setVisibility(View.VISIBLE);
-
             Glide.with(context)
                     .load(quickReplyTemplate.getImage_url())
                     .into(holder.getQuickReplyImage());
+            holder.getQuickReplyImage().setVisibility(View.VISIBLE);
         } else {
             holder.getQuickReplyImage().setVisibility(View.GONE);
         }

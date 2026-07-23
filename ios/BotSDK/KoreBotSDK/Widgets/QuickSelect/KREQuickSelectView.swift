@@ -116,7 +116,7 @@ open class KREQuickSelectView: UIView {
     
     lazy var lineView: UIView = {
         let view = UIView(frame: .zero)
-        view.backgroundColor = UIColor.paleGrey
+        view.backgroundColor = BubbleViewLeftTint
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -130,13 +130,17 @@ open class KREQuickSelectView: UIView {
     
     override open func layoutSubviews() {
         super.layoutSubviews()
-        
+        if quickRepliesIsHorizontal{
+            collectionView.isScrollEnabled = true
+            flowLayout.scrollDirection = .horizontal
+            collectionView.collectionViewLayout = flowLayout
+        }
         let views = ["collectionView": collectionView, "lineView": lineView]
         addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[collectionView]|", options: [], metrics: nil, views: views))
        
         addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[lineView]|", options: [], metrics: nil, views: views))
         
-        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[lineView(0.0)][collectionView]|", options: [], metrics: nil, views: views))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[lineView(1.0)][collectionView]|", options: [], metrics: nil, views: views))
     }
     
     func maxContentWidth() -> CGFloat {
@@ -152,7 +156,7 @@ open class KREQuickSelectView: UIView {
     }
 }
 
-// MARK: - 
+// MARK: -
 extension KREQuickSelectView: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     // MARK:- datasource
     @nonobjc public func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
@@ -169,8 +173,8 @@ extension KREQuickSelectView: UICollectionViewDelegate, UICollectionViewDataSour
             let word = words?[indexPath.row] {
             cell.labelText = word.title
             cell.imageURL = word.imageURL
-            cell.layer.borderColor = UIColor.init(hexString: bgColor).cgColor //boarderColor
-            cell.backgroundColor = UIColor.init(hexString: bgColor)
+            cell.layer.borderColor = BubbleViewLeftTint.cgColor
+            cell.backgroundColor = BubbleViewLeftTint
             cell.textColor = textColor
             cell.fontName = fontName
             cell.layer.borderWidth = 1.5

@@ -9,7 +9,6 @@
 
 import UIKit
 #if SWIFT_PACKAGE
-import ObjcSupport
 #endif
 class MenuBubbleView: BubbleView {
     static let btnLimit: Int = 3
@@ -21,8 +20,8 @@ class MenuBubbleView: BubbleView {
     var showMoreButton: UIButton!
     var showMore = false
     
-   // public var optionsAction: ((_ text: String?) -> Void)!
-   // public var linkAction: ((_ text: String?) -> Void)!
+    //public var optionsAction: ((_ text: String?) -> Void)!
+    //public var linkAction: ((_ text: String?) -> Void)!
     
     func intializeCardLayout(){
         self.cardView = UIView(frame:.zero)
@@ -82,7 +81,7 @@ class MenuBubbleView: BubbleView {
         
         self.optionsView.optionsButtonAction = { [weak self] (text, payload) in
             if((self?.optionsAction) != nil){
-                self?.optionsAction?(text, payload)
+                self?.optionsAction?(text,payload)
             }
         }
         self.optionsView.detailLinkAction = {[weak self] (text) in
@@ -122,7 +121,7 @@ class MenuBubbleView: BubbleView {
                     let dictionary = buttons[i]
                     let title: String = dictionary["title"] != nil ? dictionary["title"] as! String : ""
                     let imageUrl: String = dictionary["image_url"] != nil ? dictionary["image_url"] as! String : ""
-                    let option: KREOption = KREOption(title: title, subTitle: "", imageURL: imageUrl, optionType: .menu)
+                    let option: KREOption = KREOption(title: title, subTitle: "", imageURL: imageUrl, optionType: .menu, buttonBgColor: btnBgActiveColor, buttonTextColor: btnActiveTextColor)
                     if let action = Utilities.getKREActionFromDictionary(dictionary: dictionary) {
                         option.setDefaultAction(action: action)
                     }

@@ -1,7 +1,6 @@
 package kore.botssdk.models;
 
 import android.annotation.SuppressLint;
-
 @SuppressLint("UnknownNullness")
 public class AdvanceMultiSelectCollectionModel
 {

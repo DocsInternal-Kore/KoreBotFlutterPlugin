@@ -12,28 +12,48 @@ enum BubbleMaskTailPosition : Int {
     case none = 1, left = 2, right = 3
 }
 
-let brandingShared = BrandingSingleton.shared
-var BubbleViewRightTint: UIColor = themeColor
+var BubbleViewRightTint: UIColor =  UIColor.init(hexString: "#4B4EDE")
 let BubbleViewRightContrastTint: UIColor = Common.UIColorRGB(0xFFFFFF)
-var BubbleViewLeftTint: UIColor = .white
+var BubbleViewLeftTint: UIColor = UIColor.init(hexString: "#F0F1F2")
 let BubbleViewLeftContrastTint: UIColor = Common.UIColorRGB(0xBCBCBC)
-
-let BubbleViewCurveRadius: CGFloat = 20.0
-let BubbleViewMaxWidth: CGFloat = (UIScreen.main.bounds.size.width - 90.0)
 
 var BubbleViewUserChatTextColor: UIColor = UIColor.init(hexString: "#FFFFFF")
 var BubbleViewBotChatTextColor: UIColor = UIColor.init(hexString: "#000000")
 
-var bubbleViewBotChatButtonBgColor: UIColor = UIColor.init(hexString: "#f3f3f5")
-var bubbleViewBotChatButtonTextColor: UIColor = UIColor.init(hexString: "#2881DF")
+let BubbleViewCurveRadius: CGFloat = 20.0
+var BubbleViewMaxWidth: CGFloat {
+    let windowWidth = UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.bounds.size.width ?? UIScreen.main.bounds.size.width
+    let portraitBase = min(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
+    let ratio = portraitBase > 0 ? (portraitBase - 90.0) / portraitBase : 1.0
+    return windowWidth * ratio
+}
 
 open class BubbleView: UIView {
-    var isSenderMessage: Bool?
-
-    var usesOutgoingStyle: Bool {
-        return isSenderMessage ?? (tailPosition == BubbleMaskTailPosition.right)
+    let brandingShared = BrandingSingleton.shared
+    private static var lastKnownMaxWidth: CGFloat = 0.0
+    private func updateMaxWidthConstraints(in view: UIView) {
+        for constraint in view.constraints {
+            if constraint.firstAttribute == .width && constraint.relation == .lessThanOrEqual {
+                // Default to the dynamic bubble max width; subclasses can still override if needed
+                let target = BubbleViewMaxWidth
+                if abs(constraint.constant - target) > 0.5 {
+                    constraint.constant = target
+                }
+            }
+        }
+        for subview in view.subviews {
+            updateMaxWidthConstraints(in: subview)
+        }
     }
 
+    func bubbleWidthMaintainingPortraitRatio(margin: CGFloat) -> CGFloat {
+        let windowWidth = UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.bounds.width ?? UIScreen.main.bounds.size.width
+        let portraitBase = min(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
+        let portraitMax = portraitBase - 90.0
+        let ratio = portraitBase > 0 ? (portraitMax / portraitBase) : 1.0
+        let bubbleMaxWidth = ratio * windowWidth
+        return max(0.0, bubbleMaxWidth - margin)
+    }
     var tailPosition: BubbleMaskTailPosition! {
         didSet {
             self.backgroundColor = self.borderColor()
@@ -43,16 +63,22 @@ open class BubbleView: UIView {
     var didSelectComponentAtIndex:((Int) -> Void)!
     var maskLayer: CAShapeLayer!
     var borderLayer: CAShapeLayer!
-
+    var isLandscape: Bool! {
+            if #available(iOS 13.0, *) {
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                    return windowScene.interfaceOrientation.isLandscape
+                }
+            } else {
+                return UIApplication.shared.statusBarOrientation.isLandscape
+            }
+            return nil
+    }
     public var optionsAction: ((_ text: String?, _ payload: String?) -> Void)?
     public var linkAction: ((_ text: String?) -> Void)?
+    public var updateMessage: ((_ text: String?, _ componentDesc: String?) -> Void)?
     
     public var components:NSArray! {
         didSet(c) {
-            let responseLanguage = SDKConfiguration.botConfig.responseLanguage(from: components)
-            semanticContentAttribute = SDKConfiguration.botConfig.isRTL(responseLanguage)
-                ? .forceRightToLeft
-                : .forceLeftToRight
             self.populateComponents()
         }
     }
@@ -60,7 +86,7 @@ open class BubbleView: UIView {
     var drawBorder: Bool = false
     
     // MARK: init
-    public init() {
+    required public init() {
         super.init(frame: CGRect.zero)
         self.initialize()
     }
@@ -72,56 +98,55 @@ open class BubbleView: UIView {
     // MARK: bubbleWithType
     static func bubbleWithType(_ bubbleType: ComponentType) -> BubbleView{
         var bubbleView: BubbleView!
-        var isClientCustomTemplate = false
-        var isClientTemplateIndex = 0
+        var isCustomTemplate = false
+        var isCustomTemplateIndex = 0
         for i in 0..<arrayOfViews.count{
             let cleintTemplateTypeStr = arrayOfTemplateTypes[i]
             var tabledesign = "responsive"
             let clientTempateType =  Utilities.getComponentTypes(cleintTemplateTypeStr, tabledesign)
             if bubbleType == clientTempateType{
-                isClientTemplateIndex = i
-                isClientCustomTemplate = true
+                isCustomTemplateIndex = i
+                isCustomTemplate = true
             }
         }
-        if isClientCustomTemplate{
+        if isCustomTemplate{
             if arrayOfViews.count > 0{
-                let vieww = arrayOfViews[isClientTemplateIndex]
-                bubbleView = vieww as? BubbleView
+                let vieww = arrayOfViews[isCustomTemplateIndex]
+                bubbleView = vieww.init()
             }
         }else{
             switch (bubbleType) {
-                case .text:
-                    bubbleView = TextBubbleView()
-                    break
-                case .image, .video:
-                //.sdkModule
-                    //bubbleView = Bundle.main.loadNibNamed("MultiImageBubbleView", owner: self, options: nil)![0] as? BubbleView
+            case .text:
+                bubbleView = TextBubbleView()
+                break
+            case .image, .video:
                 bubbleView = Bundle.sdkModule.loadNibNamed("MultiImageBubbleView", owner: self, options: nil)![0] as? BubbleView
-                    break
-                case .audio:
-                    bubbleView = Bundle.sdkModule.loadNibNamed("AudioBubbleView", owner: self, options: nil)![0] as? BubbleView
-                    break
-                case .options:
-                    bubbleView = OptionsBubbleView()
-                    break
-                case .quickReply:
-                    bubbleView = QuickReplyBubbleView()
-                    break
-                case .list:
-                    bubbleView = ListBubbleView()
-                    break
-                case .carousel:
-                    bubbleView = CarouselBubbleView()
-                    break
-                case .error:
-                    bubbleView = ErrorBubbleView()
-                    break
-                case .chart:
-                    bubbleView = ChartBubbleView()
-                    break
-                case .table:
-                    bubbleView = TableBubbleView()
-                    break
+                break
+            case .audio:
+                //bubbleView = Bundle.sdkModule.loadNibNamed("AudioBubbleView", owner: self, options: nil)![0] as? BubbleView
+                bubbleView = AudioNewBubbleView()
+                break
+            case .options:
+                bubbleView = OptionsBubbleView()
+                break
+            case .quickReply:
+                bubbleView = QuickReplyBubbleView()
+                break
+            case .list:
+                bubbleView = ListBubbleView()
+                break
+            case .carousel:
+                bubbleView = CarouselBubbleView()
+                break
+            case .error:
+                bubbleView = ErrorBubbleView()
+                break
+            case .chart:
+                bubbleView = ChartBubbleView()
+                break
+            case .table:
+                bubbleView = TableBubbleView()
+                break
             case .minitable:
                 bubbleView = MiniTableBubbleView()
                 break
@@ -138,29 +163,29 @@ open class BubbleView: UIView {
                 bubbleView = NewListBubbleView()
                 break
             case .tableList:
-                    bubbleView = TableListBubbleView()
+                bubbleView = TableListBubbleView()
                 break
             case .calendarView:
-                    bubbleView = CalenderBubbleView()
+                bubbleView = CalenderBubbleView()
                 break
             case .quick_replies_welcome:
-                    bubbleView = QuickReplyWelcomeBubbleView()
+                bubbleView = QuickReplyWelcomeBubbleView()
                 break
             case .notification:
-                    bubbleView = NotificationBubbleView()
+                bubbleView = NotificationBubbleView()
                 break
             case .multiSelect:
-                    bubbleView = MultiSelectNewBubbleView()
+                bubbleView = MultiSelectBubbleView()
                 break
             case .list_widget:
-                    bubbleView = ListWidgetBubbleView()
-            break
+                bubbleView = ListWidgetNewBubbleView()//ListWidgetBubbleView()
+                break
             case .feedbackTemplate:
                 bubbleView = FeedbackBubbleView()
-            break
+                break
             case .inlineForm:
                 bubbleView = InLineFormBubbleView()
-            break
+                break
             case .dropdown_template:
                 bubbleView = DropDownBubbleView()
                 break
@@ -174,16 +199,38 @@ open class BubbleView: UIView {
                 bubbleView = CardTemplateBubbleView()
                 break
             case .linkDownload:
-                 bubbleView = PDFBubbleView()
-                 break
+                bubbleView = PDFBubbleView()
+                break
+            case .stackedCarousel:
+                bubbleView = StackedCarouselBubbleView()
+                break
+            case .advanced_multi_select:
+                bubbleView =  AdvancedMultiSelectBubbleView()
+                break
+            case .radioOptionTemplate:
+                bubbleView =  RadioOptionBubbleView()
+                break
             case .quick_replies_top:
                 bubbleView = QuickReplyTopBubbleView()
+                break
+            case .articleTemplate:
+                bubbleView = ArticleBubbleView()
+                break
+            case .answerTemplate:
+                bubbleView = AnswerBubbleView()
+                break
+            case .OtpOrResetTemplate:
+                bubbleView = OTPorResetBubbleView()
+                break
+            case .digital_form:
+                bubbleView = DigitalFormBubbleView()
                 break
             case .noTemplate:
                 bubbleView = EmptyBubbleView()
                 break
             }
         }
+        
         bubbleView.bubbleType = bubbleType
         
         return bubbleView
@@ -211,22 +258,29 @@ open class BubbleView: UIView {
     open override func layoutSubviews() {
         super.layoutSubviews()
         self.applyBubbleMask()
+        // Update any width cap constraints to reflect current orientation
+        updateMaxWidthConstraints(in: self)
+        let currentWidth = BubbleViewMaxWidth
+        if abs(currentWidth - BubbleView.lastKnownMaxWidth) > 0.5 {
+            BubbleView.lastKnownMaxWidth = currentWidth
+            NotificationCenter.default.post(name: Notification.Name(reloadTableNotification), object: nil)
+        }
     }
     
     func contrastTintColor() -> UIColor {
-        if usesOutgoingStyle {
-            return BubbleViewRightContrastTint
+        if (self.tailPosition == BubbleMaskTailPosition.left) {
+            return BubbleViewLeftContrastTint
         }
-
-        return BubbleViewLeftContrastTint
+        
+        return BubbleViewRightContrastTint
     }
     
     func borderColor() -> UIColor {
-        if usesOutgoingStyle {
-            return BubbleViewRightTint
+        if (self.tailPosition == BubbleMaskTailPosition.left) {
+            return BubbleViewLeftTint
         }
-
-        return BubbleViewLeftTint
+        
+        return BubbleViewRightTint
     }
     
     func applyBubbleMask() {
@@ -245,7 +299,7 @@ open class BubbleView: UIView {
             self.borderLayer.path = self.maskLayer.path // Reuse the Bezier path
             self.borderLayer.fillColor = UIColor.clear.cgColor
             self.borderLayer.strokeColor = Common.UIColorRGB(0xebebeb).cgColor
-            self.borderLayer.lineWidth = 0.0
+            self.borderLayer.lineWidth = 1.5
             self.borderLayer.frame = self.bounds
         } else {
             if (self.borderLayer != nil) {
@@ -259,18 +313,15 @@ open class BubbleView: UIView {
         // Drawing code
         let cornerRadius: CGFloat = BubbleViewCurveRadius
         var aPath = UIBezierPath()
-        let bubbleStyle =  brandingShared.bubbleShape
+        let bubbleStyle = brandingBodyDic.bubble_style
         if(self.tailPosition == .left){
             if bubbleStyle == "balloon"{
                 aPath = UIBezierPath(roundedRect: self.bounds, byRoundingCorners: [.topRight, .bottomLeft,.bottomRight],
                                      cornerRadii: CGSize(width: 10.0, height: 0.0))
-            }else if bubbleStyle == "rounded" || bubbleStyle == "circle"{
+            }else if bubbleStyle == "rounded"{
                 aPath = UIBezierPath(roundedRect: self.bounds, byRoundingCorners: [.topLeft, .topRight, .bottomLeft,.bottomRight],
                                      cornerRadii: CGSize(width: 15.0, height: 0.0))
             }else if bubbleStyle == "rectangle"{
-                aPath = UIBezierPath(roundedRect: self.bounds, byRoundingCorners: [.topLeft, .topRight, .bottomLeft,.bottomRight],
-                                     cornerRadii: CGSize(width: 8.0, height: 0.0))
-            }else if bubbleStyle == "square"{
                 aPath = UIBezierPath(roundedRect: self.bounds, byRoundingCorners: [.topLeft, .topRight, .bottomRight],
                                      cornerRadii: CGSize(width: 10.0, height: 0.0))
             }else{
@@ -290,13 +341,10 @@ open class BubbleView: UIView {
             if bubbleStyle == "balloon"{
                 aPath = UIBezierPath(roundedRect: self.bounds, byRoundingCorners: [.topLeft, .bottomLeft,.bottomRight],
                                      cornerRadii: CGSize(width: 10.0, height: 0.0))
-            }else if bubbleStyle == "rounded" || bubbleStyle == "circle"{
+            }else if bubbleStyle == "rounded"{
                 aPath = UIBezierPath(roundedRect: self.bounds, byRoundingCorners: [.topLeft, .topRight, .bottomLeft,.bottomRight],
                                      cornerRadii: CGSize(width: 15.0, height: 0.0))
             }else if bubbleStyle == "rectangle"{
-                aPath = UIBezierPath(roundedRect: self.bounds, byRoundingCorners: [.topLeft, .topRight, .bottomLeft,.bottomRight],
-                                     cornerRadii: CGSize(width: 8.0, height: 0.0))
-            }else if bubbleStyle == "square"{
                 aPath = UIBezierPath(roundedRect: self.bounds, byRoundingCorners: [.topLeft, .topRight, .bottomLeft],
                                      cornerRadii: CGSize(width: 10.0, height: 0.0))
             }else{

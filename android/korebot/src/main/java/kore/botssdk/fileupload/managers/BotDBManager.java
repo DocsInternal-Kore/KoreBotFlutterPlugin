@@ -6,10 +6,6 @@ import java.util.Map;
 import kore.botssdk.fileupload.models.ChunkInfo;
 import kore.botssdk.fileupload.models.FileUploadInfo;
 
-/**
- * Created by Ramachandra Pradeep on 02-Apr-18.
- */
-
 public class BotDBManager {
 
     private volatile static BotDBManager botDBManager;
@@ -33,7 +29,7 @@ public class BotDBManager {
 
     @Override
     protected Object clone() throws CloneNotSupportedException {
-        throw new CloneNotSupportedException("Cloning of this object is not supported.");
+        return new CloneNotSupportedException("Clone not supported");
     }
 
     public Map<String, FileUploadInfo> getFileUploadInfoMap() {

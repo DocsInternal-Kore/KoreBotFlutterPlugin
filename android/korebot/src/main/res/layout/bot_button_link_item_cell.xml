@@ -3,7 +3,7 @@
     android:id="@+id/bot_options_more"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="@dimen/button_min_height"
+    android:minHeight="40dp"
     android:padding="@dimen/dimen_5dp"
     android:gravity="center"
     android:orientation="horizontal"

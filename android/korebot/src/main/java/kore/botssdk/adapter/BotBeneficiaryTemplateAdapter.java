@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import kore.botssdk.R;
 import kore.botssdk.listener.ComposeFooterInterface;
 import kore.botssdk.listener.InvokeGenericWebViewInterface;
-import kore.botssdk.listener.ListClickableListener;
 import kore.botssdk.models.BotBeneficiaryModel;
 import kore.botssdk.models.BotResponse;
 import kore.botssdk.utils.StringUtils;
@@ -125,9 +124,6 @@ public class BotBeneficiaryTemplateAdapter extends BaseAdapter {
     }
 
     public void setInvokeGenericWebViewInterface(@NonNull InvokeGenericWebViewInterface invokeGenericWebViewInterface) {
-    }
-
-    public void setListClickableInterface(@NonNull ListClickableListener listClickableInterface) {
     }
 
     private void initializeViewHolder(View view) {

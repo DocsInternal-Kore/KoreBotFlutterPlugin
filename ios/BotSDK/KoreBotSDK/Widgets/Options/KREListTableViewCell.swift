@@ -8,7 +8,6 @@
 
 import UIKit
 #if SWIFT_PACKAGE
-import ObjcSupport
 #endif
 class KREListTableViewCell: UITableViewCell {
 
@@ -19,6 +18,7 @@ class KREListTableViewCell: UITableViewCell {
     @IBOutlet weak var actionButtonHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var imgViewWidthConstraint: NSLayoutConstraint!
     
+    @IBOutlet weak var subTitleTxtV: KREAttributedTextView!
     var buttonAction: ((_ sender: Any) -> Void)!
     var minCellHeight: CGFloat = 80.0
     

@@ -2,8 +2,10 @@
 package kore.botssdk.adapter;
 
 import static android.content.Context.MODE_PRIVATE;
+import static kore.botssdk.models.BotResponse.BUBBLE_LEFT_BG_COLOR;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_BG_COLOR;
 import static kore.botssdk.models.BotResponsePayLoadText.THEME_NAME;
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
@@ -19,6 +21,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 
 import com.bumptech.glide.Glide;
 
@@ -49,6 +52,7 @@ public class AdvanceMultiSelectCollectionsAdapter extends RecyclerView.Adapter<A
     }
 
     private boolean isEnabled;
+    private SharedPreferences prefs;
 
     public AdvanceMultiSelectCollectionsAdapter(ArrayList<AdvanceMultiSelectCollectionModel> multiSelectModels) {
         this.multiSelectModels = multiSelectModels;
@@ -57,8 +61,11 @@ public class AdvanceMultiSelectCollectionsAdapter extends RecyclerView.Adapter<A
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (prefs == null) {
+            prefs = parent.getContext().getSharedPreferences(THEME_NAME, MODE_PRIVATE);
+        }
         int layoutId = viewType == MULTI_SELECT_ITEM ? R.layout.row_advance_multi_select_sub_item : R.layout.multiselect_button;
-        return new AdvanceMultiSelectCollectionsAdapter.ViewHolder(LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false), viewType);
+        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false), viewType);
     }
 
     @Override
@@ -111,14 +118,16 @@ public class AdvanceMultiSelectCollectionsAdapter extends RecyclerView.Adapter<A
 
         GradientDrawable gradientDrawable = (GradientDrawable) holder.checkBox.getBackground().mutate();
         gradientDrawable.setColor(Color.parseColor("#ffffff"));
-        gradientDrawable.setStroke((int) dp1, Color.parseColor(SDKConfiguration.BubbleColors.leftBubbleSelected));
+        gradientDrawable.setStroke((int) dp1, Color.parseColor(prefs.getString(BUBBLE_LEFT_BG_COLOR, "#000000")));
 
         if (checkedItems.contains(item)) {
-            gradientDrawable.setStroke((int) dp1, Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-            gradientDrawable.setColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
+            gradientDrawable.setStroke((int) dp1, Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
+            gradientDrawable.setColor(Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
         }
 
-        holder.checkBox.setOnClickListener(v -> multiSelectListener.itemSelected(item));
+        holder.checkBox.setOnClickListener(v -> {
+            multiSelectListener.itemSelected(item);
+        });
         if (!isEnabled) {
             holder.checkBox.setClickable(false);
             holder.checkBox.setEnabled(false);

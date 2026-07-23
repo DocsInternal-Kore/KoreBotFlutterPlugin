@@ -88,7 +88,7 @@ public class KREAction: NSObject, Decodable, Encodable {
 }
 
 public enum KREOptionType : Int {
-    case button = 1, list = 2, menu = 3
+    case button = 1, list = 2, menu = 3, newButton = 4
 }
 
 open class KREOption: NSObject {
@@ -103,18 +103,23 @@ open class KREOption: NSObject {
     
     var defaultAction:KREAction?
     var buttonAction:KREAction?
+    
+    var buttonBgColor = ""
+    var buttonTextColor = ""
 
     // MARK:- init
     public override init() {
         super.init()
     }
     
-    public init(title: String, subTitle: String, imageURL: String, optionType: KREOptionType) {
+    public init(title: String, subTitle: String, imageURL: String, optionType: KREOptionType, buttonBgColor: String, buttonTextColor: String) {
         super.init()
         self.title = truncateString(title, count: KREOption.titleCharLimit)
         self.subTitle = subTitle //truncateString(subTitle, count: KREOption.subtitleCharLimit)
         self.imageURL = imageURL
         self.optionType = optionType
+        self.buttonBgColor = buttonBgColor
+        self.buttonTextColor = buttonTextColor
     }
     
     public func setDefaultAction(action: KREAction) {
@@ -175,7 +180,7 @@ open class KREOptionsView: UIView, UITableViewDataSource, UITableViewDelegate {
         optionsView.isScrollEnabled = false
         optionsView.estimatedRowHeight = UITableView.automaticDimension
         optionsView.rowHeight = UITableView.automaticDimension
-        optionsView.separatorStyle = UITableViewCell.SeparatorStyle.singleLine
+        optionsView.separatorStyle = UITableViewCell.SeparatorStyle.none
         optionsView.separatorInset = .zero
         optionsView.separatorColor = UIColor.paleLilacFour
         optionsView.setNeedsLayout()
@@ -188,6 +193,8 @@ open class KREOptionsView: UIView, UITableViewDataSource, UITableViewDelegate {
     public func setup() {
         optionsTableView.register(Bundle.xib(named: "KREListTableViewCell"), forCellReuseIdentifier: "KREListTableViewCell")
         optionsTableView.register(Bundle.xib(named: "KREOptionsTableViewCell"), forCellReuseIdentifier: "KREOptionsTableViewCell")
+        optionsTableView.register(Bundle.xib(named: "KREOptionsTableViewNewCell"), forCellReuseIdentifier: "KREOptionsTableViewNewCell")
+        
         addSubview(optionsTableView)
         
         let views = ["tableView": optionsTableView]
@@ -216,13 +223,25 @@ open class KREOptionsView: UIView, UITableViewDataSource, UITableViewDelegate {
             let cell = tableView.dequeueReusableCell(withIdentifier: optionCellIdentifier, for: indexPath)
             if let cell = cell as? KREOptionsTableViewCell {
                 cell.selectionStyle = UITableViewCell.SelectionStyle.none
+                
                 cell.textLabel?.text = option.title
                 cell.textLabel?.textAlignment = .center
-                cell.textLabel?.textColor = bubbleViewBotChatButtonTextColor
-                cell.backgroundColor = bubbleViewBotChatButtonBgColor
-                if #available(iOS 8.2, *) {
-                    cell.textLabel?.font = UIFont.textFont(ofSize: 16.0, weight: .regular)
-                }
+                cell.textLabel?.textColor = UIColor(hexString: option.buttonTextColor)
+                cell.backgroundColor = UIColor(hexString: option.buttonBgColor)
+                cell.textLabel?.font = UIFont(name: regularCustomFont, size: 14.0)
+            }
+            
+            return cell
+        }else if(option.optionType == KREOptionType.newButton){
+            let cell = tableView.dequeueReusableCell(withIdentifier: "KREOptionsTableViewNewCell", for: indexPath)
+            if let cell = cell as? KREOptionsTableViewNewCell {
+                cell.selectionStyle = UITableViewCell.SelectionStyle.none
+                
+                cell.titleLabel?.text = option.title
+                cell.titleLabel?.textAlignment = .center
+                cell.titleLabel?.textColor = UIColor(hexString: option.buttonTextColor)
+                cell.bgView.backgroundColor = UIColor(hexString: option.buttonBgColor)
+                cell.titleLabel?.font = UIFont(name: mediumCustomFont, size: 12.0)
             }
             
             return cell
@@ -231,11 +250,24 @@ open class KREOptionsView: UIView, UITableViewDataSource, UITableViewDelegate {
             cell.selectionStyle = UITableViewCell.SelectionStyle.none
             
             cell.titleLabel.text = option.title
-            cell.titleLabel.font  = UIFont(name: mediumCustomFont, size: 15.0)
             //cell.subTitleLabel.text = option.subTitle
             cell.subTitleLabel.setHTMLString(option.subTitle, withWidth: BubbleViewMaxWidth - 20.0)
             cell.subTitleLabel.font  = UIFont(name: mediumCustomFont, size: 14.0)
             cell.subTitleLabel.numberOfLines = 15
+            cell.titleLabel.textColor = BubbleViewBotChatTextColor
+            cell.subTitleLabel.textColor = BubbleViewBotChatTextColor
+            
+            cell.subTitleLabel.isHidden = true
+            
+            cell.subTitleTxtV.setHTMLString( option.subTitle ?? "", withWidth: BubbleViewMaxWidth - 20.0)
+            cell.subTitleTxtV.font  = UIFont(name: mediumCustomFont, size: 14.0)
+            cell.subTitleTxtV.textColor = .red
+            cell.subTitleTxtV.textColor = BubbleViewBotChatTextColor
+            cell.subTitleTxtV.mentionTextColor = BubbleViewBotChatTextColor
+            cell.subTitleTxtV.hashtagTextColor = BubbleViewBotChatTextColor
+            cell.subTitleTxtV.linkTextColor = BubbleViewBotChatTextColor
+            cell.subTitleTxtV.tintColor = BubbleViewBotChatTextColor
+            
             if let urlString = option.imageURL, let url = URL(string: urlString) {
                 cell.imgView.af.setImage(withURL: url, placeholderImage: UIImage(named: "placeholder_image"))
                 cell.imgViewWidthConstraint.constant = 60.0
@@ -243,8 +275,7 @@ open class KREOptionsView: UIView, UITableViewDataSource, UITableViewDelegate {
                 cell.imageView?.image = nil
                 cell.imgViewWidthConstraint.constant = 0.0
             }
-            cell.titleLabel.textColor = BubbleViewBotChatTextColor
-            cell.subTitleLabel.textColor = BubbleViewBotChatTextColor
+            
             if(option.buttonAction != nil){
                 let buttonAction = option.buttonAction
                 cell.actionButtonHeightConstraint.constant = 30.0
@@ -302,17 +333,27 @@ open class KREOptionsView: UIView, UITableViewDataSource, UITableViewDelegate {
     }
     
     public func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return UITableView.automaticDimension
+        let option: KREOption = options[indexPath.row]
+        if(option.optionType == KREOptionType.newButton){
+            return 44
+        }else{
+            return UITableView.automaticDimension
+        }
     }
     
     public func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
-        return UITableView.automaticDimension
+        let option: KREOption = options[indexPath.row]
+        if(option.optionType == KREOptionType.newButton){
+            return 44
+        }else{
+            return UITableView.automaticDimension
+        }
     }
     
     public func getExpectedHeight(width: CGFloat) -> CGFloat {
         var height: CGFloat = 0.0
         for option in options  {
-            if(option.optionType == KREOptionType.button){
+            if(option.optionType == KREOptionType.button || option.optionType == KREOptionType.newButton){
                 height += kMaxRowHeight
             }else if(option.optionType == KREOptionType.list){
                 let cell:KREListTableViewCell = self.tableView(optionsTableView, cellForRowAt: IndexPath(row: options.index(of: option)!, section: 0)) as! KREListTableViewCell

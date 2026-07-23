@@ -7,9 +7,6 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
 
-/*
- * Copyright (c) 2014 Kore Inc. All rights reserved.
- */
 public class ProfileDrawable extends BaseDrawable {
 
     private final int backgroundColor;

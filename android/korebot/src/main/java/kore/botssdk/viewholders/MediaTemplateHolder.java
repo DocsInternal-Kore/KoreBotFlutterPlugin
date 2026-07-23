@@ -2,7 +2,7 @@ package kore.botssdk.viewholders;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -44,7 +44,6 @@ import kore.botssdk.models.PayloadOuter;
 import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.utils.BundleConstants;
 import kore.botssdk.utils.DownloadUtils;
-import kore.botssdk.utils.LogUtils;
 import kore.botssdk.utils.StringUtils;
 
 public class MediaTemplateHolder extends BaseViewHolder {
@@ -66,6 +65,7 @@ public class MediaTemplateHolder extends BaseViewHolder {
     private final PopupWindow popupWindow;
     private final TextView tvTheme1;
     private final TextView tvVideoTitle;
+    private String rightBgColor;
 
     public static MediaTemplateHolder getInstance(ViewGroup parent) {
         return new MediaTemplateHolder(createView(R.layout.template_media, parent));
@@ -105,6 +105,7 @@ public class MediaTemplateHolder extends BaseViewHolder {
         KoreEventCenter.register(this);
         sharedPreferences = getSharedPreferences(view.getContext());
         String leftBgColor = sharedPreferences.getString(BotResponse.BUBBLE_LEFT_BG_COLOR, "#ffffff");
+        rightBgColor = sharedPreferences.getString(BotResponse.BUBBLE_RIGHT_BG_COLOR, "#3F51B5");
         GradientDrawable leftDrawable = (GradientDrawable) ResourcesCompat.getDrawable(view.getContext().getResources(), R.drawable.theme1_left_bubble_bg, view.getContext().getTheme());
 
         if (leftDrawable != null) {
@@ -123,7 +124,7 @@ public class MediaTemplateHolder extends BaseViewHolder {
         PayloadOuter payloadOuter = getPayloadOuter(baseBotMessage);
         PayloadInner payloadInner = getPayloadInner(baseBotMessage);
         if (payloadInner == null) return;
-        tvDownload.setTextColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
+        tvDownload.setTextColor(Color.parseColor(rightBgColor));
 
         switch (payloadOuter.getType()) {
             case BundleConstants.MEDIA_TYPE_IMAGE:
@@ -147,6 +148,8 @@ public class MediaTemplateHolder extends BaseViewHolder {
                             .into(new DrawableImageViewTarget(ivImage));
                     tvDownload.setOnClickListener(view -> {
                         DownloadUtils.downloadFile(view.getContext(), payloadInner.getUrl(), null);
+//                        if (invokeGenericWebViewInterface != null)
+//                            invokeGenericWebViewInterface.invokeGenericWebView(payloadInner.getUrl());
                     });
                 }
                 break;
@@ -169,7 +172,7 @@ public class MediaTemplateHolder extends BaseViewHolder {
                         player.setDataSource(itemView.getContext(), uri);
                         player.prepareAsync();
                     } catch (Exception e) {
-                        LogUtils.e("Audio Player Pass", String.valueOf(e));
+                        e.printStackTrace();
                     }
                 } else if (!StringUtils.isNullOrEmpty(payloadInner.getUrl())) {
                     try {
@@ -178,7 +181,7 @@ public class MediaTemplateHolder extends BaseViewHolder {
                         player.setDataSource(itemView.getContext(), uri);
                         player.prepareAsync();
                     } catch (Exception e) {
-                        LogUtils.e("Audio Player Pass", String.valueOf(e));
+                        e.printStackTrace();
                     }
                 }
 
@@ -197,7 +200,7 @@ public class MediaTemplateHolder extends BaseViewHolder {
                         try {
                             player.start();
                         } catch (Exception e) {
-                            LogUtils.e("Audio Player Pass", String.valueOf(e));
+                            e.printStackTrace();
                         }
                         v.setTag(false);
                     } else {
@@ -205,7 +208,7 @@ public class MediaTemplateHolder extends BaseViewHolder {
                         try {
                             player.pause();
                         } catch (Exception e) {
-                            LogUtils.e("Audio Player Pass", String.valueOf(e));
+                            e.printStackTrace();
                         }
                         v.setTag(true);
                     }
@@ -350,12 +353,11 @@ public class MediaTemplateHolder extends BaseViewHolder {
             public void run() {
                 try {
                     currentPos = vvAttachment.getCurrentPosition();
-                    String video_timing = StringUtils.timeConversion((long) currentPos) + "/" + StringUtils.timeConversion((long) totalDuration);
-                    tvVideoTiming.setText(video_timing);
+                    tvVideoTiming.setText(StringUtils.timeConversion((long) currentPos) + "/" + StringUtils.timeConversion((long) totalDuration));
                     sbVideo.setProgress((int) currentPos);
                     handler.postDelayed(this, 1000);
                 } catch (IllegalStateException ed) {
-                    LogUtils.e("Video Progress", String.valueOf(ed));
+                    ed.printStackTrace();
                 }
             }
         };
@@ -393,12 +395,11 @@ public class MediaTemplateHolder extends BaseViewHolder {
             public void run() {
                 try {
                     currentAudioPos = player.getCurrentPosition();
-                    String video_timing = StringUtils.timeConversion((long) currentAudioPos) + "/" + StringUtils.timeConversion((long) totalAudioDuration);
-                    tvAudioVideoTiming.setText(video_timing);
+                    tvAudioVideoTiming.setText(StringUtils.timeConversion((long) currentAudioPos) + "/" + StringUtils.timeConversion((long) totalAudioDuration));
                     sbAudioVideo.setProgress((int) currentAudioPos);
                     handler.postDelayed(this, 1000);
                 } catch (IllegalStateException ed) {
-                    LogUtils.e("Audio Progress", String.valueOf(ed));
+                    ed.printStackTrace();
                 }
             }
         };

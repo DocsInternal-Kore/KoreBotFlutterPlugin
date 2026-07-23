@@ -42,10 +42,10 @@ public class ListViewTemplateAdapter extends RecyclerView.Adapter<ListViewTempla
     private final Context context;
 
     public ListViewTemplateAdapter(Context context, List<BotListModel> botListModels, boolean isEnabled, int size) {
+        this.context = context;
         this.botListModels = botListModels;
         this.isEnabled = isEnabled;
         this.size = size;
-        this.context = context;
     }
 
     @NonNull
@@ -78,7 +78,8 @@ public class ListViewTemplateAdapter extends RecyclerView.Adapter<ListViewTempla
         holder.botListItemTitle.setTypeface(null, Typeface.BOLD);
         holder.botListItemCost.setText(botListModel.getValue());
 
-        if (botListModel.getColor() != null) holder.botListItemCost.setTextColor(Color.parseColor(botListModel.getColor()));
+        if (botListModel.getColor() != null)
+            holder.botListItemCost.setTextColor(Color.parseColor(botListModel.getColor()));
 
         holder.botListItemCost.setTypeface(null, Typeface.BOLD);
 
@@ -113,7 +114,7 @@ public class ListViewTemplateAdapter extends RecyclerView.Adapter<ListViewTempla
         return botListModels != null ? botListModels.get(position) : null;
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
         LinearLayout botListItemRoot;
         ImageView botListItemImage;
         TextView botListItemTitle;

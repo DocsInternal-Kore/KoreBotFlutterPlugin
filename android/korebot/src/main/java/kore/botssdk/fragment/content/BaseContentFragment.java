@@ -1,6 +1,5 @@
 package kore.botssdk.fragment.content;
 
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.View;
 
@@ -24,14 +23,17 @@ import kore.botssdk.adapter.ChatAdapter;
 import kore.botssdk.listener.BotContentFragmentUpdate;
 import kore.botssdk.listener.ComposeFooterInterface;
 import kore.botssdk.listener.InvokeGenericWebViewInterface;
+import kore.botssdk.listener.TTSUpdate;
 import kore.botssdk.models.BaseBotMessage;
+import kore.botssdk.models.BotBrandingModel;
 import kore.botssdk.models.BotRequest;
 import kore.botssdk.models.BotResponse;
 import kore.botssdk.models.ComponentModel;
 import kore.botssdk.models.PayloadInner;
 import kore.botssdk.models.PayloadOuter;
+import kore.botssdk.models.QuickReplyTemplate;
 import kore.botssdk.net.SDKConfiguration;
-import kore.botssdk.repository.history.HistoryRepository;
+import kore.botssdk.utils.BundleUtils;
 import kore.botssdk.utils.StringUtils;
 import kore.botssdk.viewmodels.content.BotContentViewModel;
 import kore.botssdk.viewmodels.content.BotContentViewModelFactory;
@@ -39,62 +41,59 @@ import kore.botssdk.websocket.SocketWrapper;
 
 @SuppressWarnings("UnKnownNullness")
 public abstract class BaseContentFragment extends Fragment implements BotContentFragmentUpdate {
+    private final int limit = 10;
     protected ChatAdapter botsChatAdapter;
     protected ComposeFooterInterface composeFooterInterface;
     protected InvokeGenericWebViewInterface invokeGenericWebViewInterface;
-    private boolean fetching = false;
+    protected String mChannelIconURL;
+    protected String mBotNameInitials;
+    protected int mBotIconId;
+    protected boolean fetching = false;
     protected SwipeRefreshLayout swipeRefreshLayout;
+    protected int offset = 0;
     protected String jwt;
     protected BotContentViewModel mContentViewModel;
+    protected TTSUpdate ttsUpdate;
+
+    private static Calendar getClearedUtc() {
+        Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        utc.clear();
+        return utc;
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        botsChatAdapter = getChatAdapter();
+        getBundleInfo();
+        botsChatAdapter = new ChatAdapter();
+        botsChatAdapter.setComposeFooterInterface(composeFooterInterface);
+        botsChatAdapter.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
+        BotContentViewModelFactory factory = new BotContentViewModelFactory(requireActivity(), BaseContentFragment.this);
+        mContentViewModel = new ViewModelProvider(this, factory).get(BotContentViewModel.class);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        BotContentViewModelFactory factory = new BotContentViewModelFactory(requireActivity(), BaseContentFragment.this, new HistoryRepository(requireActivity(), BaseContentFragment.this));
-        mContentViewModel = new ViewModelProvider(this, factory).get(BotContentViewModel.class);
-        botsChatAdapter.setComposeFooterInterface(composeFooterInterface);
-        botsChatAdapter.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
         swipeRefreshLayout = getSwipeRefreshLayout(view);
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            if (botsChatAdapter != null) loadChatHistory(botsChatAdapter.getItemCount(), limit);
+            else loadChatHistory(0, limit);
+        });
     }
-
-    protected abstract ChatAdapter getChatAdapter();
-
-    protected abstract SwipeRefreshLayout getSwipeRefreshLayout(View view);
 
     public void setJwtTokenForWebHook(String jwt) {
         if (!StringUtils.isNullOrEmpty(jwt)) this.jwt = jwt;
     }
 
-    public abstract void changeThemeBackGround(String bgColor, String textBgColor, String textColor, String botName);
-
-    public abstract void showTypingStatus();
-
-    public abstract void stopTypingStatus();
-
-    public abstract void setQuickRepliesIntoFooter(BotResponse botResponse);
-
-    public abstract void addMessageToBotChatAdapter(BotResponse botResponse);
-
-    public abstract void addStreamingMessage(String message);
-
-    public abstract void addMessagesToBotChatAdapter(ArrayList<BaseBotMessage> list, boolean scrollToBottom);
-
-    public abstract void addMessagesToBotChatAdapter(@NonNull ArrayList<BaseBotMessage> list, boolean scrollToBottom, boolean isFirst);
-
-    public abstract void updateContentListOnSend(BotRequest botRequest);
-
-    public abstract void updateMessageStatus(BotRequest botRequest);
+    public void setTtsUpdate(TTSUpdate ttsUpdate) {
+        this.ttsUpdate = ttsUpdate;
+    }
 
     public void setComposeFooterInterface(ComposeFooterInterface composeFooterInterface) {
-        this.composeFooterInterface = composeFooterInterface;
         if (botsChatAdapter != null)
             botsChatAdapter.setComposeFooterInterface(composeFooterInterface);
+        this.composeFooterInterface = composeFooterInterface;
     }
 
     public void setInvokeGenericWebViewInterface(InvokeGenericWebViewInterface invokeGenericWebViewInterface) {
@@ -103,10 +102,24 @@ public abstract class BaseContentFragment extends Fragment implements BotContent
             botsChatAdapter.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
     }
 
-    public int getAdapterCount() {
-        if (botsChatAdapter != null) return botsChatAdapter.getItemCount();
-        return 0;
+    private void getBundleInfo() {
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            mChannelIconURL = bundle.getString(BundleUtils.CHANNEL_ICON_URL);
+            mBotNameInitials = bundle.getString(BundleUtils.BOT_NAME_INITIALS, "B");
+            mBotIconId = bundle.getInt(BundleUtils.BOT_ICON_ID, -1);
+        }
     }
+
+    public abstract void setBotBrandingModel(BotBrandingModel botBrandingModel);
+
+    protected abstract SwipeRefreshLayout getSwipeRefreshLayout(View view);
+
+    public abstract void showTypingStatus();
+
+    public abstract void stopTypingStatus();
+
+    public abstract void setQuickRepliesIntoFooter(BotResponse botResponse);
 
     public void showCalendarIntoFooter(BotResponse botResponse) {
         if (botResponse != null && botResponse.getMessage() != null && !botResponse.getMessage().isEmpty()) {
@@ -189,8 +202,6 @@ public abstract class BaseContentFragment extends Fragment implements BotContent
                                     formatedStartDate = ((strDay + 1) > 9 ? (strDay + 1) : "0" + (strDay + 1)) + "-" + ((strMonth + 1) > 9 ? (strMonth + 1) : "0" + (strMonth + 1)) + "-" + strYear;
                                     formatedEndDate = ((endDay + 1) > 9 ? (endDay + 1) : "0" + (endDay + 1)) + "-" + ((endMonth + 1) > 9 ? (endMonth + 1) : "0" + (endMonth + 1)) + "-" + endYear;
                                 }
-//                                String formatedStartDate = ((strDay + 1) > 9 ? (strDay + 1) : "0" + (strDay + 1)) + "-" + ((strMonth + 1) > 9 ? (strMonth + 1) : "0" + (strMonth + 1)) + "-" + strYear;
-//                                String formatedEndDate = ((endDay + 1) > 9 ? (endDay + 1) : "0" + (endDay + 1)) + "-" + ((endMonth + 1) > 9 ? (endMonth + 1) : "0" + (endMonth + 1)) + "-" + endYear;
                                 formatedStartDate = formatedStartDate + " to " + formatedEndDate;
                                 composeFooterInterface.onSendClick(formatedStartDate, false);
                             });
@@ -203,6 +214,35 @@ public abstract class BaseContentFragment extends Fragment implements BotContent
         }
     }
 
+    protected ArrayList<QuickReplyTemplate> getQuickReplies(BotResponse botResponse) {
+        ArrayList<QuickReplyTemplate> quickReplyTemplates = null;
+        if (botResponse != null && botResponse.getMessage() != null && !botResponse.getMessage().isEmpty()) {
+            ComponentModel compModel = botResponse.getMessage().get(0).getComponent();
+            if (compModel != null) {
+                String compType = compModel.getType();
+                if (BotResponse.COMPONENT_TYPE_TEMPLATE.equalsIgnoreCase(compType)) {
+                    PayloadOuter payOuter = compModel.getPayload();
+                    PayloadInner payInner = payOuter.getPayload();
+                    if (payInner != null && BotResponse.TEMPLATE_TYPE_QUICK_REPLIES.equalsIgnoreCase(payInner.getTemplate_type())) {
+                        quickReplyTemplates = payInner.getQuick_replies();
+                    }
+                }
+            }
+        }
+
+        return quickReplyTemplates;
+    }
+
+    public abstract void addMessageToBotChatAdapter(BotResponse botResponse);
+
+    public abstract void addStreamingMessage(String message);
+
+    public abstract void addMessagesToBotChatAdapter(ArrayList<BaseBotMessage> list, boolean scrollToBottom);
+
+    public abstract void addMessagesToBotChatAdapter(ArrayList<BaseBotMessage> list, boolean scrollToBottom, boolean isFirst);
+
+    public abstract void updateContentListOnSend(BotRequest botRequest);
+
     @Override
     public void onChatHistory(ArrayList<BaseBotMessage> list, int offset, boolean scrollToBottom) {
         fetching = false;
@@ -211,6 +251,7 @@ public abstract class BaseContentFragment extends Fragment implements BotContent
         }
 
         if (list != null) {
+            this.offset = offset;
             addMessagesToBotChatAdapter(list, scrollToBottom);
         }
     }
@@ -223,30 +264,27 @@ public abstract class BaseContentFragment extends Fragment implements BotContent
         }
 
         if (list != null) {
+            this.offset = offset;
             addMessagesToBotChatAdapter(list, true, isReconnectionHistory);
         }
     }
 
     private void initSettings() {
+        //Date Range
         long today = MaterialDatePicker.todayInUtcMilliseconds();
         Calendar calendar = getClearedUtc();
         calendar.setTimeInMillis(today);
         calendar.roll(Calendar.MONTH, 1);
+
         calendar.setTimeInMillis(today);
         calendar.set(Calendar.MONTH, Calendar.JANUARY);
         calendar.setTimeInMillis(today);
         calendar.set(Calendar.MONTH, Calendar.DECEMBER);
+
         calendar.setTimeInMillis(today);
         calendar.roll(Calendar.YEAR, 1);
     }
 
-    private static Calendar getClearedUtc() {
-        Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        utc.clear();
-        return utc;
-    }
-
-    /* Limit selectable Date range */
     public void loadChatHistory(final int _offset, final int limit) {
         if (fetching) {
             if (swipeRefreshLayout != null) {
@@ -259,15 +297,17 @@ public abstract class BaseContentFragment extends Fragment implements BotContent
             swipeRefreshLayout.setRefreshing(true);
         }
 
-        if (mContentViewModel != null && isAdded() && getActivity() != null) {
-            if (!SDKConfiguration.Client.isWebHook)
-                mContentViewModel.loadChatHistory(_offset, limit, SocketWrapper.getInstance(getActivity().getApplicationContext()).getAccessToken());
-            else mContentViewModel.loadChatHistory(_offset, limit, jwt);
-        }
+        if (!SDKConfiguration.Client.isWebHook)
+            mContentViewModel.loadChatHistory(_offset, limit, SocketWrapper.getInstance(requireActivity().getApplicationContext()).getAccessToken());
+        else mContentViewModel.loadChatHistory(_offset, limit, jwt);
     }
 
-    public void loadReconnectionChatHistory(final int _offset, final int limit)
-    {
+    public int getAdapterCount() {
+        if (botsChatAdapter != null) return botsChatAdapter.getItemCount();
+        return 0;
+    }
+
+    public void loadReconnectionChatHistory(final int _offset, final int limit) {
         if (fetching) {
             if (swipeRefreshLayout != null) {
                 swipeRefreshLayout.setRefreshing(false);
@@ -279,31 +319,17 @@ public abstract class BaseContentFragment extends Fragment implements BotContent
             swipeRefreshLayout.setRefreshing(true);
         }
 
-        if (mContentViewModel != null && isAdded() && getActivity() != null) {
-            if (!SDKConfiguration.Client.isWebHook)
-                mContentViewModel.loadReconnectionChatHistory(_offset, limit, SocketWrapper.getInstance(getActivity().getApplicationContext()).getAccessToken(), botsChatAdapter.getBaseBotMessageArrayList());
-            else
-                mContentViewModel.loadReconnectionChatHistory(_offset, limit, jwt, botsChatAdapter.getBaseBotMessageArrayList());
-        }
+        if (!SDKConfiguration.Client.isWebHook)
+            mContentViewModel.loadReconnectionChatHistory(_offset, limit, SocketWrapper.getInstance(requireActivity().getApplicationContext()).getAccessToken(), botsChatAdapter.getBaseBotMessageArrayList());
+        else
+            mContentViewModel.loadReconnectionChatHistory(_offset, limit, jwt, botsChatAdapter.getBaseBotMessageArrayList());
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        if (botsChatAdapter != null && botsChatAdapter.getItemCount() > 0) {
-            botsChatAdapter.notifyItemRangeChanged(0, botsChatAdapter.getItemCount() - 1);
-        }
-    }
+    public abstract void updateMessageStatus(BotRequest botRequest);
 
     public void deleteMessage(BaseBotMessage message) {
         if (botsChatAdapter != null && botsChatAdapter.getItemCount() > 0) {
             botsChatAdapter.deleteMessage(message);
-        }
-    }
-
-    public void clearChats() {
-        if (botsChatAdapter != null) {
-            botsChatAdapter.clearMessages();
         }
     }
 }

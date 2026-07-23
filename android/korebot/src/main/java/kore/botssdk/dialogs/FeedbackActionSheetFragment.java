@@ -28,41 +28,59 @@ import kore.botssdk.R;
 import kore.botssdk.application.AppControl;
 import kore.botssdk.listener.ComposeFooterInterface;
 import kore.botssdk.listener.InvokeGenericWebViewInterface;
+import kore.botssdk.listener.VerticalListViewActionHelper;
 import kore.botssdk.models.BotResponse;
 import kore.botssdk.models.PayloadInner;
 import kore.botssdk.utils.StringUtils;
-import kore.botssdk.viewUtils.DimensionUtil;
+import kore.botssdk.view.viewUtils.DimensionUtil;
 
 public class FeedbackActionSheetFragment extends BottomSheetDialogFragment implements View.OnClickListener{
 
+    private View view;
+    private VerticalListViewActionHelper verticalListViewActionHelper;
     ComposeFooterInterface composeFooterInterface;
     InvokeGenericWebViewInterface invokeGenericWebViewInterface;
+    private boolean isFromListMenu = false;
     private int dp1;
-    private LinearLayout llFeedbackComment;
+    private LinearLayout llCloseBottomSheet, llFeedbackComment;
+    public String getSkillName() {
+        return skillName;
+    }
     private BottomSheetDialog bottomSheetDialog;
+    private TextView tvfeedback_template_title;
     private ImageView icon_1, icon_2, icon_3, icon_4, icon_5;
+    private RatingBar rbFeedback;
+    private LinearLayout emojis;
+    private LinearLayout multiSelectLayout;
     private PayloadInner payloadInner;
     private EditText etFeedbackComment;
-    private TextView tvCommentTitle;
-    private TextView tvGlad;
+    private TextView tvFeedbackSubmit, tvCommentTitle, tvGlad;
     private int position;
     private BottomSheetBehavior bottomSheetBehavior;
     private RelativeLayout rlCommentBox;
 
+    public void setSkillName(String skillName, String trigger) {
+        this.skillName = skillName;
+        this.trigger = trigger;
+    }
+
+    private String skillName;
+    private String trigger;
     @Override
     public View onCreateView(LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.feedback_template_view, container, false);
+        view = inflater.inflate(R.layout.feedback_template_view, container,false);
         this.dp1 = (int) DimensionUtil.dp1;
-        TextView feedback_template_title = view.findViewById(R.id.tvfeedback_template_title);
-        RatingBar rbFeedback = view.findViewById(R.id.rbFeedback);
-        LinearLayout emojis = view.findViewById(R.id.emojis);
-        LinearLayout llCloseBottomSheet = view.findViewById(R.id.llCloseBottomSheet);
+        multiSelectLayout = view.findViewById(R.id.multiSelectLayout);
+        tvfeedback_template_title = view.findViewById(R.id.tvfeedback_template_title);
+        rbFeedback = view.findViewById(R.id.rbFeedback);
+        emojis = view.findViewById(R.id.emojis);
+        llCloseBottomSheet = view.findViewById(R.id.llCloseBottomSheet);
         llFeedbackComment = view.findViewById(R.id.llFeedbackComment);
         etFeedbackComment = view.findViewById(R.id.etFeedbackComment);
-        TextView tvFeedbackSubmit = view.findViewById(R.id.tvFeedbackSubmit);
+        tvFeedbackSubmit = view.findViewById(R.id.tvFeedbackSubmit);
         tvCommentTitle = view.findViewById(R.id.tvCommentTitle);
         tvGlad = view.findViewById(R.id.tvGlad);
         rlCommentBox = view.findViewById(R.id.rlCommentBox);
@@ -87,6 +105,7 @@ public class FeedbackActionSheetFragment extends BottomSheetDialogFragment imple
                 emojis.setVisibility(View.GONE);
                 rbFeedback.setVisibility(View.VISIBLE);
                 rbFeedback.setRating(payloadInner.getEmojiPosition());
+//                rbFeedback.setOnRatingBarChangeListener(onRatingBarChangeListener);
             }
             else
             {
@@ -96,40 +115,31 @@ public class FeedbackActionSheetFragment extends BottomSheetDialogFragment imple
                 loademojis(payloadInner.getEmojiPosition());
             }
 
-            feedback_template_title.setText(payloadInner.getText());
+            tvfeedback_template_title.setText(payloadInner.getText());
         }
 
-        llCloseBottomSheet.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(bottomSheetDialog != null)
-                    bottomSheetDialog.dismiss();
-            }
+        llCloseBottomSheet.setOnClickListener(v -> {
+            if(bottomSheetDialog != null)
+                bottomSheetDialog.dismiss();
         });
 
-        tvFeedbackSubmit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        tvFeedbackSubmit.setOnClickListener(v -> {
 
-                if(bottomSheetDialog != null)
-                    bottomSheetDialog.dismiss();
+            if(bottomSheetDialog != null)
+                bottomSheetDialog.dismiss();
 
-                if(!StringUtils.isNullOrEmpty(etFeedbackComment.getText().toString()))
-                    composeFooterInterface.onSendClick(position+":"+etFeedbackComment.getText().toString(), position+":"+etFeedbackComment.getText().toString(), false);
-                else
-                    composeFooterInterface.onSendClick(position+"", position+"", false);
-            }
+            if(!StringUtils.isNullOrEmpty(etFeedbackComment.getText().toString()))
+                composeFooterInterface.onSendClick(position+":"+etFeedbackComment.getText().toString(), position+":"+etFeedbackComment.getText().toString(), false);
+            else
+                composeFooterInterface.onSendClick(position+"", position+"", false);
         });
 
-        rbFeedback.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-            @Override
-            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
-                position = (int) rating;
-                payloadInner.setEmojiPosition(position);
+        rbFeedback.setOnRatingBarChangeListener((ratingBar, rating, fromUser) -> {
+            position = (int) rating;
+            payloadInner.setEmojiPosition(position);
 
-                if(fromUser)
-                    updateData();
-            }
+            if(fromUser)
+                updateData();
         });
 
         return view;
@@ -147,17 +157,13 @@ public class FeedbackActionSheetFragment extends BottomSheetDialogFragment imple
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         bottomSheetDialog = (BottomSheetDialog) super.onCreateDialog(savedInstanceState);
-        bottomSheetDialog.setOnShowListener(new DialogInterface.OnShowListener() {
-            @Override
-            public void onShow(DialogInterface dialogInterface) {
-                BottomSheetDialog d = (BottomSheetDialog) dialogInterface;
-                FrameLayout bottomSheet = d.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        bottomSheetDialog.setOnShowListener(dialogInterface -> {
+            BottomSheetDialog d = (BottomSheetDialog) dialogInterface;
+            FrameLayout bottomSheet = d.findViewById(com.google.android.material.R.id.design_bottom_sheet);
 
-                bottomSheet.getLayoutParams().height = (int) (AppControl.getInstance(getContext()).getDimensionUtil().screenHeight - 40 * dp1);
-                bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
-                bottomSheetBehavior.setPeekHeight(200 * dp1);
-            }
-
+            bottomSheet.getLayoutParams().height = (int) (AppControl.getInstance(getContext()).getDimensionUtil().screenHeight - 40 * dp1);
+            bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+            bottomSheetBehavior.setPeekHeight(200 * dp1);
         });
 
         // Do something with your dialog like setContentView() or whatever
@@ -166,6 +172,11 @@ public class FeedbackActionSheetFragment extends BottomSheetDialogFragment imple
 
     public void setData(PayloadInner payloadInner) {
         this.payloadInner = payloadInner;
+    }
+
+    public void setData(PayloadInner payloadInner, boolean isFromListMenu){
+        this.payloadInner = payloadInner;
+        this.isFromListMenu = isFromListMenu;
     }
 
     private void resetAll() {
@@ -182,6 +193,7 @@ public class FeedbackActionSheetFragment extends BottomSheetDialogFragment imple
         int id = v.getId();
         if (id == R.id.icon_1) {
             resetAll();
+            //  icon_4.setImageResource(R.drawable.feedbac_ic_emo_4);
             loademojis(0);
             position = 1;
             updateData();
@@ -233,20 +245,24 @@ public class FeedbackActionSheetFragment extends BottomSheetDialogFragment imple
         this.payloadInner.setEmojiPosition(position);
         switch (position) {
             case 0:
-                Glide.with(requireActivity()).load(R.drawable.feedback_icon_1).apply(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.NONE)).into(new DrawableImageViewTarget(icon_1));
+                Glide.with(getActivity()).load(R.drawable.feedback_icon_1).apply(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.NONE)).into(new DrawableImageViewTarget(icon_1));
                 break;
             case 1:
-                Glide.with(requireActivity()).load(R.drawable.feedback_icon_2).apply(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.NONE)).into(new DrawableImageViewTarget(icon_2));
+                Glide.with(getActivity()).load(R.drawable.feedback_icon_2).apply(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.NONE)).into(new DrawableImageViewTarget(icon_2));
                 break;
             case 2:
-                Glide.with(requireActivity()).load(R.drawable.feedback_icon_3).apply(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.NONE)).into(new DrawableImageViewTarget(icon_3));
+                Glide.with(getActivity()).load(R.drawable.feedback_icon_3).apply(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.NONE)).into(new DrawableImageViewTarget(icon_3));
                 break;
             case 3:
-                Glide.with(requireActivity()).load(R.drawable.feedback_icon_4).apply(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.NONE)).into(new DrawableImageViewTarget(icon_4));
+                Glide.with(getActivity()).load(R.drawable.feedback_icon_4).apply(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.NONE)).into(new DrawableImageViewTarget(icon_4));
                 break;
             case 4:
-                Glide.with(requireActivity()).load(R.drawable.feedback_icon_5).apply(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.NONE)).into(new DrawableImageViewTarget(icon_5));
+                Glide.with(getActivity()).load(R.drawable.feedback_icon_5).apply(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.NONE)).into(new DrawableImageViewTarget(icon_5));
                 break;
         }
+    }
+
+    public void setVerticalListViewActionHelper(VerticalListViewActionHelper verticalListViewActionHelper) {
+        this. verticalListViewActionHelper=verticalListViewActionHelper;
     }
 }

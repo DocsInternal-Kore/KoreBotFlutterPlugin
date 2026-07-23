@@ -17,6 +17,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import kore.botssdk.listener.BotContentFragmentUpdate;
+import kore.botssdk.models.AlternateTextModel;
 import kore.botssdk.models.BaseBotMessage;
 import kore.botssdk.models.BotHistory;
 import kore.botssdk.models.BotHistoryMessage;
@@ -49,13 +50,15 @@ public class HistoryRepository {
     public Observable<ServerBotMsgResponse> getHistoryRequest(final int _offset, final int limit, String jwt) {
         return Observable.create(new ObservableOnSubscribe<>() {
             @Override
-            public void subscribe(@NonNull ObservableEmitter<ServerBotMsgResponse> emitter) {
+            public void
+            subscribe(@NonNull ObservableEmitter<ServerBotMsgResponse> emitter) {
                 try {
                     ServerBotMsgResponse re = new ServerBotMsgResponse();
 
                     Call<BotHistory> _resp = RestBuilder.getRestAPI().getBotHistory("bearer " + jwt, SDKConfiguration.Client.bot_id, limit, _offset, true);
                     Response<BotHistory> rBody = _resp.execute();
                     BotHistory history = rBody.body();
+
                     if (rBody.isSuccessful() && history != null) {
                         List<BotHistoryMessage> messages = history.getMessages();
                         ArrayList<BaseBotMessage> msgs;
@@ -63,22 +66,20 @@ public class HistoryRepository {
                             msgs = new ArrayList<>();
                             for (int index = 0; index < messages.size(); index++) {
                                 BotHistoryMessage msg = messages.get(index);
+                                List<AlternateTextModel> altText = msg.getTags().getAltText();
+                                String renderMsg = altText != null && !altText.isEmpty() ? altText.get(0).getValue() : null;
                                 if (msg.getType().equals(BotResponse.MESSAGE_TYPE_OUTGOING)) {
                                     List<Component> components = msg.getComponents();
                                     String data = components.get(0).getData().getText();
-                                    if (data != null && data.isEmpty()) continue;
                                     try {
                                         PayloadOuter outer = gson.fromJson(data, PayloadOuter.class);
-                                        if(outer != null)
-                                        {
-                                            BotResponse r = Utils.buildBotMessage(outer, msg.getBotId(), SDKConfiguration.Client.bot_name, msg.getCreatedOn(), msg.getId());
-                                            r.setType(msg.getType());
-                                            r.setIcon(history.getIcon());
-                                            long timeMillis = r.getTimeInMillis(msg.getCreatedOn(), true);
-                                            r.setFormattedDate(DateUtils.formattedSentDateV6(context, timeMillis));
-                                            r.setTimeStamp(r.prepareLocaleTimeStamp(context, timeMillis));
-                                            msgs.add(r);
-                                        }
+                                        BotResponse r = Utils.buildBotMessage(outer, msg.getBotId(), SDKConfiguration.Client.bot_name, msg.getCreatedOn(), msg.getId());
+                                        r.setType(msg.getType());
+                                        r.setIcon(history.getIcon());
+                                        long timeMillis = r.getTimeInMillis(msg.getCreatedOn(), true);
+                                        r.setFormattedDate(DateUtils.formattedSentDateV6(context, timeMillis));
+                                        r.setTimeStamp(r.prepareLocaleTimeStamp(context, timeMillis));
+                                        msgs.add(r);
                                     } catch (com.google.gson.JsonSyntaxException ex) {
                                         BotResponse r = Utils.buildBotMessage(data, msg.getBotId(), SDKConfiguration.Client.bot_name, msg.getCreatedOn(), msg.getId());
                                         r.setType(msg.getType());
@@ -91,8 +92,7 @@ public class HistoryRepository {
                                 } else {
                                     try {
                                         String message = msg.getComponents().get(0).getData().getText();
-                                        message = (msg.getTags() != null && !msg.getTags().getAltText().isEmpty()) ? msg.getTags().getAltText().get(0).getValue() : message;
-                                        RestResponse.BotMessage botMessage = new RestResponse.BotMessage(message, "");
+                                        RestResponse.BotMessage botMessage = new RestResponse.BotMessage(message, renderMsg);
                                         RestResponse.BotPayLoad botPayLoad = new RestResponse.BotPayLoad();
                                         botPayLoad.setMessage(botMessage);
                                         BotInfoModel botInfo = new BotInfoModel(SDKConfiguration.Client.bot_name, SDKConfiguration.Client.bot_id, null);

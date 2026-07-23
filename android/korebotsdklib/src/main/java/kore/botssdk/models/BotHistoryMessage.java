@@ -1,10 +1,7 @@
 package kore.botssdk.models;
 
+import java.util.ArrayList;
 import java.util.List;
-
-/**
- * Created by Ramachandra Pradeep on 03-Oct-18.
- */
 
 public class BotHistoryMessage {
     private String _id;
@@ -22,14 +19,6 @@ public class BotHistoryMessage {
     private String resourceid;
     private String lmodifiedBy;
     private TagsModel tags;
-
-    public TagsModel getTags(){
-        return tags;
-    }
-
-    public void setTags(TagsModel model){
-        tags = model;
-    }
 
     public String getId() {
         return _id;
@@ -141,5 +130,13 @@ public class BotHistoryMessage {
 
     public void setLmodifiedBy(String lmodifiedBy) {
         this.lmodifiedBy = lmodifiedBy;
+    }
+
+    public TagsModel getTags() {
+        return tags;
+    }
+
+    public void setTags(TagsModel tags) {
+        this.tags = tags;
     }
 }

@@ -32,7 +32,7 @@ import kore.botssdk.listener.InvokeGenericWebViewInterface;
 import kore.botssdk.models.AdvancedListModel;
 import kore.botssdk.models.BotResponse;
 import kore.botssdk.utils.StringUtils;
-import kore.botssdk.viewUtils.DimensionUtil;
+import kore.botssdk.view.viewUtils.DimensionUtil;
 
 @SuppressLint("UnknownNullness")
 public class AdvancedListActionSheetFragment extends BottomSheetDialogFragment {
@@ -88,12 +88,9 @@ public class AdvancedListActionSheetFragment extends BottomSheetDialogFragment {
         lvMoreData.setAdapter(botListTemplateAdapter);
         botListTemplateAdapter.notifyDataSetChanged();
 
-        llCloseBottomSheet.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(bottomSheetDialog != null)
-                    bottomSheetDialog.dismiss();
-            }
+        llCloseBottomSheet.setOnClickListener(v -> {
+            if(bottomSheetDialog != null)
+                bottomSheetDialog.dismiss();
         });
         return view;
 

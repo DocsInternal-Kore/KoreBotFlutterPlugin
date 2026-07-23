@@ -26,11 +26,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:contentDescription="@string/kore_login_icon"
-            app:srcCompat="@mipmap/ic_notification" />
+            android:contentDescription="kore_login_icon"
+            app:srcCompat="@drawable/ic_launcher" />
 
 
-        <kore.botssdk.view.CustomTextView
+        <TextView
             android:id="@+id/syncDialogPreparingDeviceTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -38,12 +38,12 @@
             android:layout_centerHorizontal="true"
             android:layout_marginTop="25dp"
             android:tag="medium"
-            android:text="@string/loading_data"
+            android:text="Loading data..."
             android:textColor="#4741fa"
-            android:textSize="20sp" />
+            android:textSize="20dp" />
 
 
-        <kore.botssdk.view.CustomTextView
+        <TextView
             android:id="@+id/syncDialogLoadingTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -53,7 +53,7 @@
             android:tag="regular"
             android:text=""
             android:textColor="#4741fa"
-            android:textSize="@dimen/text_size_sub_header" />
+            android:textSize="16dp" />
 
 
         <include

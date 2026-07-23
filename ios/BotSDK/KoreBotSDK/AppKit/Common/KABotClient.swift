@@ -16,9 +16,6 @@ public protocol KABotClientDelegate: AnyObject {
     func botConnection(with connectionState: BotClientConnectionState)
     func showTypingStatusForBot()
     func hideTypingStatusForBot()
-    
-    func showTopLoader()
-    func stopTopLoader()
 }
 
 open class KABotClient: NSObject {
@@ -72,9 +69,13 @@ open class KABotClient: NSObject {
         }
     }
     open weak var delegate: KABotClientDelegate?
-    
     var lastReceivedMessageId: String  = ""
     var isAgentHisotryApi = false
+    /// Streaming state: messageId for the message being streamed (sM → endChunk).
+    private var streamingMessageId: String?
+    /// Accumulated text for the current streaming message.
+    private var streamingAccumulatedText: String = ""
+
     // MARK: - init
     public override init() {
         super.init()
@@ -94,9 +95,9 @@ open class KABotClient: NSObject {
         }
         var limit = 0
         if isShowWelcomeMsg{
-            RemovedTemplateCount = 0
+            removedTemplateCount = 0
             historyLimit = 0
-            limit = 1
+            limit = 0
         }else{
             limit = historyLimit
             if limit == 0{
@@ -152,7 +153,7 @@ open class KABotClient: NSObject {
     // MARK: - connect/reconnect - tries to reconnect the bot when isConnected is false
     @objc func tryConnect() {
         let delayInMilliSeconds = 250
-        let delayInSeconds = 2
+        let delayInSeconds = 3
         botClientQueue.asyncAfter(deadline: .now() + .milliseconds(delayInMilliSeconds)) { [weak self] in
             if self?.isConnected == true {
                 self?.retryCount = 0
@@ -169,10 +170,10 @@ open class KABotClient: NSObject {
                         weakSelf.retryCount += 1
                     }
                     weakSelf.connect(block: {(client, thread) in
-                        //print("BotConnnect")
                     }, failure:{(error) in
                         self?.isConnecting = false
                         self?.isConnected = false
+                        
                         if weakSelf.retryCount <= 4{
                             if isTryConnect{
                                 self?.tryConnect()
@@ -191,6 +192,7 @@ open class KABotClient: NSObject {
     public func sendMessage(_ message: String, options: [String: Any]?) {
         botClient.sendMessage(message, options: options)
     }
+    //NotificationCenter.default.post(name: Notification.Name("StopTyping"), object: nil)
     // methods
     func configureBotClient() {
         // events
@@ -209,16 +211,15 @@ open class KABotClient: NSObject {
                 //self?.sendMessage("Welpro", options: nil)
                 //NotificationCenter.default.post(name: Notification.Name("StartTyping"), object: nil)
             }
-            
             DispatchQueue.main.async {
                 for _ in 0..<notDeliverdMsgsArray.count{
                     self?.sendMessage(notDeliverdMsgsArray[0], options: nil)
                     notDeliverdMsgsArray.remove(at: 0)
                 }
                 self?.getAgentRecentHistoryOrLoadReconnectionHistory()
-                self?.delegate?.stopTopLoader()
             }
         }
+       
         
         botClient.connectionReady = {
             
@@ -233,8 +234,8 @@ open class KABotClient: NSObject {
                     weakSelf.delegate?.botConnection(with: weakSelf.connectionState)
                 }
             }
+            self?.tryConnect()
             NotificationCenter.default.post(name: Notification.Name("StopTyping"), object: nil)
-            self?.delegate?.showTopLoader()
         }
         
         botClient.connectionDidFailWithError = { [weak self] (error) in
@@ -253,28 +254,76 @@ open class KABotClient: NSObject {
         botClient.onMessage = { [weak self] (object) in
             history = false
             isShowWelcomeMsg = false
-            if self?.thread != nil{
-                let message = self?.onReceiveMessage(object: object)
-                self?.addMessages(message?.0, message?.1)
+            guard let self = self, self.thread != nil else { return }
+            let streamStart = object?.streamStart == true
+            let endChunk = object?.endChunk == true
+            let chunkText = self.chunkText(from: object)
+            let msgId = object?.messageId ?? ""
+            if streamStart {
+                self.streamingMessageId = msgId
+                self.streamingAccumulatedText += chunkText ?? ""
+                let message = self.streamingStartMessage(object: object, initialText: self.streamingAccumulatedText)
+                if let m = message {
+                    self.addStreamingMessage(m)
+                }
+                NotificationCenter.default.post(name: Notification.Name("StopTyping"), object: nil)
+                if let sid = self.streamingMessageId, sid == msgId {
+                    if endChunk {
+                        let finalText = object?.completeResponse ?? self.streamingAccumulatedText
+                        self.streamingMessageId = nil
+                        self.streamingAccumulatedText = ""
+                        if !finalText.isEmpty {
+                            DispatchQueue.main.async {
+                                DataStoreManager.sharedManager.updateComponentDescriptionOnMainContext(messageId: msgId, newDescription: finalText) { success in
+                                    if success {
+                                        NotificationCenter.default.post(name: Notification.Name(streamingMessageDidUpdateNotification), object: nil, userInfo: ["messageId": msgId, "text": finalText])
+                                    }
+                                    NotificationCenter.default.post(name: Notification.Name("StopTyping"), object: nil)
+                                    NotificationCenter.default.post(name: Notification.Name(startSpeakingNotification), object: finalText)
+                                }
+                            }
+                        }
+                        return
+                    }
+                    if let append = chunkText {
+                        let textToShow = self.streamingAccumulatedText
+                        DispatchQueue.main.async {
+                            DataStoreManager.sharedManager.updateComponentDescriptionOnMainContext(messageId: msgId, newDescription: textToShow) { success in
+                                if success {
+                                    NotificationCenter.default.post(name: Notification.Name(streamingMessageDidUpdateNotification), object: nil, userInfo: ["messageId": msgId, "text": textToShow])
+                                }
+                            }
+                        }
+                    }
+                    return
+                }
+                return
+            }
+            let message = self.onReceiveMessage(object: object)
+            if !isRemoveTemplate{
+                self.addMessages(message.0, message.1)
             }
         }
         
         botClient.onMessageAck = { (ack) in
             
         }
-        
-        botClient.onUserMessageReceived = { [weak self] (object) in
+        botClient.onUserMessageReceived = {  (object) in
             if let message = object["message"] as? [String:Any]{
-                if let agentTyping = message["type"] as? String{
-                    if agentTyping == "typing"{
+                if let type = message["type"] as? String{
+                    if type == "typing"{
                         NotificationCenter.default.post(name: Notification.Name("StartTyping"), object: nil)
-                    }else{
+                    }else if type == "call_agent_webrtc"{
+                        //callFromAgentData = message
+                        let jsonStr = Utilities.stringFromJSONObject(object: message)
+                        NotificationCenter.default.post(name: Notification.Name(callFromAgentNotification), object: jsonStr)
+                    } else{
                         NotificationCenter.default.post(name: Notification.Name("StopTyping"), object: nil)
                     }
                 }
             }
-           /* if let type = object["type"] as? String, type == "user_messages"{
-                if self?.thread != nil{
+            if let type = object["type"] as? String, type == "user_messages"{
+                if self.thread != nil{
                     if let messages = object["message"] as? [String:Any]{
                         if let body = messages["body"] as? String{
                             let message: Message = Message()
@@ -289,24 +338,23 @@ open class KABotClient: NSObject {
                             message.addComponent(textComponent)
                             arrayOfSelectedBtnIndex.insert(1000, at: 0)
                             historyLimit += 1
-                            self?.addMessages(message, nil)
+                            self.addMessages(message, nil)
                         }
                     }
                     
                 }
-            }*/
+            }
         }
     }
     func addMessages(_ message: Message?, _ ttsBody: String?) {
+       // NotificationCenter.default.post(name: Notification.Name("StartTyping"), object: nil) //showTypingStatusForBot()
         if let m = message, m.components.count > 0 {
             let delayInMilliSeconds = 500
             DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(delayInMilliSeconds)) {
-                if self.thread != nil{
-                    let dataStoreManager = DataStoreManager.sharedManager
-                    dataStoreManager.createNewMessageIn(thread: self.thread, message: m, completion: { (success) in
-                        
-                    })
-                }
+                let dataStoreManager = DataStoreManager.sharedManager
+                dataStoreManager.createNewMessageIn(thread: self.thread, message: m, completion: { (success) in
+                    
+                })
                 
                 if let tts = ttsBody {
                     NotificationCenter.default.post(name: Notification.Name(startSpeakingNotification), object: tts)
@@ -315,9 +363,23 @@ open class KABotClient: NSObject {
         }
     }
     
+    private func addStreamingMessage(_ message: Message) {
+        guard message.components.count > 0, let thread = self.thread, let messageId = message.messageId else { return }
+        let dataStoreManager = DataStoreManager.sharedManager
+        let initialText = (message.components.firstObject as? Component)?.payload as? String ?? ""
+        dataStoreManager.createNewMessageIn(thread: thread, message: message) { _ in
+            DispatchQueue.main.async {
+                var userInfo: [String: Any] = ["messageId": messageId]
+                if !initialText.isEmpty { userInfo["text"] = initialText }
+                NotificationCenter.default.post(name: Notification.Name(streamingMessageDidUpdateNotification), object: nil, userInfo: userInfo)
+            }
+        }
+    }
+
+    
     func deConfigureBotClient() {
         // events
-        socketDisconnect()
+        botClient.disconnect()
         botClient.connectionWillOpen = nil
         botClient.connectionDidOpen = nil
         botClient.connectionReady = nil
@@ -326,10 +388,6 @@ open class KABotClient: NSObject {
         botClient.onMessage = nil
         botClient.onMessageAck = nil
         botClient.onUserMessageReceived = nil
-    }
-    
-    func socketDisconnect() {
-        botClient.disconnect()
     }
     
     // MARK: -
@@ -384,7 +442,7 @@ open class KABotClient: NSObject {
         else if (templateType == "tableList") {
             return .tableList
         }
-        else if (templateType == "daterange" || templateType == "dateTemplate") {
+        else if (templateType == "daterange" || templateType == "dateTemplate" || templateType == "clockTemplate") {
             return .calendarView
         }
         else if (templateType == "quick_replies_welcome" || templateType == "button"){
@@ -414,17 +472,66 @@ open class KABotClient: NSObject {
             return .advancedListTemplate
         }else if (templateType == "cardTemplate"){
             return .cardTemplate
+        }else if (templateType == "stacked"){
+            return .stackedCarousel
+        }else if templateType == "advanced_multi_select"{
+            return .advanced_multi_select
+        }else if templateType == "radioOptionTemplate"{
+            return .radioOptionTemplate
         }else if templateType == "quick_replies_top"{
             return .quick_replies_top
         }
-        else if templateType == "text"{
+        else if templateType == "articleTemplate"{
+            return .articleTemplate
+        }else if templateType == "answerTemplate"{
+            return .answerTemplate
+        }else if templateType == "otpValidationTemplate" || templateType == "resetPinTemplate"{
+            return .OtpOrResetTemplate
+        }else if templateType == "digitalForm"{
+            return .digital_form
+        }else if templateType == "text"{
             return .text
         }
         return .noTemplate
     }
     
+    private func chunkText(from object: BotMessageModel?) -> String? {
+        guard let messages = object?.messages, let first = messages.first,
+              let payload = first.component?.payload as? [String: Any] else { return nil }
+        return payload["text"] as? String
+    }
+
+    private func streamingStartMessage(object: BotMessageModel?, initialText: String) -> Message? {
+        guard let object = object else { return nil }
+        let message = Message()
+        message.messageType = .reply
+        if let type = object.type, type == "incoming" { message.messageType = .default }
+        message.sentDate = object.createdOn
+        message.messageId = object.messageId
+        if let iconUrl = object.iconUrl {
+            message.iconUrl = iconUrl
+            botHistoryIcon = iconUrl
+        } else {
+            message.iconUrl = botHistoryIcon
+        }
+        lastReceivedMessageId = object.messageId ?? ""
+        if !history { arrayOfSelectedBtnIndex.insert(1000, at: 0) }
+        if !history, SDKConfiguration.botConfig.enableAckDelivery, let key = object.botkey, let timeStamp = object.timestamp {
+            let ackDic: [String: Any] = [
+                "clientMessageId": timeStamp as Any, "type": "ack", "replyto": timeStamp as Any,
+                "status": "delivered", "key": key as Any, "id": timeStamp as Any]
+            botClient.sendACK(ackDic: ackDic)
+        }
+        if !history, !isAgentHisotryApi { historyLimit += 1 }
+        let textComponent = Component()
+        textComponent.payload = initialText
+        message.addComponent(textComponent)
+        return message
+    }
+
     
     func onReceiveMessage(object: BotMessageModel?) -> (Message?, String?) {
+        isRemoveTemplate = false
         NotificationCenter.default.post(name: Notification.Name("StopTyping"), object: nil) //hideTypingStatusForBot()
         var ttsBody: String?
         var textMessage: Message! = nil
@@ -468,10 +575,8 @@ open class KABotClient: NSObject {
             
             if !isAgentHisotryApi{
                 historyLimit += 1
-                if isAgentConnect{
-                    //self.botClient.sendEventToAgentChat(eventName: "message_delivered", messageId: message.messageId)
-                    self.botClient.sendEventToAgentChat(eventName: "message_read", messageId: message.messageId)
-                }
+                //self.botClient.sendEventToAgentChat(eventName: "message_delivered", messageId: message.messageId)
+                self.botClient.sendEventToAgentChat(eventName: "message_read", messageId: message.messageId)
             }
         }
         
@@ -491,8 +596,9 @@ open class KABotClient: NSObject {
                     textComponent.payload = text
                     ttsBody = text
                     
-                    if text.contains("use a web form")  {
-
+                    if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty  {
+                        isRemoveTemplate = true
+                        removedTemplateCount  += 1
                     }
                     message.addComponent(textComponent)
                     return (message, ttsBody)
@@ -507,6 +613,18 @@ open class KABotClient: NSObject {
                         return (message, ttsBody)
                     }
                 }
+            case "message":
+                if let payload = componentModel.payload as? [String: Any] {
+                    if let dictionary = payload["payload"] as? [String: Any],dictionary.keys.contains("audioUrl") {
+                        let optionsComponent: Component = Component(.audio)
+                        optionsComponent.payload = Utilities.stringFromJSONObject(object: dictionary)
+                        message.sentDate = object?.createdOn
+                        message.addComponent(optionsComponent)
+                        return (message, ttsBody)
+                    }else{
+                        return (nil, ttsBody)
+                    }
+                }
             case "template":
                 if let payload = componentModel.payload as? [String: Any] {
                     let type = payload["type"] as? String ?? ""
@@ -517,35 +635,62 @@ open class KABotClient: NSObject {
                     case "template":
                         if let dictionary = payload["payload"] as? [String: Any] {
                             var templateType = dictionary["template_type"] as? String ?? ""
+                            
+                            if templateType == "carousel"{
+                                if dictionary["carousel_type"] as? String ?? ""  == "stacked"{
+                                    templateType = "stacked"
+                                }
+                            }
                             var tabledesign = "responsive"
                             if let value = dictionary["table_design"] as? String {
                                 tabledesign = value
                             }
-
-                            if !isShowQuickRepliesBottom{
-                                if templateType == "quick_replies"{
+                            if templateType == "quick_replies"{
+                                if !isShowQuickRepliesBottom{
                                     templateType = "quick_replies_top"
                                 }
+                                if let stackedBtns = dictionary["stackedButtons"] as? Bool, !stackedBtns{
+                                    quickRepliesIsHorizontal = true
+                                }
                             }
-                            
                             if templateType == "mini_table"{
                                 if let layOut = dictionary["layout"] as? String, layOut == "horizontal"{
                                     templateType = "mini_table_horizontal"
                                 }
                             }
-                            
-                            let componentType = getComponentType(templateType, tabledesign)
-                            if componentType != .quickReply {
-                                
-                            }
                             if templateType == "feedbackTemplate"{
                                 if !history{
                                     feedBackTemplateSelectedValue = ""
                                 }
+                            }else if templateType == "otpValidationTemplate" || templateType == "resetPinTemplate"{
+                                //isRemoveTemplate = true
+                                if !history{
+                                    let otpStr = Utilities.stringFromJSONObject(object: dictionary)
+                                    let otptemplateType = templateType
+                                    if otptemplateType == "resetPinTemplate"{
+                                        NotificationCenter.default.post(name: Notification.Name(resetpinTemplateNotification), object: otpStr)
+                                    }else if otptemplateType == "passwordReset" {
+                                       // NotificationCenter.default.post(name: Notification.Name(resetPasswordTemplateNotification), object: otpStr)
+                                    }else{
+                                        NotificationCenter.default.post(name: Notification.Name(otpValidationTemplateNotification), object: otpStr)
+                                    }
+                                }else{
+                                    //OTPValidationRemoveCount += 1
+                                }
+                            }else if templateType == "button"{
+                                if let formDataDic = payload["formData"] as? [String: Any] {
+                                    if let formLink = formDataDic["formLink"] as? String{
+                                        templateType = "digitalForm"
+                                    }
+                                }
+                            }
+                            let componentType = getComponentType(templateType, tabledesign)
+                            if componentType != .quickReply {
+                                
                             }
                             
                             ttsBody = dictionary["speech_hint"] != nil ? dictionary["speech_hint"] as? String : nil
-                            if let tText = dictionary["text"] as? String, tText.count > 0 && (componentType == .carousel || componentType == .chart || componentType == .table || componentType == .minitable || componentType == .responsiveTable) {
+                            if let tText = dictionary["text"] as? String, tText.count > 0 && (componentType == .carousel || componentType == .chart || componentType == .table || componentType == .minitable || componentType == .responsiveTable || componentType == .minitable_Horizontal) {
                                 textMessage = Message()
                                 textMessage?.messageType = .reply
                                 textMessage?.sentDate = message.sentDate
@@ -571,7 +716,11 @@ open class KABotClient: NSObject {
                                message.addComponent(textComponent)
                            }else{
                             let optionsComponent: Component = Component(componentType)
-                            optionsComponent.payload = Utilities.stringFromJSONObject(object: dictionary)
+                               if templateType == "digitalForm"{
+                                   optionsComponent.payload = Utilities.stringFromJSONObject(object: payload)
+                               }else{
+                                   optionsComponent.payload = Utilities.stringFromJSONObject(object: dictionary)
+                               }
                             message.sentDate = object?.createdOn
                             message.addComponent(optionsComponent)
                            }
@@ -670,14 +819,14 @@ open class KABotClient: NSObject {
         } else {
             identity = SDKConfiguration.botConfig.identity
         }
-        var connectionCustomData = SDKConfiguration.botConfig.customData
-        connectionCustomData["interactiveLanguage"] = SDKConfiguration.botConfig.preferredLanguage
-        let botInfo: [String: Any] = [
-            "chatBot": chatBotName,
-            "taskBotId": botId,
-            "customData": connectionCustomData
-        ]
         
+        var botInfo: [String: Any] = [:]
+        if SDKConfiguration.botConfig.customData.isEmpty{
+            botInfo = ["chatBot": chatBotName, "taskBotId": botId]
+        }else{
+            let customData: [String: Any] = SDKConfiguration.botConfig.customData
+            botInfo = ["chatBot": chatBotName, "taskBotId": botId,"customData": customData]
+        }
         if let jwToken = SDKConfiguration.botConfig.customJWToken as? String, jwToken != ""{
             let dataStoreManager: DataStoreManager = DataStoreManager.sharedManager
             let context = dataStoreManager.coreDataManager.workerContext
@@ -706,6 +855,7 @@ open class KABotClient: NSObject {
                                 }else{
                                     self?.botClient.connect(isReconnect: true)
                                 }
+                                
                             })
                         }, success: { (client) in
                             self.botClient = client!
@@ -816,7 +966,7 @@ open class KABotClient: NSObject {
     }
     
     func fetachWebhookHistory(){
-        self.webhookHistoryApi(10,offset: 0 ,success: { [weak self] (responseObj) in
+        self.webhookHistoryApi(10, success: { [weak self] (responseObj) in
             if let responseObject = responseObj as? [String: Any], let messages = responseObject["messages"] as? Array<[String: Any]> {
                 botHistoryIcon = responseObject["icon"] as? String
                 self?.insertOrUpdateHistoryMessages(messages)
@@ -863,12 +1013,7 @@ open class KABotClient: NSObject {
                         botHistoryIcon = responseObject["icon"] as? String
                         arrayOfSelectedBtnIndex = []
                         if SDKConfiguration.botConfig.isShowChatHistory{
-                            if !isShowWelcomeMsg{
-                                Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { (_) in
-                                    self?.insertOrUpdateHistoryMessages(messages)
-                                }
-                            }
-                           
+                            self?.insertOrUpdateHistoryMessages(messages)
                         }
                         
                     }
@@ -924,11 +1069,10 @@ open class KABotClient: NSObject {
         guard botMessages.count > 0 else {
             return
         }
+        OTPValidationRemoveCount = 0
         var allMessages: [Message] = [Message]()
         var removeTemplate = false
-        var i = 0
         for message in botMessages {
-            i += 1
             removeTemplate = false
             if message.type == "outgoing" || message.type == "incoming" {
                 guard let components = message.components, let data = components.first?.data else {
@@ -978,9 +1122,9 @@ open class KABotClient: NSObject {
                             }
                         }
                     }
-                    if jsonString == "Welpro"{
+                    if jsonString == "Welpro" || jsonString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty{
                         removeTemplate = true
-                        RemovedTemplateCount  += 1
+                        removedTemplateCount  += 1
                     }
                 }
                 
@@ -1006,16 +1150,10 @@ open class KABotClient: NSObject {
                 let messageTuple = onReceiveMessage(object: botMessage)
                 if let object = messageTuple.0 {
                     if !removeTemplate{
-                        if botMessages.count == i{
-                            if !isShowQuickRepliesBottom{
-                                arrayOfSelectedBtnIndex.insert(1000, at: 0)
-                            }else{
-                                arrayOfSelectedBtnIndex.insert(1001, at: 0)
-                            }
-                        }else{
+                        if !isRemoveTemplate{
                             arrayOfSelectedBtnIndex.insert(1001, at: 0)
+                            allMessages.append(object)
                         }
-                        allMessages.append(object)
                     }
                 }
             }
@@ -1023,10 +1161,8 @@ open class KABotClient: NSObject {
         
         // insert all messages
         if allMessages.count > 0 {
-            if self.thread != nil{
-                let dataStoreManager = DataStoreManager.sharedManager
-                dataStoreManager.insertMessages(allMessages, in:  thread, completion: nil)
-            }
+            let dataStoreManager = DataStoreManager.sharedManager
+            dataStoreManager.insertMessages(allMessages, in:  thread, completion: nil)
             
         }
     }
@@ -1114,8 +1250,9 @@ open class KABotClient: NSObject {
     }
     
     // MARK:
-    func webhookHistoryApi(_ limit: Int!,offset: Int!, success:((_ dictionary: [String: Any]) -> Void)?, failure:((_ error: Error) -> Void)?) {
-        let urlString: String = "\(SDKConfiguration.serverConfig.BOT_SERVER)/api/chathistory/\(SDKConfiguration.botConfig.botId)/ivr?botId=\(SDKConfiguration.botConfig.botId)&limit=\(limit!)&offset=\(offset!)"
+    func webhookHistoryApi(_ limit: Int!, success:((_ dictionary: [String: Any]) -> Void)?, failure:((_ error: Error) -> Void)?) {
+        
+        let urlString: String = "\(SDKConfiguration.serverConfig.BOT_SERVER)/api/chathistory/\(SDKConfiguration.botConfig.botId)/ivr?botId=\(SDKConfiguration.botConfig.botId)&limit=\(limit!)"
        
         let authorizationStr = "bearer \(jwtToken ?? "")"
         let headers: HTTPHeaders = [
@@ -1172,8 +1309,8 @@ open class KABotClient: NSObject {
     
     // MARK: get Branding Values request
     func brandingApiRequest(_ accessToken: String!, success:((_ brandingDic: [String: Any]) -> Void)?, failure:((_ error: Error) -> Void)?) {
-        let urlString: String =  "\(SDKConfiguration.serverConfig.BOT_SERVER)/api/websdkthemes/\(SDKConfiguration.botConfig.botId)/activetheme"
-        let authorizationStr = "bearer \(accessToken ?? "")"
+        let urlString: String =  "\(SDKConfiguration.serverConfig.Branding_SERVER)/api/websdkthemes/\(SDKConfiguration.botConfig.botId)/activetheme"
+        let authorizationStr = "bearer \(accessToken!)"
         let headers : HTTPHeaders = [
             "Keep-Alive": "Connection",
             "Content-Type": "application/json",
@@ -1188,7 +1325,7 @@ open class KABotClient: NSObject {
                 return
             }
             
-            if let responseObject = response.value as? [String: Any] {
+            if let responseObject = response.value as? [String:Any] {
                 success?(responseObject)
             } else {
                 failure?(NSError(domain: "", code: 0, userInfo: [:]))

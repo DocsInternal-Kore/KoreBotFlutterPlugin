@@ -1,7 +1,8 @@
 package kore.botssdk.viewholders;
 
 import static android.content.Context.MODE_PRIVATE;
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -52,11 +53,10 @@ public class TableTemplateHolder extends BaseViewHolder {
         rvTableView = itemView.findViewById(R.id.rvTableView);
         rvTableViewHeader = itemView.findViewById(R.id.rvTableViewHeader);
         botTableShowMoreButton = itemView.findViewById(R.id.botTableShowMoreButton);
-        RelativeLayout rlTableRoot = itemView.findViewById(R.id.rlTableRoot);
         rvTableView.setLayoutManager(new LinearLayoutManager(itemView.getContext(), LinearLayoutManager.VERTICAL, false));
+        RelativeLayout rlTableRoot = itemView.findViewById(R.id.rlTableRoot);
         rvTableView.addItemDecoration(new VerticalSpaceItemDecoration(LinearLayoutManager.VERTICAL));
         LinearLayoutCompat layoutBubble = itemView.findViewById(R.id.layoutBubble);
-
         SharedPreferences sharedPreferences = itemView.getContext().getSharedPreferences(BotResponse.THEME_NAME, MODE_PRIVATE);
         GradientDrawable bgDrawable = (GradientDrawable) rlTableRoot.getBackground();
         GradientDrawable headerDrawable = (GradientDrawable) rvTableViewHeader.getBackground();
@@ -67,7 +67,6 @@ public class TableTemplateHolder extends BaseViewHolder {
 
         if (headerDrawable != null)
             headerDrawable.setStroke((int) (1 * dp1), Color.parseColor(sharedPreferences.getString(BotResponse.BUBBLE_LEFT_BG_COLOR, "#efeffc")));
-
         initBubbleText(layoutBubble, false);
     }
 
@@ -78,7 +77,7 @@ public class TableTemplateHolder extends BaseViewHolder {
         setResponseText(itemView.findViewById(R.id.layoutBubble), payloadInner.getText(), baseBotMessage.getTimeStamp());
 
         rvTableViewHeader.setLayoutManager(new GridLayoutManager(itemView.getContext(), payloadInner.getColumns().size()));
-        rvTableViewHeader.setAdapter(new TableTemplateHeaderAdapter(itemView.getContext(), payloadInner.getColumns()));
+        rvTableViewHeader.setAdapter(new TableTemplateHeaderAdapter(itemView.getContext(), payloadInner.getColumns(), isLastItem()));
         List<MiniTableModel> lists = new ArrayList<>();
         int size = ((ArrayList<?>) payloadInner.getElements()).size();
         for (int j = 0; j < size; j++) {
@@ -89,7 +88,7 @@ public class TableTemplateHolder extends BaseViewHolder {
 
         List<MiniTableModel> dataList = lists.size() > LIMIT ? lists.subList(0, LIMIT) : lists;
         rvTableView.setLayoutManager(new LinearLayoutManager(itemView.getContext(), LinearLayoutManager.VERTICAL, false));
-        rvTableView.setAdapter(new TableTemplateAdapter(itemView.getContext(), payloadInner.getColumns(), dataList));
+        rvTableView.setAdapter(new TableTemplateAdapter(itemView.getContext(), payloadInner.getColumns(), dataList, isLastItem()));
 
         botTableShowMoreButton.setVisibility(lists.size() > LIMIT ? View.VISIBLE : View.GONE);
         botTableShowMoreButton.setOnClickListener(v -> showTableViewDialog(itemView.getContext(), payloadInner.getColumns(), lists));
@@ -112,8 +111,8 @@ public class TableTemplateHolder extends BaseViewHolder {
         rvHeader.setLayoutManager(new GridLayoutManager(context, headersList.size()));
         rvTableData.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
 
-        rvHeader.setAdapter(new TableTemplateHeaderAdapter(context, headersList));
-        rvTableData.setAdapter(new TableTemplateAdapter(context, headersList, dataList));
+        rvHeader.setAdapter(new TableTemplateHeaderAdapter(context, headersList, isLastItem()));
+        rvTableData.setAdapter(new TableTemplateAdapter(context, headersList, dataList, isLastItem()));
 
         ivDialogClose.setOnClickListener(v -> dialog.dismiss());
         dialog.show();

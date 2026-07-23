@@ -2,10 +2,6 @@ package kore.botssdk.models;
 
 import java.util.ArrayList;
 
-/**
- * Created by Shiva Krishna on 6/15/2018.
- */
-
 public class MeetingSlotModel {
     public long getDay() {
         return day;
@@ -23,7 +19,7 @@ public class MeetingSlotModel {
 
     private ArrayList<Slot> slots;
 
-    public class Slot {
+    public class Slot{
         public long getStart() {
             return start;
         }
@@ -56,12 +52,6 @@ public class MeetingSlotModel {
         @Override
         public boolean equals(Object o) {
             return o instanceof Slot && ((Slot) o).getStart() == getStart() && ((Slot) o).getEnd() == getEnd();
-        }
-
-        @Override
-        public int hashCode() {
-            assert false : "hashCode not designed";
-            return 42;
         }
     }
 }

@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Patterns;
@@ -33,21 +31,13 @@ import kore.botssdk.models.BotResponseMessage;
 import kore.botssdk.models.ComponentModel;
 import kore.botssdk.models.PayloadInner;
 import kore.botssdk.models.PayloadOuter;
-import kore.botssdk.net.SDKConfiguration;
 
-/**
- * Created by Pradeep Mahato on 06-Jun-16.
- * Copyright (c) 2014 Kore Inc. All rights reserved.
- */
 public class Utils {
 
     public static final SimpleDateFormat isoFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
 
-    /**
+    /*
      * Retrieve The version name of this package, as specified by the manifest
-     *
-     * @param context
-     * @return
      */
     public static String getVersion(Context context) {
         try {
@@ -69,9 +59,6 @@ public class Utils {
 
     /**
      * Get the package version
-     *
-     * @param context
-     * @return
      */
     public static String getBuildVersion(Context context) {
         return "v" + getVersion(context);
@@ -98,14 +85,12 @@ public class Utils {
     }
 
     public static BotResponse buildBotMessage(String msg, String streamId, String botName) {
-
         Calendar calendar = Calendar.getInstance();
         long date = System.currentTimeMillis();
         int offset = TimeZone.getDefault().getOffset(date);
         calendar.setTimeInMillis(date - offset);
 
         return buildBotMessage(msg, streamId, botName, BaseBotMessage.isoFormatter.format(calendar.getTime()));
-
     }
 
     public static BotResponse buildBotMessage(String msg, String streamId, String botName, String createdOn) {
@@ -184,7 +169,6 @@ public class Utils {
         message.add(botResponseMessage);
         botResponse.setMessage(message);
 
-
         return new Gson().toJson(botResponse);
     }
 
@@ -216,98 +200,24 @@ public class Utils {
         ComponentModel cModel = new ComponentModel();
         cModel.setType(BotResponse.COMPONENT_TYPE_TEMPLATE);
 
-        cModel.setPayload(pOuter);
         if (pOuter != null && pOuter.getPayload() != null) {
             PayloadInner inner = pOuter.getPayload();
             inner.convertElementToAppropriate();
             pOuter.setPayload(inner);
         }
-        botResponseMessage.setComponent(cModel);
-        ArrayList<BotResponseMessage> message = new ArrayList<>(1);
-        message.add(botResponseMessage);
-        botResponse.setMessage(message);
-
-        return botResponse;
-    }
-
-    public static BotResponse buildBotMessageForConversationEnd(long time, String botName, String streamId) {
-        BotResponse botResponse = new BotResponse();
-
-        botResponse.setType("bot_response");
-        botResponse.setFrom("bot");
-
-        botResponse.setCreatedOn(BaseBotMessage.isoFormatter.format(time));
-
-        BotInfoModel bInfo = new BotInfoModel(botName, streamId, null);
-        botResponse.setBotInfo(bInfo);
-
-        BotResponseMessage botResponseMessage = new BotResponseMessage();
-        botResponseMessage.setType(BotResponse.COMPONENT_TYPE_TEXT);
-
-        ComponentModel cModel = new ComponentModel();
-        cModel.setType(BotResponse.COMPONENT_TYPE_TEMPLATE);
-
-        PayloadOuter pOuter = new PayloadOuter();
-        pOuter.setType(BotResponse.COMPONENT_TYPE_TEMPLATE);
-
-        PayloadInner payloadInner = new PayloadInner();
-        payloadInner.setTemplate_type(BotResponse.TEMPLATE_TYPE_CONVERSATION_END);
-        payloadInner.setText("This conversation has been ended!");
-        payloadInner.setHideComposeBar(true);
-        pOuter.setPayload(payloadInner);
         cModel.setPayload(pOuter);
         botResponseMessage.setComponent(cModel);
         ArrayList<BotResponseMessage> message = new ArrayList<>(1);
         message.add(botResponseMessage);
         botResponse.setMessage(message);
 
-
         return botResponse;
-    }
-
-    public static BotResponse getLastReceivedMsg(ArrayList<BaseBotMessage> list) {
-        if (list != null && list.size() > 0) {
-            int index = list.size() - 1;
-            for (; index >= 0; index--)
-                if (!list.get(index).isSend()) {
-                    return (BotResponse) list.get(index);
-                }
-        }
-        return null;
-    }
-
-    public static boolean shouldShowHelp(BotResponse msg) {
-        boolean shouldShowHelp = true;
-        if (msg != null) {
-            ComponentModel components = msg.getMessage().get(0).getComponent();
-            try {
-                PayloadOuter outer = components.getPayload();
-                if (outer != null) {
-                    PayloadInner payloadInner = outer.getPayload();
-                    if (payloadInner != null && !StringUtils.isNullOrEmpty(payloadInner.getTemplate_type())) {
-                        if (payloadInner.getTemplate_type().equals(BotResponse.TEMPLATE_TYPE_HIDDEN_DIALOG)) {
-                            shouldShowHelp = true;
-                        } else {
-                            shouldShowHelp = isGreaterThanFifteenMins(msg.getCreatedOn());
-                        }
-                    } else {
-                        shouldShowHelp = isGreaterThanFifteenMins(msg.getCreatedOn());
-                    }
-                } else {
-                    shouldShowHelp = isGreaterThanFifteenMins(msg.getCreatedOn());
-                }
-            } catch (com.google.gson.JsonSyntaxException ex) {
-                ex.printStackTrace();
-                shouldShowHelp = isGreaterThanFifteenMins(msg.getCreatedOn());
-            }
-        }
-        return shouldShowHelp;
     }
 
     private static boolean isGreaterThanFifteenMins(String time) {
         long timeStampMillis = 0;
         try {
-            timeStampMillis = DateUtils.isoFormatter.parse(time).getTime() + TimeZone.getDefault().getRawOffset() + TimeZone.getDefault().getDSTSavings();
+            timeStampMillis = DateUtils.isoFormatter.parse(time).getTime() + TimeZone.getDefault().getRawOffset();
             return (System.currentTimeMillis() - timeStampMillis) > (1000 * 60 * 15);
         } catch (ParseException e) {
             e.printStackTrace();
@@ -387,6 +297,7 @@ public class Utils {
     public static long getTimeInMillis(String timeStamp) throws ParseException {
         if (timeStamp == null || timeStamp.isEmpty()) return System.currentTimeMillis();
         return isoFormatter.parse(timeStamp).getTime();
+
     }
 
     public static String ah(String accessToken) {

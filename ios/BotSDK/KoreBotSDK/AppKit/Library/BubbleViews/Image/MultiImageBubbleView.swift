@@ -47,18 +47,37 @@ class MultiImageBubbleView : BubbleView, UICollectionViewDataSource, UICollectio
                     textlabel.text = ""
                 }
             }
+            textlabel.textColor = BubbleViewBotChatTextColor
             self.collectionView.collectionViewLayout.invalidateLayout()
             self.collectionView.reloadData()
         }
     }
     @IBOutlet weak var textLblHeightConstarint: NSLayoutConstraint!
     
+    @IBOutlet weak var downLoadBtn: UIButton!
+    
+    @IBOutlet weak var downloadBtnHeightConstraint: NSLayoutConstraint!
+    @IBOutlet weak var downloadBtnTopConstraint: NSLayoutConstraint!
+    
+    @IBOutlet weak var downloadBtnBottomConstraint: NSLayoutConstraint!
+    
+    @IBOutlet weak var bgV: UIView!
     @IBOutlet weak var textlabel: UILabel!
     @IBOutlet weak var collectionView: UICollectionView!
     var COMPONENT_PADDING: CGFloat = 0.0
     var INNER_PADDING: CGFloat = 10.0
     var IMAGE_COMPONENT_HEIGHT: CGFloat = 80.0
     var MAX_CELLS: Int = 5
+    
+    override func applyBubbleMask() {
+        //nothing to put here
+    }
+    
+    override var tailPosition: BubbleMaskTailPosition! {
+        didSet {
+            
+        }
+    }
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -69,6 +88,16 @@ class MultiImageBubbleView : BubbleView, UICollectionViewDataSource, UICollectio
                 }
         self.viewingIndex = NSNotFound
         NotificationCenter.default.addObserver(self, selector: #selector(reloadVideoAct), name: NSNotification.Name(rawValue: reloadVideoCellNotification), object: nil)
+        
+        downLoadBtn.layer.cornerRadius = 5.0
+        downLoadBtn.setTitleColor(BubbleViewRightTint, for: .normal)
+        downLoadBtn.titleLabel?.font = UIFont.init(name: regularCustomFont, size: 14.0)
+        downLoadBtn.clipsToBounds = true
+       
+        self.layer.borderColor = BubbleViewLeftTint.cgColor
+        self.layer.cornerRadius = 5.0
+        self.layer.borderWidth = 1.0
+        self.clipsToBounds = true
     }
     
     @objc func reloadVideoAct(notification:Notification){
@@ -82,10 +111,67 @@ class MultiImageBubbleView : BubbleView, UICollectionViewDataSource, UICollectio
        // self.collectionView.frame = self.bounds
     }
     
-    
-    override var intrinsicContentSize : CGSize {
+    @IBAction func tapsOnDownloadBtnAction(_ sender: Any) {
+        if let payload = imageDataDic["payload"] as? [String: Any]{
+            if let imageurlStr = payload["url"] as? String, let url = URL(string:imageurlStr){
+                funcDownloadFile(url:url)
+            }
+        }else{
+            if let urlStr = imageDataDic["url"] as? String{
+                if let url = URL(string: urlStr){
+                    funcDownloadFile(url:url)
+                }
+            }
+        }
         
-        return CGSize(width: BubbleViewMaxWidth, height: 200)
+    }
+    
+    func funcDownloadFile(url:URL){
+        NotificationCenter.default.post(name: Notification.Name(showToastMessageNotification), object: fileDownloadingToastMsg)
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            guard let data = data, error == nil else {
+                print("Download error:", error?.localizedDescription ?? "Unknown error")
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: Notification.Name(showToastMessageNotification), object: vileDownloadFailedToastMsg)
+                }
+                return
+            }
+
+            if let image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    downloadImage = image
+                    NotificationCenter.default.post(name: Notification.Name(activityViewControllerNotification), object: nil)
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.linkAction?(url.absoluteString)
+                    print("Failed to convert data to UIImage")
+                }
+            }
+        }
+
+        task.resume()
+    }
+        
+    override var intrinsicContentSize : CGSize {
+        self.downloadBtnTopConstraint.constant = 10.0
+        self.downloadBtnBottomConstraint.constant = 10.0
+        self.downloadBtnHeightConstraint.constant = 35.0
+        
+        if imageDataDic["videoUrl"] as? String != nil{
+            self.downloadBtnTopConstraint.constant = 0.0
+            self.downloadBtnBottomConstraint.constant = 0.0
+            self.downloadBtnHeightConstraint.constant = 0.0
+            return CGSize(width: BubbleViewMaxWidth, height: 200)
+        }else{
+            if let gifImageUrl = imageDataDic["url"] as? String, gifImageUrl.contains(".gif"){
+                self.downloadBtnTopConstraint.constant = 0.0
+                self.downloadBtnBottomConstraint.constant = 0.0
+                self.downloadBtnHeightConstraint.constant = 0.0
+                return CGSize(width: BubbleViewMaxWidth, height: 200)
+            }
+            return CGSize(width: BubbleViewMaxWidth, height: 300)
+        }
     }
     
     func visibleCells() -> NSArray {
@@ -113,7 +199,7 @@ class MultiImageBubbleView : BubbleView, UICollectionViewDataSource, UICollectio
         if (self.components.count > MAX_CELLS) {
             return MAX_CELLS
         }
-        return self.components.count
+        return 1 //self.components.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -168,22 +254,60 @@ class MultiImageBubbleView : BubbleView, UICollectionViewDataSource, UICollectio
                 cell.menuBtn.isUserInteractionEnabled = true
                 cell.videoPlayerView.addSubview(cell.menuBtn)
                 cell.videoPlayerView.bringSubviewToFront(cell.menuBtn)
-                
             }else{
                 cell.videoPlayerView.isHidden = true
                 if let payload = imageDataDic["payload"] as? [String: Any]{
-                    let url = URL(string: ( payload["url"] as? String ?? ""))
-                    if url != nil{
-                        cell.imageComponent.af.setImage(withURL: url!, placeholderImage: UIImage.init(named: "placeholder_image", in: bundle, compatibleWith: nil))
+                    if let imageurlStr = payload["url"] as? String, let url = URL(string:imageurlStr){
+                        //cell.imageComponent.af.setImage(withURL: url, placeholderImage: UIImage.init(named: "placeholder_image", in: bundle, compatibleWith: nil))
+                        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+                            guard let data = data, error == nil else {
+                                print("Download error:", error?.localizedDescription ?? "Unknown error")
+                                return
+                            }
+
+                            if let image = UIImage(data: data) {
+                                DispatchQueue.main.async {
+                                    cell.imageComponent.image = image
+                                }
+                            } else {
+                                DispatchQueue.main.async {
+                                    cell.imageComponent.image = UIImage(named: "placeholder_image", in: self.bundle, compatibleWith: nil)
+                                }
+                                
+                            }
+                        }
+
+                        task.resume()
                     }else{
                         cell.imageComponent.image = UIImage(named: "placeholder_image", in: bundle, compatibleWith: nil)
                     }
                 }else{
-                        if let imageurlStr = imageDataDic["url"] as? String, let url = URL(string:imageurlStr){
-                            cell.imageComponent.af.setImage(withURL: url, placeholderImage: UIImage.init(named: "placeholder_image", in: bundle, compatibleWith: nil))
-                        }else{
-                            cell.imageComponent.image = UIImage(named: "placeholder_image", in: bundle, compatibleWith: nil)
+                    if let imageurlStr = imageDataDic["url"] as? String, let url = URL(string:imageurlStr){
+                            //cell.imageComponent.af.setImage(withURL: url, placeholderImage: UIImage.init(named: "placeholder_image", in: bundle, compatibleWith: nil))
+                        
+                        
+                        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+                            guard let data = data, error == nil else {
+                                print("Download error:", error?.localizedDescription ?? "Unknown error")
+                                return
+                            }
+
+                            if let image = UIImage(data: data) {
+                                DispatchQueue.main.async {
+                                    cell.imageComponent.image = image
+                                }
+                            } else {
+                                DispatchQueue.main.async {
+                                    cell.imageComponent.image = UIImage(named: "placeholder_image", in: self.bundle, compatibleWith: nil)
+                                }
+                                
+                            }
                         }
+
+                        task.resume()
+                    }else{
+                            cell.imageComponent.image = UIImage(named: "placeholder_image", in: bundle, compatibleWith: nil)
+                    }
                 }
                 
                 if let gifImageUrl = imageDataDic["url"] as? String, gifImageUrl.contains(".gif"){
@@ -228,6 +352,14 @@ class MultiImageBubbleView : BubbleView, UICollectionViewDataSource, UICollectio
         
         if ((self.didSelectComponentAtIndex) != nil) {
             self.didSelectComponentAtIndex((indexPath as NSIndexPath).row)
+        }
+        
+        if  imageDataDic["type"] as? String != "video" {
+            if let imageurlStr = imageDataDic["url"] as? String{
+                if !imageurlStr.contains(".gif"){
+                    print(imageurlStr)
+                }
+            }
         }
     }
     
@@ -278,94 +410,100 @@ class MultiImageBubbleView : BubbleView, UICollectionViewDataSource, UICollectio
 extension MultiImageBubbleView{
     @objc fileprivate func menuButtonAction(_ sender: UIButton!) {
         let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-            let action1 = UIAlertAction(title: "Download", style: .default) { (action) in
-                
-                self.loadFileAsync(url: URL(string: self.componentItems.videoUrl!)!) { (isSaved) in
-                    if isSaved{
-                        print("Video is saved!")
-                        DispatchQueue.main.async {
-                        let alert = UIAlertController(title: "BOT SDK", message: "Video is saved!", preferredStyle: UIAlertController.Style.alert)
-                        
-                        // add an action (button)
-                        alert.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
-                        
-                        // show the alert
-                        UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
+            let action1 = UIAlertAction(title: videoDownloadAlertTitle, style: .default) { (action) in
+                if let urlStr = self.componentItems.videoUrl as? String{
+                    if let url = URL(string: urlStr){
+                        NotificationCenter.default.post(name: Notification.Name(showToastMessageNotification), object: fileDownloadingToastMsg)
+                        let date: Date = Date()
+                        let timeStamp: Int?
+                        timeStamp = Int(date.timeIntervalSince1970)
+                        let fileName = "\(timeStamp ?? 0)\(url.lastPathComponent)"
+                        self.downloadVideo(from: urlStr, fileName: fileName) { savedURL in
+                            if let savedURL = savedURL {
+                                print("Video saved at: \(savedURL.path)")
+                                DispatchQueue.main.async {
+                                    NotificationCenter.default.post(name: Notification.Name(showToastMessageNotification), object: fileSavedSuccessfullyToastMsg)
+                                }
+                            } else {
+                                print("Failed to save video.")
+                                DispatchQueue.main.async {
+                                    NotificationCenter.default.post(name: Notification.Name(showToastMessageNotification), object: vileDownloadFailedToastMsg)
+                                }
+                            }
                         }
                     }
                 }
             }
-            let action2 = UIAlertAction(title: "Cancel", style: .cancel) { (action) in
+            let action2 = UIAlertAction(title: videoDownloadAlertCancelTitle, style: .cancel) { (action) in
                 print("Cancel is pressed......")
             }
             alertController.addAction(action1)
             alertController.addAction(action2)
-            UIApplication.shared.keyWindow?.rootViewController?.present(alertController, animated: true, completion: nil)
+            guard let parentVC = self.parentViewController() else {
+               print("No parent view controller found")
+               return
+            }
+        parentVC.present(alertController, animated: true)
 
         }
     
     
-    
-    
-    /// Downloads a file asynchronously
-    func loadFileAsync(url: URL, completion: @escaping (Bool) -> Void) {
-
-        // create your document folder url
-        let documentsUrl = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-
-        // your destination file url
-        let destination = documentsUrl.appendingPathComponent(url.lastPathComponent)
-        if FileManager().fileExists(atPath: destination.path) {
-            print("The file already exists at path, deleting and replacing with latest")
-
-            if FileManager().isDeletableFile(atPath: destination.path){
-                do{
-                    try FileManager().removeItem(at: destination)
-                    print("previous file deleted")
-                    self.saveFile(url: url, destination: destination) { (complete) in
-                        if complete{
-                            completion(true)
-                        }else{
-                            completion(false)
-                        }
-                    }
-                }catch{
-                    print("current file could not be deleted")
-                }
-            }
-        // download the data from your url
-        }else{
-            self.saveFile(url: url, destination: destination) { (complete) in
-                if complete{
-                    completion(true)
-                }else{
-                    completion(false)
-                }
-            }
+}
+extension MultiImageBubbleView{
+    func downloadVideo(from urlString: String, fileName: String, completion: @escaping (URL?) -> Void) {
+        guard let url = URL(string: urlString) else {
+            print("Invalid URL.")
+            completion(nil)
+            return
         }
-    }
-
-
-    func saveFile(url: URL, destination: URL, completion: @escaping (Bool) -> Void){
-        URLSession.shared.downloadTask(with: url, completionHandler: { (location, response, error) in
-            // after downloading your data you need to save it to your destination url
-            guard
-                let httpURLResponse = response as? HTTPURLResponse, httpURLResponse.statusCode == 200,
-                let location = location, error == nil
-                else { print("error with the url response"); completion(false); return}
+        
+        let task = URLSession.shared.downloadTask(with: url) { tempLocalUrl, response, error in
+            if let error = error {
+                print("Download error: \(error)")
+                completion(nil)
+                return
+            }
+            
+            guard let tempLocalUrl = tempLocalUrl else {
+                print("No file URL.")
+                completion(nil)
+                return
+            }
+            
+            // Get Documents folder
+            let fileManager = FileManager.default
+            let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let destinationURL = documentsDirectory.appendingPathComponent(fileName)
+            
+            // Remove existing file if needed
+            if fileManager.fileExists(atPath: destinationURL.path) {
+                try? fileManager.removeItem(at: destinationURL)
+            }
+            
             do {
-                try FileManager.default.moveItem(at: location, to: destination)
-                print("new file saved")
-                completion(true)
+                try fileManager.moveItem(at: tempLocalUrl, to: destinationURL)
+                print("File saved to: \(destinationURL)")
+                completion(destinationURL)
             } catch {
-                print("file could not be saved: \(error)")
-                completion(false)
+                print("Error saving file: \(error)")
+                completion(nil)
             }
-        }).resume()
+        }
+        
+        task.resume()
     }
-    
-    
+}
+extension UIView {
+    func parentViewController() -> UIViewController? {
+        var parentResponder: UIResponder? = self
+        while parentResponder != nil {
+            parentResponder = parentResponder?.next
+            if let viewController = parentResponder as? UIViewController {
+                return viewController
+            }
+        }
+        return nil
     }
-
+}
 
 

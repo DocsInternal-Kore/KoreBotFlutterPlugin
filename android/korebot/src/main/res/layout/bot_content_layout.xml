@@ -7,13 +7,16 @@
     android:background="@android:color/transparent">
 
     <RelativeLayout
+        android:id="@+id/rlBody"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_below="@+id/llBotHeader">
 
         <include
             layout="@layout/kora_timestamps_header"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/header_layout"
             android:visibility="gone" />
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -31,11 +34,10 @@
                 android:layout_marginBottom="2dp"
                 android:divider="@android:color/transparent"
                 android:listSelector="@color/white"
+                android:accessibilityLiveRegion="polite"
                 android:nestedScrollingEnabled="false"
                 android:orientation="vertical"
-                android:transcriptMode="normal"
                 android:visibility="visible"
-                android:accessibilityLiveRegion="polite"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
@@ -44,11 +46,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_marginBottom="3dp"
-            android:visibility="gone" />
+            android:layout_marginBottom="3dp" />
+
 
         <LinearLayout xmlns:cpv="http://schemas.android.com/apk/res-auto"
-            xmlns:dots="http://schemas.android.com/apk/res-auto"
             android:id="@+id/botTypingStatus"
             android:layout_width="match_parent"
             android:layout_height="@dimen/typing_layout_height"
@@ -58,7 +59,8 @@
             android:orientation="horizontal"
             android:visibility="gone">
 
-            <!-- Type Image -->
+
+            <!-- Typer Image -->
             <kore.botssdk.view.CircularProfileView
                 android:id="@+id/typing_status_item_cpv"
                 android:layout_width="@dimen/typing_layout_cpv_width"
@@ -69,18 +71,23 @@
                 cpv:text_size="12dp" />
 
             <!-- Presence Dots -->
-            <kore.botssdk.view.DotsTextView
-                android:id="@+id/typing_status_item_dots"
+            <kore.botssdk.view.LoadingDots
+                android:id="@+id/ldDots"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:layout_marginStart="5dp"
-                android:layout_marginBottom="@dimen/dot_view_margin_bottom"
-                android:textColor="@color/left_bubble_text_color"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                dots:autoplay="true"
-                dots:period="1000" />
+                android:layout_marginBottom="@dimen/dimen_3dp"
+                android:layout_marginStart="@dimen/dimen_5dp"
+                app:LoadingDots_auto_play="true"
+                app:LoadingDots_dots_color="@color/bgBlueSignup"
+                app:LoadingDots_dots_count="3"
+                app:LoadingDots_dots_size="@dimen/dimen_7dp"
+                app:LoadingDots_dots_space="5dp"
+                app:LoadingDots_jump_duration="300"
+                app:LoadingDots_jump_height="4dp"
+                app:LoadingDots_loop_duration="800"
+                app:LoadingDots_loop_start_delay="100" />
         </LinearLayout>
     </RelativeLayout>
+
 </RelativeLayout>

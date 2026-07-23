@@ -28,12 +28,12 @@ class CarouselBubbleView: BubbleView {
         super.initialize()
         
         self.carouselView = KRECarouselView()
-        self.carouselView.maxCardWidth = BubbleViewMaxWidth
+        self.carouselView.maxCardWidth = portraitCardWidth()
         self.carouselView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(self.carouselView)
         
         let views: [String: UIView] = ["carouselView": carouselView]
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[carouselView]|", options: [], metrics: nil, views: views))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-3-[carouselView]|", options: [], metrics: nil, views: views))
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[carouselView]|", options: [], metrics: nil, views: views))
         
         self.carouselView.optionsAction = { [weak self] (text, payload) in
@@ -50,6 +50,24 @@ class CarouselBubbleView: BubbleView {
     
     override func borderColor() -> UIColor {
         return UIColor.clear
+    }
+    
+    private func portraitCardWidth() -> CGFloat {
+        let portraitBase = min(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
+        return max(0.0, portraitBase - 90.0)
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let newWidth = portraitCardWidth()
+        if abs(newWidth - self.carouselView.maxCardWidth) > 0.5 {
+            self.carouselView.maxCardWidth = newWidth
+            // Trigger height recomputation for new width
+            let currentCards = self.carouselView.cards
+            self.carouselView.cards = currentCards
+            self.carouselView.collectionViewLayout.invalidateLayout()
+            self.invalidateIntrinsicContentSize()
+        }
     }
     
     // MARK: populate components
@@ -70,7 +88,7 @@ class CarouselBubbleView: BubbleView {
                     let subtitle: String = dictionary["subtitle"] != nil ? dictionary["subtitle"] as! String : ""
                     let imageUrl: String = dictionary["image_url"] != nil ? dictionary["image_url"] as! String : ""
                     
-                    let cardInfo: KRECardInfo = KRECardInfo(title: title, subTitle: subtitle, imageURL: imageUrl)
+                    let cardInfo: KRECardInfo = KRECardInfo(title: title, subTitle: subtitle, imageURL: imageUrl, titleTextColor: BubbleViewBotChatTextColor, urlTextColor: themeColor)
                     if let defaultAction = dictionary["default_action"] as? [String: Any],
                         let action = Utilities.getKREActionFromDictionary(dictionary: defaultAction) {
                         cardInfo.setDefaultAction(action: action)
@@ -84,7 +102,7 @@ class CarouselBubbleView: BubbleView {
                         let buttonElement = buttons[i]
                         let title: String = buttonElement["title"] != nil ? buttonElement["title"] as! String: ""
                         
-                        let option: KREOption = KREOption(title: title, subTitle: "", imageURL: "", optionType: .button)
+                        let option: KREOption = KREOption(title: title, subTitle: "", imageURL: "", optionType: .newButton, buttonBgColor: btnBgActiveColor, buttonTextColor: btnActiveTextColor)
                         if let action = Utilities.getKREActionFromDictionary(dictionary: buttonElement) {
                             option.setDefaultAction(action: action)
                         }
@@ -95,13 +113,15 @@ class CarouselBubbleView: BubbleView {
                 }
                 
                 self.carouselView.cards.removeAll()
+                // Ensure width is portrait-based before computing heights
+                self.carouselView.maxCardWidth = portraitCardWidth()
                 self.carouselView.cards = cards
             }
         }
     }
     
     override var intrinsicContentSize : CGSize {
-        return CGSize(width: 0.0, height: self.carouselView.maxCardHeight)
+        return CGSize(width: 0.0, height: self.carouselView.maxCardHeight + 3.0)
     }
     
     override func prepareForReuse() {

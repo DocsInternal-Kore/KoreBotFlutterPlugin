@@ -1,10 +1,14 @@
 package kore.botssdk.viewholders;
 
+import static android.content.Context.MODE_PRIVATE;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_BG_COLOR;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_TEXT_COLOR;
+import static kore.botssdk.models.BotResponse.THEME_NAME;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
-
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.view.View;
@@ -20,7 +24,6 @@ import java.util.Map;
 
 import kore.botssdk.R;
 import kore.botssdk.adapter.AdvancedMultiSelectAdapter;
-import kore.botssdk.itemdecoration.VerticalSpaceItemDecoration;
 import kore.botssdk.listener.AdvanceMultiSelectListener;
 import kore.botssdk.models.AdvanceMultiSelectCollectionModel;
 import kore.botssdk.models.AdvancedMultiSelectModel;
@@ -33,9 +36,12 @@ import kore.botssdk.net.SDKConfiguration;
 public class AdvanceMultiSelectTemplateHolder extends BaseViewHolder implements AdvanceMultiSelectListener {
     private ArrayList<AdvanceMultiSelectCollectionModel> allCheckedItems = new ArrayList<>();
     private String msgId = "";
+    private SharedPreferences prefs;
 
     public AdvanceMultiSelectTemplateHolder(@NonNull View itemView) {
         super(itemView, itemView.getContext());
+        if (prefs == null)
+            prefs = itemView.getContext().getSharedPreferences(THEME_NAME, MODE_PRIVATE);
     }
 
     public static AdvanceMultiSelectTemplateHolder getInstance(ViewGroup parent) {
@@ -62,9 +68,9 @@ public class AdvanceMultiSelectTemplateHolder extends BaseViewHolder implements 
         ArrayList<AdvancedMultiSelectModel> models = payloadInner.getAdvancedMultiSelectModels();
 
         GradientDrawable gradientDrawable = (GradientDrawable) tvAdvanceDone.getBackground().mutate();
-        gradientDrawable.setStroke((int) (1 * dp1), Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-        gradientDrawable.setColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-        tvAdvanceDone.setTextColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyTextColor));
+        gradientDrawable.setStroke((int) (1 * dp1), Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
+        gradientDrawable.setColor(Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
+        tvAdvanceDone.setTextColor(Color.parseColor(prefs.getString(BUBBLE_RIGHT_TEXT_COLOR, "#ffffff")));
 
         if (models != null && !models.isEmpty()) {
             multiSelectLayout.setVisibility(VISIBLE);

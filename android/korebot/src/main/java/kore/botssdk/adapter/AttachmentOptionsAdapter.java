@@ -13,6 +13,10 @@ import java.util.ArrayList;
 import kore.botssdk.R;
 import kore.botssdk.utils.KaFontUtils;
 
+/**
+ * Created by Shiva Krishna on 1/22/2018.
+ */
+
 public class AttachmentOptionsAdapter extends BaseAdapter {
     final ArrayList<String> data;
     final Context mContext;
@@ -51,11 +55,10 @@ public class AttachmentOptionsAdapter extends BaseAdapter {
         } else {
             holder = (ListItemViewHolder) view.getTag();
         }
-
         String dataObj = (String) getItem(position);
         holder.title.setText(dataObj);
 
-        if(position == data.size() - 1){
+        if (position == data.size() - 1) {
             holder.vDivider.setVisibility(View.GONE);
         }
 

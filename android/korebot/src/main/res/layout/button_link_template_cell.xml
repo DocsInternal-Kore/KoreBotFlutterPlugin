@@ -4,6 +4,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:ellipsize="end"
+    android:gravity="left"
     android:orientation="horizontal"
     android:visibility="visible">
 
@@ -12,20 +13,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dimen_5dp"
-        android:layout_marginEnd="@dimen/dimen_10dp"
+        android:layout_marginRight="@dimen/dimen_10dp"
         android:layout_marginBottom="@dimen/dimen_10dp"
         android:background="@drawable/button_deep_link_btn_bg"
         android:gravity="center_vertical"
-        android:minHeight="@dimen/button_min_height"
         android:orientation="horizontal">
 
         <kore.botssdk.view.CustomTextViewBold
             android:id="@+id/tvButtonTitle"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/dimen_5dp"
+            android:layout_marginRight="@dimen/dimen_5dp"
             android:layout_weight="1"
-            android:text="@string/upi_id"
+            android:text="UPI ID"
             android:textColor="@color/colorPrimary"
             android:textSize="@dimen/text_size_normal"
             android:textStyle="bold" />
@@ -34,7 +34,6 @@
             android:id="@+id/ivLinkForward"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:importantForAccessibility="no"
             android:src="@drawable/ic_arrowforward" />
 
     </LinearLayout>

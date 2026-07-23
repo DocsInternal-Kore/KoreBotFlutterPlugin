@@ -1,9 +1,6 @@
 package kore.botssdk.fragment.footer;
 
-import static android.view.View.GONE;
-import static android.view.View.VISIBLE;
-
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -11,39 +8,48 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.VectorDrawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
 import kore.botssdk.R;
+import kore.botssdk.adapter.AttachmentOptionsAdapter;
 import kore.botssdk.adapter.ComposebarAttachmentAdapter;
 import kore.botssdk.dialogs.OptionsActionSheetFragment;
-import kore.botssdk.listener.AttachmentListner;
+import kore.botssdk.dialogs.ReUsableListViewActionSheet;
 import kore.botssdk.listener.TTSUpdate;
-import kore.botssdk.models.BotOptionsModel;
+import kore.botssdk.models.BotBrandingModel;
 import kore.botssdk.models.BotResponse;
+import kore.botssdk.models.BrandingFooterModel;
 import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.speech.GoogleVoiceTypingDisabledException;
 import kore.botssdk.speech.Speech;
@@ -51,7 +57,7 @@ import kore.botssdk.speech.SpeechRecognitionNotAvailable;
 import kore.botssdk.speech.SpeechUtil;
 import kore.botssdk.speech.ui.SpeechProgressView;
 import kore.botssdk.utils.BundleConstants;
-import kore.botssdk.utils.LogUtils;
+import kore.botssdk.utils.BundleUtils;
 import kore.botssdk.utils.StringUtils;
 import kore.botssdk.utils.ToastUtils;
 import kore.botssdk.utils.Utility;
@@ -61,90 +67,91 @@ import kore.botssdk.utils.Utility;
  */
 @SuppressLint("UnknownNullness")
 public class ComposeFooterFragment extends BaseFooterFragment {
-    private final String LOG_TAG = ComposeFooterFragment.class.getName();
-    EditText editTextMessage;
-    private TextView speakerText;
-    LinearLayout mainContentLayout, composeFrameLl;
-    LinearLayout defaultFooterLayout;
-    ImageView recAudioImg;
-    private ImageView audioSpeakTts;
-    private ImageView keyboardImg;
-    private ImageView newMenuLogo;
-    private ImageView ivAttachment;
+    protected EditText editTextMessage;
+    protected TextView sendButton;
+    protected TextView speakerText;
+    protected LinearLayout mainContentLayout, linearLayoutProgress, llSpeechSend, llSend, llEdtText;
+    protected RelativeLayout defaultFooterLayout, rlSpeaker, rlFooter;
+    protected ImageView recAudioImg, ivSpeaker;
+    protected ImageView audioSpeakTts;
+    protected ImageView keyboardImg;
+    protected ImageView newMenuLogo;
     private SpeechProgressView progress;
-    private TextView textViewSpeech, sendTv;
-    private boolean isDisabled;
+    private TextView textViewSpeech;
     private boolean isFirstTime;
-    boolean isTTSEnabled = false;
-    TTSUpdate ttsUpdate;
-    LinearLayout llSend;
-    private BotOptionsModel botOptionsModel;
-    ComposebarAttachmentAdapter composebarAttachmentAdapter;
-    RecyclerView attachmentRecycler;
-    private RelativeLayout rlFooter;
-    private RelativeLayout rlSpeaker;
-    private RelativeLayout rlSpeakerCircle;
-    private int[] colors;
+    private boolean isTTSEnabled = true;
+    private TTSUpdate ttsUpdate;
+    private ComposebarAttachmentAdapter composebarAttachmentAdapter;
+    private RecyclerView attachmentRecycler;
+    private ImageView ivAttachment;
+    private String outLineColor;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Speech.init(getContext(), requireActivity().getPackageName());
+    }
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.bot_footer_fragment, null);
-        view.setLayoutDirection(SDKConfiguration.Server.isRtl()
-                ? View.LAYOUT_DIRECTION_RTL
-                : View.LAYOUT_DIRECTION_LTR);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = View.inflate(requireActivity(), R.layout.bot_footer_fragment, null);
         findViews(view);
         isDisabled = true;
         isFirstTime = true;
-        updateUI();
         setListener();
         setListenerExplicitly();
         toggleTTSButton();
-        initialSetUp();
-        keyboardImg.performClick();
         return view;
     }
 
-    @Override
-    public void setDisabled(boolean disabled) {
-        isDisabled = disabled;
-        updateUI();
-    }
-
-    private void findViews(View view) {
+    void findViews(View view) {
         mainContentLayout = view.findViewById(R.id.mainContent);
         defaultFooterLayout = view.findViewById(R.id.default_footer);
         editTextMessage = view.findViewById(R.id.edtTxtMessage);
         editTextMessage.addTextChangedListener(composeTextWatcher);
+        sendButton = view.findViewById(R.id.sendTv);
         speakerText = view.findViewById(R.id.speaker_text);
         recAudioImg = view.findViewById(R.id.rec_audio_img);
         keyboardImg = view.findViewById(R.id.keyboard_image);
         audioSpeakTts = view.findViewById(R.id.audio_speak_tts);
         newMenuLogo = view.findViewById(R.id.newMenuLogo);
         progress = view.findViewById(R.id.progress);
-        ivAttachment = view.findViewById(R.id.attachemnt);
+        ivAttachment = view.findViewById(R.id.ivAttachment);
+        attachmentRecycler = view.findViewById(R.id.attachment_recycler);
+        rlSpeaker = view.findViewById(R.id.rlSpeaker);
+        ivSpeaker = view.findViewById(R.id.ivSpeaker);
+        linearLayoutProgress = view.findViewById(R.id.linearLayoutProgress);
+        llSpeechSend = view.findViewById(R.id.llSpeechSend);
         rlFooter = view.findViewById(R.id.rlFooter);
         llSend = view.findViewById(R.id.llSend);
-        rlSpeaker = view.findViewById(R.id.rlSpeaker);
-        sendTv = view.findViewById(R.id.sendTv);
-        rlSpeakerCircle = view.findViewById(R.id.rlSpeakerCircle);
-        textViewSpeech = view.findViewById(R.id.text_view_speech);
-        composeFrameLl = view.findViewById(R.id.composeFrameLl);
+        llEdtText = view.findViewById(R.id.llEdtText);
 
-        attachmentRecycler = view.findViewById(R.id.attachment_recycler);
-        attachmentRecycler.setLayoutManager(new LinearLayoutManager(requireActivity(), LinearLayoutManager.HORIZONTAL, false));
+        SharedPreferences sharedPreferences = getSharedPreferences();
+
+        attachmentRecycler.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         colors = new int[]{ResourcesCompat.getColor(requireActivity().getResources(), android.R.color.white, requireActivity().getTheme()), ResourcesCompat.getColor(requireActivity().getResources(), android.R.color.white, requireActivity().getTheme()), ResourcesCompat.getColor(requireActivity().getResources(), android.R.color.white, requireActivity().getTheme())};
         int[] heights = {10, 20, 30, 20, 10};
         progress.setBarMaxHeightsInDp(heights);
-        progress.setColors(colors);
+
+        String rightTextColor = sharedPreferences.getString(BotResponse.BUBBLE_RIGHT_TEXT_COLOR, "#ffffff");
+        String rightBgColor = sharedPreferences.getString(BotResponse.BUBBLE_RIGHT_BG_COLOR, "#0078cd");
+        GradientDrawable rightDrawable = (GradientDrawable) ResourcesCompat.getDrawable(requireActivity().getResources(), R.drawable.theme1_right_bubble_bg, requireActivity().getTheme());
+
+        if (rightDrawable != null) {
+            rightDrawable.setColor(Color.parseColor(rightTextColor));
+            rightDrawable.setStroke((int) (1 * dp1), Color.parseColor(rightBgColor));
+        }
+
+        textViewSpeech = view.findViewById(R.id.text_view_speech);
+        textViewSpeech.setBackground(rightDrawable);
+        textViewSpeech.setTextColor(Color.parseColor(rightBgColor));
 
         if (composebarAttachmentAdapter == null) {
-            composebarAttachmentAdapter = new ComposebarAttachmentAdapter(requireActivity(), new AttachmentListner() {
-                @Override
-                public void onRemoveAttachment() {
-                    attachmentRecycler.setVisibility(GONE);
-                    enableOrDisableSendButton(composebarAttachmentAdapter.getItemCount() > 0 || !TextUtils.isEmpty(editTextMessage.getText().toString().trim()));
-                }
+            composebarAttachmentAdapter = new ComposebarAttachmentAdapter(getActivity(), () -> {
+                composebarAttachmentAdapter.clearAll();
+                attachmentRecycler.setVisibility(View.GONE);
+                enableOrDisableSendButton(composebarAttachmentAdapter.getItemCount() > 0 || !TextUtils.isEmpty(editTextMessage.getText().toString().trim()));
             });
             attachmentRecycler.setAdapter(composebarAttachmentAdapter);
         }
@@ -152,9 +159,105 @@ public class ComposeFooterFragment extends BaseFooterFragment {
             if (composebarAttachmentAdapter.getItemCount() < 1) {
                 showAttachmentActionSheet();
             } else {
-                ToastUtils.showToast(requireActivity(), "You can upload only one file");
+                ToastUtils.showToast(getActivity(), "You can upload only one file");
             }
         });
+    }
+
+    SharedPreferences getSharedPreferences() {
+        return requireActivity().getSharedPreferences(BotResponse.THEME_NAME, Context.MODE_PRIVATE);
+    }
+
+    @Override
+    public void setBotBrandingModel(BotBrandingModel botBrandingModel) {
+        this.botBrandingModel = botBrandingModel;
+        if (botBrandingModel != null) {
+            if (botBrandingModel.getFooter() != null) {
+                BrandingFooterModel footerModel = botBrandingModel.getFooter();
+
+                if (!StringUtils.isNullOrEmpty(footerModel.getLayout())) {
+                    if (footerModel.getLayout().equalsIgnoreCase(BundleUtils.KEYPAD)) keyboardImg.performClick();
+                    else recAudioImg.performClick();
+                }
+
+                if (!StringUtils.isNullOrEmpty(footerModel.getBg_color())) {
+                    rlFooter.setBackgroundColor(Color.parseColor(footerModel.getBg_color()));
+                }
+
+                if (footerModel.getCompose_bar() != null) {
+                    VectorDrawable stroke = (VectorDrawable) mainContentLayout.getBackground();
+                    VectorDrawable solidColor = (VectorDrawable) llEdtText.getBackground();
+                    VectorDrawable send = (VectorDrawable) llSend.getBackground();
+                    VectorDrawable send_small = (VectorDrawable) sendButton.getBackground();
+
+                    if (solidColor != null && !StringUtils.isNullOrEmpty(footerModel.getCompose_bar().getBg_color())) {
+                        solidColor.setTintList(ColorStateList.valueOf(Color.parseColor(footerModel.getCompose_bar().getBg_color())));
+                        llEdtText.setBackground(solidColor);
+                    }
+
+                    if (!StringUtils.isNullOrEmpty(footerModel.getCompose_bar().getOutline_color())) {
+                        if (send != null) {
+                            send.setTint(Color.parseColor(footerModel.getCompose_bar().getOutline_color()));
+                            llSend.setBackground(send);
+                        }
+
+                        if (stroke != null) {
+                            outLineColor = footerModel.getCompose_bar().getOutline_color();
+                            stroke.setTint(Color.parseColor(footerModel.getCompose_bar().getOutline_color()));
+                            mainContentLayout.setBackground(stroke);
+                        }
+
+                        rlSpeaker.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(footerModel.getCompose_bar().getOutline_color())));
+                    }
+
+                    if (!StringUtils.isNullOrEmpty(footerModel.getCompose_bar().getInline_color())) {
+                        if (send_small != null) {
+                            send_small.setTint(Color.parseColor(footerModel.getCompose_bar().getInline_color()));
+                            sendButton.setBackground(send_small);
+                        }
+
+                        ivSpeaker.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(footerModel.getCompose_bar().getInline_color())));
+                        colors = new int[]{Color.parseColor(footerModel.getCompose_bar().getInline_color()), Color.parseColor(footerModel.getCompose_bar().getInline_color()), Color.parseColor(footerModel.getCompose_bar().getInline_color())};
+                        progress.setColors(colors);
+                    }
+
+                    if (!StringUtils.isNullOrEmpty(footerModel.getCompose_bar().getPlaceholder())) {
+                        editTextMessage.setHint(footerModel.getCompose_bar().getPlaceholder());
+                    }
+                }
+
+                if (!StringUtils.isNullOrEmpty(footerModel.getIcons_color())) {
+                    newMenuLogo.setImageTintList(ColorStateList.valueOf(Color.parseColor(footerModel.getIcons_color())));
+                    ivAttachment.setImageTintList(ColorStateList.valueOf(Color.parseColor(footerModel.getIcons_color())));
+                    recAudioImg.setImageTintList(ColorStateList.valueOf(Color.parseColor(footerModel.getIcons_color())));
+                    keyboardImg.setImageTintList(ColorStateList.valueOf(Color.parseColor(footerModel.getIcons_color())));
+                    audioSpeakTts.setImageTintList(ColorStateList.valueOf(Color.parseColor(footerModel.getIcons_color())));
+                    editTextMessage.setHintTextColor(Color.parseColor(footerModel.getIcons_color()));
+                }
+
+                if (footerModel.getButtons() != null && footerModel.getButtons().getMenu() != null
+                        && footerModel.getButtons().getMenu().getActions() != null
+                        && !footerModel.getButtons().getMenu().getActions().isEmpty()) {
+                    botOptionsModel = footerModel.getButtons().getMenu().getActions();
+                }
+
+                if (footerModel.getButtons() != null) {
+                    if (footerModel.getButtons().getMicrophone() != null)
+                        SDKConfiguration.OverrideKoreConfig.showASRMicroPhone = footerModel.getButtons().getMicrophone().isShow();
+                    if (footerModel.getButtons().getAttachment() != null)
+                        SDKConfiguration.OverrideKoreConfig.showAttachment = footerModel.getButtons().getAttachment().isShow();
+                    if (footerModel.getButtons().getSpeaker() != null)
+                        SDKConfiguration.OverrideKoreConfig.showTextToSpeech = footerModel.getButtons().getSpeaker().isShow();
+                }
+
+                if (SDKConfiguration.OverrideKoreConfig.showAttachment) ivAttachment.setVisibility(View.VISIBLE);
+
+                if (SDKConfiguration.OverrideKoreConfig.showTextToSpeech) audioSpeakTts.setVisibility(View.VISIBLE);
+
+                if (SDKConfiguration.OverrideKoreConfig.showASRMicroPhone && StringUtils.isNullOrEmpty(editTextMessage.getText().toString()))
+                    recAudioImg.setVisibility(View.VISIBLE);
+            }
+        }
     }
 
     @Override
@@ -162,115 +265,46 @@ public class ComposeFooterFragment extends BaseFooterFragment {
         if (llSend != null) {
             llSend.setEnabled(!isDisabled && !isFirstTime);
             llSend.setAlpha(llSend.isEnabled() ? 1.0f : 0.5f);
+            llSpeechSend.setAlpha(llSend.isEnabled() ? 1.0f : 0.5f);
         }
     }
 
-    private void setListener() {
+    void setListener() {
         if (isDisabled && isFirstTime) {
             llSend.setOnClickListener(null);
+            llSpeechSend.setOnClickListener(null);
         } else {
             llSend.setOnClickListener(composeFooterSendBtOnClickListener);
+            llSpeechSend.setOnClickListener(composeFooterSendBtOnClickListener);
         }
     }
 
-    private void setListenerExplicitly() {
+    void setListenerExplicitly() {
         keyboardImg.setOnClickListener(keyboardIconClickListener);
-        speakerText.setOnClickListener(v -> onMicButtonClick());
+        speakerText.setOnClickListener(v -> onButtonClick());
+        rlSpeaker.setOnClickListener(v -> onButtonClick());
+        ivSpeaker.setOnClickListener(v -> onButtonClick());
         audioSpeakTts.setOnClickListener(onTTSEnableSwitchClickListener);
         recAudioImg.setOnClickListener(onVoiceModeActivated);
         newMenuLogo.setOnClickListener(v -> {
-            if (botOptionsModel != null && botOptionsModel.getTasks() != null && !botOptionsModel.getTasks().isEmpty()) {
+            if (botOptionsModel != null && !botOptionsModel.isEmpty()) {
                 OptionsActionSheetFragment bottomSheetDialog = new OptionsActionSheetFragment();
+                bottomSheetDialog.setIsFromFullView(false);
+                bottomSheetDialog.setSkillName("skillName");
                 bottomSheetDialog.setData(botOptionsModel);
+                bottomSheetDialog.setBrandingModel(botBrandingModel);
                 bottomSheetDialog.setComposeFooterInterface(composeFooterInterface);
                 bottomSheetDialog.show(requireActivity().getSupportFragmentManager(), "add_tags");
             }
         });
     }
 
-    public void changeThemeBackGround(String widgetFooterColor, String widgetFooterHintColor) {
-        rlFooter.setVisibility(VISIBLE);
-
-        if (widgetFooterColor != null) {
-            rlFooter.setBackgroundColor(Color.parseColor(widgetFooterColor));
-            rlSpeaker.setBackgroundColor(Color.parseColor(widgetFooterColor));
-        }
-        if (widgetFooterHintColor != null) {
-            editTextMessage.setHintTextColor(Color.parseColor(widgetFooterHintColor));
-            editTextMessage.setHint(StringUtils.isNotEmpty(SDKConfiguration.BubbleColors.footer_hint_text) ? SDKConfiguration.BubbleColors.footer_hint_text : "");
-        }
-        LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) composeFrameLl.getLayoutParams();
-
-        if (SDKConfiguration.OverrideKoreConfig.showAttachment) {
-            ivAttachment.setVisibility(VISIBLE);
-            layoutParams.setMarginStart(0);
-        } else {
-            layoutParams.setMarginStart((int) (10 * dp1));
-        }
-        composeFrameLl.setLayoutParams(layoutParams);
-
-        if (SDKConfiguration.OverrideKoreConfig.showTextToSpeech) audioSpeakTts.setVisibility(VISIBLE);
-
-        if (SDKConfiguration.OverrideKoreConfig.showASRMicroPhone && StringUtils.isNullOrEmpty(editTextMessage.getText().toString()))
-            recAudioImg.setVisibility(VISIBLE);
-        else llSend.setVisibility(VISIBLE);
-
-        SharedPreferences sharedPreferences = getSharedPreferences();
-        String rightTextColor = sharedPreferences.getString(BotResponse.BUBBLE_RIGHT_TEXT_COLOR, "#ffffff");
-        String LeftTextColor = sharedPreferences.getString(BotResponse.BUBBLE_LEFT_TEXT_COLOR, "#ffffff");
-        String rightBgColor = sharedPreferences.getString(BotResponse.BUBBLE_RIGHT_BG_COLOR, "#0078cd");
-        GradientDrawable rightDrawable = (GradientDrawable) ResourcesCompat.getDrawable(requireActivity().getResources(), R.drawable.theme1_right_bubble_bg, requireActivity().getTheme());
-
-        if (rightDrawable != null) {
-            rightDrawable.setColor(Color.parseColor(rightBgColor));
-        }
-
-        textViewSpeech.setBackground(rightDrawable);
-        textViewSpeech.setTextColor(Color.parseColor(rightTextColor));
-        keyboardImg.setImageTintList(ColorStateList.valueOf(Color.parseColor(LeftTextColor)));
-        speakerText.setCompoundDrawableTintList(ColorStateList.valueOf(Color.parseColor(LeftTextColor)));
-        speakerText.setTextColor(Color.parseColor(LeftTextColor));
-        recAudioImg.setImageTintList(ColorStateList.valueOf(Color.parseColor(LeftTextColor)));
-        ivAttachment.setImageTintList(ColorStateList.valueOf(Color.parseColor(LeftTextColor)));
-        llSend.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(rightBgColor)));
-        sendTv.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(rightTextColor)));
-        rlSpeakerCircle.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(rightBgColor)));
-
-        colors = new int[]{Color.parseColor(rightTextColor), Color.parseColor(rightTextColor), Color.parseColor(rightTextColor)};
-        progress.setColors(colors);
-    }
-
-    SharedPreferences getSharedPreferences() {
-        return requireActivity().getSharedPreferences(BotResponse.THEME_NAME, Context.MODE_PRIVATE);
-    }
-
-    void toggleTTSButton() {
+    private void toggleTTSButton() {
         if (isTTSEnabled) {
-            audioSpeakTts.setImageResource(R.drawable.ic_volume_up_black_24dp);
+            audioSpeakTts.setImageResource(R.mipmap.ic_volume_up_black_24dp);
         } else {
-            audioSpeakTts.setImageResource(R.drawable.ic_volume_off_black_24dp);
+            audioSpeakTts.setImageResource(R.mipmap.ic_volume_off_black_24dp);
         }
-    }
-
-    void sendMessageText(String message) {
-        if (composeFooterInterface != null) {
-            composeFooterInterface.onSendClick(message.trim(), false);
-        } else {
-            LogUtils.e(LOG_TAG, "ComposeFooterInterface is not found. Please set the interface first.");
-        }
-    }
-
-    void sendMessageAttachmentText(String message, ArrayList<HashMap<String, String>> dataList) {
-        if (composeFooterInterface != null) {
-            composeFooterInterface.onSendClick(message.trim(), dataList, false);
-        } else {
-            LogUtils.e(LOG_TAG, "ComposeFooterInterface is not found. Please set the interface first.");
-        }
-    }
-
-    @Override
-    public void setBottomOptionData(BotOptionsModel botOptionsModel) {
-        this.botOptionsModel = botOptionsModel;
     }
 
     @Override
@@ -297,19 +331,26 @@ public class ComposeFooterFragment extends BaseFooterFragment {
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             if (s.length() == 0) {
-                llSend.setVisibility(GONE);
+                llSend.setVisibility(View.GONE);
 
-                if (SDKConfiguration.OverrideKoreConfig.showASRMicroPhone) recAudioImg.setVisibility(VISIBLE);
-                else llSend.setVisibility(VISIBLE);
+                if (isAgentConnected && botClient != null)
+                    botClient.sendReceipts(BundleConstants.STOP_TYPING, "");
 
-                if (isAgentConnected && botClient != null) botClient.sendReceipts(BundleConstants.STOP_TYPING, "");
+                if (mainContentLayout.getVisibility() == View.VISIBLE) {
+                    recAudioImg.setVisibility(View.VISIBLE);
+                }
 
-            } else if ((llSend.getVisibility() != VISIBLE) || (s.length() > 0 && llSend.getVisibility() != VISIBLE)) {
+                VectorDrawable stroke = (VectorDrawable) mainContentLayout.getBackground();
+                if (!StringUtils.isNullOrEmpty(outLineColor)) stroke.setTint(Color.parseColor(outLineColor));
+                else stroke.setTint(ContextCompat.getColor(requireActivity(), R.color.gray_modern));
 
-                if (isAgentConnected && botClient != null) botClient.sendReceipts(BundleConstants.TYPING, "");
+                mainContentLayout.setBackground(stroke);
+            } else if ((llSend.getVisibility() != View.VISIBLE) || (s.length() > 0 && llSend.getVisibility() != View.VISIBLE)) {
+                llSend.setVisibility(View.VISIBLE);
+                recAudioImg.setVisibility(View.GONE);
 
-                llSend.setVisibility(VISIBLE);
-                recAudioImg.setVisibility(GONE);
+                if (isAgentConnected && botClient != null)
+                    botClient.sendReceipts(BundleConstants.TYPING, "");
             }
         }
 
@@ -324,25 +365,33 @@ public class ComposeFooterFragment extends BaseFooterFragment {
             String msg = editTextMessage.getText().toString();
             if (!msg.trim().isEmpty()) {
                 if (composebarAttachmentAdapter.getItemCount() > 0) {
-                    if (Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".png") || Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".jpg") || Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".jpeg"))
+                    if (Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".png")
+                            || Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".jpg")
+                            || Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".jpeg"))
                         sendMessageAttachmentText(msg + "\n" + requireActivity().getResources().getString(R.string.camera) + " " + composebarAttachmentAdapter.getData().get(0).get("fileName"), composebarAttachmentAdapter.getData());
                     else if (Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".mp4"))
                         sendMessageAttachmentText(msg + "\n" + requireActivity().getResources().getString(R.string.video) + " " + composebarAttachmentAdapter.getData().get(0).get("fileName"), composebarAttachmentAdapter.getData());
-                    else if (Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".mp3") || Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".m4a"))
+                    else if (Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".mp3")
+                            || Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".m4a"))
                         sendMessageAttachmentText(msg + "\n" + requireActivity().getResources().getString(R.string.audio) + " " + composebarAttachmentAdapter.getData().get(0).get("fileName"), composebarAttachmentAdapter.getData());
                     else
                         sendMessageAttachmentText(msg + " " + composebarAttachmentAdapter.getData().get(0).get("fileName"), composebarAttachmentAdapter.getData());
-                } else sendMessageText(msg);
+
+                } else
+                    sendMessageText(msg);
 
                 editTextMessage.setText("");
                 composebarAttachmentAdapter.clearAll();
                 enableOrDisableSendButton(false);
             } else if (composebarAttachmentAdapter.getItemCount() > 0) {
-                if (Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".png") || Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".jpg") || Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".jpeg"))
+                if (Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".png")
+                        || Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".jpg")
+                        || Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".jpeg"))
                     sendMessageAttachmentText(requireActivity().getResources().getString(R.string.camera) + " " + composebarAttachmentAdapter.getData().get(0).get("fileName"), composebarAttachmentAdapter.getData());
                 else if (Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".mp4"))
                     sendMessageAttachmentText(requireActivity().getResources().getString(R.string.video) + " " + composebarAttachmentAdapter.getData().get(0).get("fileName"), composebarAttachmentAdapter.getData());
-                else if (Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".mp3") || Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".m4a"))
+                else if (Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".mp3")
+                        || Objects.requireNonNull(composebarAttachmentAdapter.getData().get(0).get("fileName")).contains(".m4a"))
                     sendMessageAttachmentText(requireActivity().getResources().getString(R.string.audio) + " " + composebarAttachmentAdapter.getData().get(0).get("fileName"), composebarAttachmentAdapter.getData());
                 else
                     sendMessageAttachmentText(requireActivity().getResources().getString(R.string.attachment) + " " + composebarAttachmentAdapter.getData().get(0).get("fileName"), composebarAttachmentAdapter.getData());
@@ -350,6 +399,7 @@ public class ComposeFooterFragment extends BaseFooterFragment {
                 composebarAttachmentAdapter.clearAll();
                 enableOrDisableSendButton(false);
             }
+            attachmentRecycler.setVisibility(View.GONE);
         }
     };
     final View.OnClickListener keyboardIconClickListener = new View.OnClickListener() {
@@ -357,6 +407,8 @@ public class ComposeFooterFragment extends BaseFooterFragment {
         public void onClick(View v) {
             animateLayoutVisible(mainContentLayout);
             animateLayoutGone(defaultFooterLayout);
+            recAudioImg.setVisibility(View.VISIBLE);
+            keyboardImg.setVisibility(View.GONE);
         }
     };
 
@@ -365,7 +417,8 @@ public class ComposeFooterFragment extends BaseFooterFragment {
         public void onClick(View v) {
             animateLayoutGone(mainContentLayout);
             animateLayoutVisible(defaultFooterLayout);
-            new Handler().postDelayed(() -> onMicButtonClick(), 500);
+            keyboardImg.setVisibility(View.VISIBLE);
+            recAudioImg.setVisibility(View.GONE);
         }
     };
 
@@ -380,37 +433,58 @@ public class ComposeFooterFragment extends BaseFooterFragment {
         }
     };
 
-    private void stopTTS() {
+    void stopTTS() {
         if (ttsUpdate != null) {
             ttsUpdate.ttsOnStop();
         }
     }
 
-    private void initialSetUp() {
-        mainContentLayout.setVisibility(GONE);
-        animateLayoutGone(mainContentLayout);
-        animateLayoutVisible(defaultFooterLayout);
-    }
-
-    @Override
     public boolean isTTSEnabled() {
         return isTTSEnabled;
+    }
+
+    void speechStarted(boolean isStarted) {
+        if (isStarted) {
+            newMenuLogo.setVisibility(View.INVISIBLE);
+            ivAttachment.setVisibility(View.INVISIBLE);
+            keyboardImg.setVisibility(View.INVISIBLE);
+
+            newMenuLogo.setEnabled(false);
+            newMenuLogo.setClickable(false);
+
+            ivAttachment.setEnabled(false);
+            ivAttachment.setClickable(false);
+
+            keyboardImg.setEnabled(false);
+            keyboardImg.setClickable(false);
+
+            textViewSpeech.setText("");
+
+        } else {
+            newMenuLogo.setVisibility(View.VISIBLE);
+            ivAttachment.setVisibility(View.VISIBLE);
+            keyboardImg.setVisibility(View.VISIBLE);
+
+            newMenuLogo.setEnabled(true);
+            newMenuLogo.setClickable(true);
+
+            ivAttachment.setEnabled(true);
+            ivAttachment.setClickable(true);
+
+            keyboardImg.setEnabled(true);
+            keyboardImg.setClickable(true);
+        }
     }
 
     @Override
     protected void onRecordAudioPermissionGranted() {
         stopTTS();
         Utility.hideVirtualKeyboard(requireActivity());
-        speakerText.setVisibility(GONE);
-        rlSpeakerCircle.setVisibility(VISIBLE);
-        textViewSpeech.setVisibility(VISIBLE);
-        textViewSpeech.setText("");
 
         try {
-            if (Speech.getInstance() != null) {
-                Speech.getInstance().stopTextToSpeech();
-                Speech.getInstance().startListening(progress, ComposeFooterFragment.this);
-            }
+            Speech.getInstance().stopTextToSpeech();
+            Speech.getInstance().startListening(progress, ComposeFooterFragment.this);
+
         } catch (SpeechRecognitionNotAvailable exc) {
             showSpeechNotSupportedDialog();
 
@@ -420,7 +494,21 @@ public class ComposeFooterFragment extends BaseFooterFragment {
     }
 
     @Override
+    public void onStartOfSpeech() {
+        ivSpeaker.setVisibility(View.GONE);
+        speakerText.setText(requireActivity().getString(R.string.listening_tap_end));
+        linearLayoutProgress.setVisibility(View.VISIBLE);
+        textViewSpeech.setVisibility(View.VISIBLE);
+        speechStarted(true);
+    }
+
+    @Override
+    public void onSpeechRmsChanged(float value) {
+    }
+
+    @Override
     public void onSpeechPartialResults(List<String> results) {
+
         textViewSpeech.setText(results.toString());
         for (String partial : results) {
             textViewSpeech.append(partial + " ");
@@ -429,25 +517,25 @@ public class ComposeFooterFragment extends BaseFooterFragment {
 
     @Override
     public void onSpeechResult(String result) {
-        speakerText.setVisibility(VISIBLE);
-        rlSpeakerCircle.setVisibility(GONE);
-        textViewSpeech.setText(result);
-
-        if (result.isEmpty() && Speech.getInstance() != null) {
-            Speech.getInstance().say(getString(R.string.repeat));
-
+        if (!StringUtils.isNullOrEmpty(result)) {
+            linearLayoutProgress.setVisibility(View.GONE);
+            speakerText.setText(requireActivity().getString(R.string.tap_to_send));
+            llSpeechSend.setVisibility(View.VISIBLE);
+            textViewSpeech.setText(result);
         } else {
-            if (composeFooterInterface != null) {
-                composeFooterInterface.onSendClick(result, false);
-                editTextMessage.setText("");
-            } else {
-                LogUtils.e(LOG_TAG, "ComposeFooterInterface is not found. Please set the interface first.");
-            }
+            linearLayoutProgress.setVisibility(View.GONE);
+            llSpeechSend.setVisibility(View.GONE);
+            ivSpeaker.setVisibility(View.VISIBLE);
+            textViewSpeech.setVisibility(View.GONE);
+            newMenuLogo.setVisibility(View.VISIBLE);
+            ivAttachment.setVisibility(View.VISIBLE);
+            keyboardImg.setVisibility(View.VISIBLE);
+            speakerText.setText(requireActivity().getString(R.string.tap_to_speak));
+            speechStarted(false);
         }
-        textViewSpeech.setVisibility(GONE);
     }
 
-    private void showSpeechNotSupportedDialog() {
+    void showSpeechNotSupportedDialog() {
         DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
             switch (which) {
                 case DialogInterface.BUTTON_POSITIVE:
@@ -463,41 +551,56 @@ public class ComposeFooterFragment extends BaseFooterFragment {
         builder.setMessage(R.string.speech_not_available).setCancelable(false).setPositiveButton(R.string.yes, dialogClickListener).setNegativeButton(R.string.no, dialogClickListener).show();
     }
 
-    private void showEnableGoogleVoiceTyping() {
+    void showEnableGoogleVoiceTyping() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
         builder.setMessage(R.string.enable_google_voice_typing).setCancelable(false).setPositiveButton(R.string.yes, (dialogInterface, i) -> {
             // do nothing
         }).show();
     }
 
-    @Override
     public void setComposeText(String text) {
         editTextMessage.setText(text);
         editTextMessage.setSelection(text.length());
     }
 
-    /**
-     * this method update the ui of send button based on enable/disable
-     */
-    @Override
-    public void enableOrDisableSendButton(boolean enable) {
-        if (composebarAttachmentAdapter.getItemCount() > 0 || enable) {
-            llSend.setVisibility(VISIBLE);
-            recAudioImg.setVisibility(GONE);
-        } else {
-            llSend.setVisibility(GONE);
-
-            if (SDKConfiguration.OverrideKoreConfig.showASRMicroPhone) recAudioImg.setVisibility(VISIBLE);
-            else llSend.setVisibility(VISIBLE);
+    void showAttachmentActionSheet() {
+        if (listViewActionSheet == null) {
+            listViewActionSheet = new ReUsableListViewActionSheet(requireActivity());
+            listViewActionSheet.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            WindowManager.LayoutParams wlp = Objects.requireNonNull(listViewActionSheet.getWindow()).getAttributes();
+            wlp.gravity = Gravity.BOTTOM;
+            listViewActionSheet.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+        listViewActionSheet.show();
+        if (adapter == null) {
+            ArrayList<String> options = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.attachments_strings)));
+            adapter = new AttachmentOptionsAdapter(requireActivity(), options);
+            listViewActionSheet.setAdapter(adapter);
+            listViewActionSheet.getOptionsListView().setOnItemClickListener((parent, view, position, id) -> launchSelectedMode(options.get(position)));
         }
     }
 
     @Override
     public void addAttachmentToAdapter(HashMap<String, String> attachmentKey) {
-        attachmentRecycler.setVisibility(VISIBLE);
+        attachmentRecycler.setVisibility(View.VISIBLE);
         composebarAttachmentAdapter.addAttachment(attachmentKey);
         if (composebarAttachmentAdapter.getItemCount() > 0) {
             enableOrDisableSendButton(true);
+        }
+    }
+
+    /**
+     * this method update the ui of send button based on enable/disable
+     *
+     * @param enable
+     */
+    public void enableOrDisableSendButton(boolean enable) {
+        if (composebarAttachmentAdapter.getItemCount() > 0 || enable) {
+            llSend.setVisibility(View.VISIBLE);
+            recAudioImg.setVisibility(View.GONE);
+        } else {
+            recAudioImg.setVisibility(View.VISIBLE);
+            llSend.setVisibility(View.GONE);
         }
     }
 }

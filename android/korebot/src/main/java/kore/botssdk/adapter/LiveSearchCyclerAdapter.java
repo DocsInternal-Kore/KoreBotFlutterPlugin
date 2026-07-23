@@ -58,14 +58,12 @@ public class LiveSearchCyclerAdapter extends RecyclerView.Adapter<LiveSearchCycl
         holder.llPages.setVisibility(VISIBLE);
         holder.llTask.setVisibility(GONE);
 
-        if (liveSearchResultsModel.getQuestion() != null)
-        {
+        if (liveSearchResultsModel.getQuestion() != null) {
             holder.tvTitle.setMaxLines(1);
             holder.tvTitle.setText(liveSearchResultsModel.getQuestion());
             holder.tvDescription.setText(liveSearchResultsModel.getAnswer());
             holder.tvFullDescription.setText(liveSearchResultsModel.getAnswer());
-        }
-        else if (liveSearchResultsModel.getPage_title() != null) {
+        } else if (liveSearchResultsModel.getPage_title() != null) {
             holder.tvTitle.setMaxLines(2);
             holder.ivPagesCell.setVisibility(View.VISIBLE);
             holder.tvTitle.setText(HtmlCompat.fromHtml(MarkdownUtil.processMarkDown(liveSearchResultsModel.getPage_title()), HtmlCompat.FROM_HTML_MODE_LEGACY));
@@ -73,40 +71,33 @@ public class LiveSearchCyclerAdapter extends RecyclerView.Adapter<LiveSearchCycl
 
             if (!StringUtils.isNullOrEmpty(liveSearchResultsModel.getPage_image_url()))
                 Glide.with(context).load(liveSearchResultsModel.getPage_image_url())
-                        .error(R.drawable.ic_launcher)
+                        .error(R.mipmap.ic_launcher)
                         .apply(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.NONE)).into(new DrawableImageViewTarget(holder.ivPagesCell));
         }
 
 
         holder.tvTitle.setTag(true);
-        holder.tvTitle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (liveSearchResultsModel. getSys_content_type().equalsIgnoreCase(BundleConstants.FAQ)) {
-                    if ((boolean) view.getTag()) {
-                        holder.tvDescription.setVisibility(View.GONE);
-                        holder.tvFullDescription.setVisibility(View.VISIBLE);
-                        view.setTag(false);
-                    } else {
-                        holder.tvDescription.setVisibility(View.VISIBLE);
-                        holder.tvFullDescription.setVisibility(View.GONE);
-                        view.setTag(true);
-                    }
+        holder.tvTitle.setOnClickListener(view -> {
+            if (liveSearchResultsModel.getSys_content_type().equalsIgnoreCase(BundleConstants.FAQ)) {
+                if ((boolean) view.getTag()) {
+                    holder.tvDescription.setVisibility(View.GONE);
+                    holder.tvFullDescription.setVisibility(View.VISIBLE);
+                    view.setTag(false);
+                } else {
+                    holder.tvDescription.setVisibility(View.VISIBLE);
+                    holder.tvFullDescription.setVisibility(View.GONE);
+                    view.setTag(true);
                 }
             }
         });
 
-        holder.llPages.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        holder.llPages.setOnClickListener(view -> {
 
-                if(invokeGenericWebViewInterface != null)
-                {
-                    if(!StringUtils.isNullOrEmpty(liveSearchResultsModel.getUrl()))
-                        invokeGenericWebViewInterface.invokeGenericWebView(liveSearchResultsModel.getUrl());
-                    else if(!StringUtils.isNullOrEmpty(liveSearchResultsModel.getPage_url()))
-                        invokeGenericWebViewInterface.invokeGenericWebView(liveSearchResultsModel.getPage_url());
-                }
+            if (invokeGenericWebViewInterface != null) {
+                if (!StringUtils.isNullOrEmpty(liveSearchResultsModel.getUrl()))
+                    invokeGenericWebViewInterface.invokeGenericWebView(liveSearchResultsModel.getUrl());
+                else if (!StringUtils.isNullOrEmpty(liveSearchResultsModel.getPage_url()))
+                    invokeGenericWebViewInterface.invokeGenericWebView(liveSearchResultsModel.getPage_url());
             }
         });
     }

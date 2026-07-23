@@ -1,6 +1,10 @@
 package kore.botssdk.viewholders;
 
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static android.content.Context.MODE_PRIVATE;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_BG_COLOR;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_TEXT_COLOR;
+import static kore.botssdk.models.BotResponse.THEME_NAME;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -40,6 +44,7 @@ public class FormTemplateHolder extends BaseViewHolder {
 
     private FormTemplateHolder(@NonNull View itemView) {
         super(itemView, itemView.getContext());
+        SharedPreferences prefs = itemView.getContext().getSharedPreferences(THEME_NAME, MODE_PRIVATE);
         llFormRoot = itemView.findViewById(R.id.llFormRoot);
         recyclerView = itemView.findViewById(R.id.multi_select_list);
         recyclerView.setVerticalScrollBarEnabled(false);
@@ -49,11 +54,11 @@ public class FormTemplateHolder extends BaseViewHolder {
         btFieldButton = itemView.findViewById(R.id.btfieldButton);
 
         GradientDrawable gradientDrawable = (GradientDrawable) btFieldButton.getBackground().mutate();
-        gradientDrawable.setStroke((int) (1 * dp1), Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-        gradientDrawable.setColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-        btFieldButton.setTextColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyTextColor));
+        gradientDrawable.setStroke((int) (1 * dp1), Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
+        gradientDrawable.setColor(Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
+        btFieldButton.setTextColor(Color.parseColor(prefs.getString(BUBBLE_RIGHT_TEXT_COLOR, "#ffffff")));
 
-        SharedPreferences sharedPreferences = itemView.getContext().getSharedPreferences(BotResponse.THEME_NAME, Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = itemView.getContext().getSharedPreferences(THEME_NAME, MODE_PRIVATE);
         String leftBgColor = sharedPreferences.getString(BotResponse.BUBBLE_LEFT_BG_COLOR, "#EBEBEB");
         leftTextColor = sharedPreferences.getString(BotResponse.BUBBLE_LEFT_TEXT_COLOR, "#000000");
 
@@ -101,13 +106,5 @@ public class FormTemplateHolder extends BaseViewHolder {
                     ToastUtils.showToast(context, "Text should not be empty.");
             }
         });
-    }
-
-    String getDotMessage(String strPassword) {
-        StringBuilder strDots = new StringBuilder();
-        for (int i = 0; i < strPassword.length(); i++) {
-            strDots.append("•");
-        }
-        return strDots.toString();
     }
 }

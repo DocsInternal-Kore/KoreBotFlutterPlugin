@@ -21,6 +21,7 @@ import io.reactivex.schedulers.Schedulers;
 import kore.botssdk.listener.BotContentFragmentUpdate;
 import kore.botssdk.models.BaseBotMessage;
 import kore.botssdk.models.BotResponse;
+import kore.botssdk.net.SDKConfig;
 import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.repository.history.HistoryRepository;
 import kore.botssdk.retroresponse.ServerBotMsgResponse;
@@ -31,10 +32,10 @@ import kore.botssdk.viewmodels.BaseViewModel;
 
 @SuppressWarnings("UnKnownNullness")
 public class BotContentViewModel extends BaseViewModel<BotContentFragmentUpdate> {
-    Context context;
-    final BotContentFragmentUpdate chatView;
+   private final Context context;
+    private final BotContentFragmentUpdate chatView;
     private final HistoryRepository repository;
-    int offset = 0;
+    private int offset = 0;
 
     public BotContentViewModel(Context context, BotContentFragmentUpdate chatView, HistoryRepository repository) {
         this.context = context.getApplicationContext();
@@ -43,40 +44,71 @@ public class BotContentViewModel extends BaseViewModel<BotContentFragmentUpdate>
     }
 
     public void loadChatHistory(final int _offset, final int limit, String jwt) {
-        Observer<ServerBotMsgResponse> observer = new Observer<>() {
-            @Override
-            public void onSubscribe(@NonNull Disposable d) {
-            }
-
-            @Override
-            public void onNext(@NonNull ServerBotMsgResponse re) {
-                ArrayList<BaseBotMessage> list = re.getBotMessages();
-                offset = (!SDKConfiguration.Client.isWebHook ? _offset : 0) + re.getOriginalSize();
-
-                if (list != null && !list.isEmpty()) {
-                    chatView.onChatHistory(list, offset, _offset == 0);
+        if (!SDKConfiguration.Client.isWebHook)
+            repository.getHistoryRequest(_offset, limit, jwt).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<>() {
+                @Override
+                public void onSubscribe(@NonNull Disposable d) {
                 }
 
-                SharedPreferences.Editor editor = context.getSharedPreferences(BotResponse.THEME_NAME, Context.MODE_PRIVATE).edit();
-                editor.putBoolean(BundleConstants.IS_RECONNECT, true);
-                editor.putInt(BotResponse.HISTORY_COUNT, 0);
-                editor.apply();
-            }
+                @Override
+                public void onNext(@NonNull ServerBotMsgResponse re) {
+                    ArrayList<BaseBotMessage> list;
+                    list = re.getBotMessages();
+                    offset = _offset + re.getOriginalSize();
 
-            @Override
-            public void onError(@NonNull Throwable e) {
-                chatView.onChatHistory(null, 0, false);
-            }
+                    if (list != null && !list.isEmpty()) {
+                        chatView.onChatHistory(list, offset, _offset == 0);
+                    }
 
-            @Override
-            public void onComplete() {
-                chatView.onChatHistory(null, 0, false);
-            }
-        };
-        if (!SDKConfiguration.Client.isWebHook)
-            repository.getHistoryRequest(_offset, limit, jwt).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(observer);
+                    SharedPreferences.Editor editor = context.getSharedPreferences(BotResponse.THEME_NAME, Context.MODE_PRIVATE).edit();
+                    SDKConfig.setIsMinimized(false);
+                    editor.putInt(BotResponse.HISTORY_COUNT, 0);
+                    editor.apply();
+                }
+
+                @Override
+                public void onError(@NonNull Throwable e) {
+                    chatView.onChatHistory(null, 0, false);
+                }
+
+                @Override
+                public void onComplete() {
+                    chatView.onChatHistory(null, 0, false);
+                }
+            });
         else
-            repository.getWebHookHistoryRequest(_offset, limit, jwt).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(observer);
+            repository.getWebHookHistoryRequest(_offset, limit, jwt).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<>() {
+                @Override
+                public void onSubscribe(@NonNull Disposable d) {
+
+                }
+
+                @Override
+                public void onNext(@NonNull ServerBotMsgResponse re) {
+                    ArrayList<BaseBotMessage> list = null;
+                    list = re.getBotMessages();
+                    offset = re.getOriginalSize();
+
+                    if (list != null && !list.isEmpty()) {
+                        chatView.onChatHistory(list, offset, _offset == 0);
+                    }
+
+                    SharedPreferences.Editor editor = context.getSharedPreferences(BotResponse.THEME_NAME, Context.MODE_PRIVATE).edit();
+                    SDKConfig.setIsMinimized(false);
+                    editor.putInt(BotResponse.HISTORY_COUNT, 0);
+                    editor.apply();
+                }
+
+                @Override
+                public void onError(@NonNull Throwable e) {
+                    chatView.onChatHistory(null, 0, false);
+                }
+
+                @Override
+                public void onComplete() {
+                    chatView.onChatHistory(null, 0, false);
+                }
+            });
     }
 
     public void loadReconnectionChatHistory(final int _offset, final int limit, String jwt, ArrayList<BaseBotMessage> baseBotMessageList) {
@@ -104,7 +136,7 @@ public class BotContentViewModel extends BaseViewModel<BotContentFragmentUpdate>
 
                     for (int i = 0; i < baseBotMessageList.size(); i++) {
                         for (int j = 0; j < botResp.size(); j++) {
-                            if (!StringUtils.isNullOrEmpty(baseBotMessageList.get(i).getCreatedOn()) && baseBotMessageList.get(i).getCreatedOn().equalsIgnoreCase(botResp.get(j).getCreatedOn())) {
+                            if (baseBotMessageList.get(i).getCreatedInMillis() == botResp.get(j).getCreatedInMillis()) {
                                 pos = j;
                             }
                         }

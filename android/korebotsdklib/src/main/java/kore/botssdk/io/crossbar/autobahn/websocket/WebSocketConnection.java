@@ -566,7 +566,9 @@ public class WebSocketConnection implements IWebSocket {
                     return;
                 }
 
-                if (msg.obj instanceof TextMessage textMessage) {
+                if (msg.obj instanceof TextMessage) {
+
+                    TextMessage textMessage = (TextMessage) msg.obj;
 
                     if (mWsHandler != null) {
                         mWsHandler.onMessage(textMessage.mPayload);
@@ -574,7 +576,9 @@ public class WebSocketConnection implements IWebSocket {
                         LOGGER.d("could not call onTextMessage() .. handler already NULL");
                     }
 
-                } else if (msg.obj instanceof RawTextMessage rawTextMessage) {
+                } else if (msg.obj instanceof RawTextMessage) {
+
+                    RawTextMessage rawTextMessage = (RawTextMessage) msg.obj;
 
                     if (mWsHandler != null) {
                         mWsHandler.onMessage(rawTextMessage.mPayload, false);
@@ -582,7 +586,9 @@ public class WebSocketConnection implements IWebSocket {
                         LOGGER.d("could not call onRawTextMessage() .. handler already NULL");
                     }
 
-                } else if (msg.obj instanceof BinaryMessage binaryMessage) {
+                } else if (msg.obj instanceof BinaryMessage) {
+
+                    BinaryMessage binaryMessage = (BinaryMessage) msg.obj;
 
                     if (mWsHandler != null) {
                         mWsHandler.onMessage(binaryMessage.mPayload, true);
@@ -590,30 +596,30 @@ public class WebSocketConnection implements IWebSocket {
                         LOGGER.d("could not call onBinaryMessage() .. handler already NULL");
                     }
 
-                } else if (msg.obj instanceof Ping ping) {
+                } else if (msg.obj instanceof Ping) {
 
+                    Ping ping = (Ping) msg.obj;
                     LOGGER.d("WebSockets Ping received");
 
-                    if (mWsHandler != null) {
-                        if (ping.mPayload == null) {
-                            mWsHandler.onPing();
-                        } else {
-                            mWsHandler.onPing(ping.mPayload);
-                        }
+                    if (ping.mPayload == null) {
+                        mWsHandler.onPing();
+                    } else {
+                        mWsHandler.onPing(ping.mPayload);
                     }
 
-                } else if (msg.obj instanceof Pong pong) {
-                    if (mWsHandler != null) {
-                        if (pong.mPayload == null) {
-                            mWsHandler.onPong();
-                        } else {
-                            mWsHandler.onPong(pong.mPayload);
-                        }
+                } else if (msg.obj instanceof Pong) {
+                    Pong pong = (Pong) msg.obj;
+                    if (pong.mPayload == null) {
+                        mWsHandler.onPong();
+                    } else {
+                        mWsHandler.onPong(pong.mPayload);
                     }
 
                     LOGGER.d("WebSockets Pong received");
 
-                } else if (msg.obj instanceof Close close) {
+                } else if (msg.obj instanceof Close) {
+
+                    Close close = (Close) msg.obj;
 
                     final int crossbarCloseCode = (close.mCode == 1000) ? IWebSocketConnectionHandler.CLOSE_NORMAL : IWebSocketConnectionHandler.CLOSE_CONNECTION_LOST;
 
@@ -633,7 +639,9 @@ public class WebSocketConnection implements IWebSocket {
                         onClose(crossbarCloseCode, close.mReason);
                     }
 
-                } else if (msg.obj instanceof ServerHandshake serverHandshake) {
+                } else if (msg.obj instanceof ServerHandshake) {
+
+                    ServerHandshake serverHandshake = (ServerHandshake) msg.obj;
 
                     LOGGER.d("opening handshake received");
 
@@ -654,24 +662,30 @@ public class WebSocketConnection implements IWebSocket {
                             LOGGER.d("could not call onOpen() .. handler already NULL");
                         }
                     }
-                } else if (msg.obj instanceof CannotConnect cannotConnect) {
+                } else if (msg.obj instanceof CannotConnect) {
 
+                    CannotConnect cannotConnect = (CannotConnect) msg.obj;
                     failConnection(IWebSocketConnectionHandler.CLOSE_CANNOT_CONNECT, cannotConnect.reason);
 
-                } else if (msg.obj instanceof ConnectionLost connnectionLost) {
+                } else if (msg.obj instanceof ConnectionLost) {
 
+                    ConnectionLost connnectionLost = (ConnectionLost) msg.obj;
                     failConnection(IWebSocketConnectionHandler.CLOSE_CONNECTION_LOST, connnectionLost.reason);
 
-                } else if (msg.obj instanceof @SuppressWarnings("unused")ProtocolViolation protocolViolation) {
+                } else if (msg.obj instanceof ProtocolViolation) {
 
+                    @SuppressWarnings("unused")
+                    ProtocolViolation protocolViolation = (ProtocolViolation) msg.obj;
                     failConnection(IWebSocketConnectionHandler.CLOSE_PROTOCOL_ERROR, "WebSockets protocol violation");
 
-                } else if (msg.obj instanceof Error error) {
+                } else if (msg.obj instanceof Error) {
 
+                    Error error = (Error) msg.obj;
                     failConnection(IWebSocketConnectionHandler.CLOSE_INTERNAL_ERROR, "WebSockets internal error (" + error.mException.toString() + ")");
 
-                } else if (msg.obj instanceof ServerError error) {
+                } else if (msg.obj instanceof ServerError) {
 
+                    ServerError error = (ServerError) msg.obj;
                     failConnection(IWebSocketConnectionHandler.CLOSE_SERVER_ERROR, "Server error " + error.mStatusCode + " (" + error.mStatusMessage + ")");
 
                 } else {

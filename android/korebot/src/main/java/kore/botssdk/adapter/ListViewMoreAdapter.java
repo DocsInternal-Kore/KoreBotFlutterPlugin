@@ -1,6 +1,6 @@
 package kore.botssdk.adapter;
 
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -35,11 +35,10 @@ public class ListViewMoreAdapter extends RecyclerView.Adapter<ListViewMoreAdapte
     private final ArrayList<BotListModel> model;
     private SharedPreferences sharedPreferences;
     private GradientDrawable rightDrawable;
-    private final Context context;
 
-    public ListViewMoreAdapter(Context context, @NonNull ArrayList<BotListModel> model) {
+    public ListViewMoreAdapter(@NonNull ArrayList<BotListModel> model) {
         this.model = model;
-        this.context = context;
+
     }
 
     @NonNull
@@ -68,7 +67,7 @@ public class ListViewMoreAdapter extends RecyclerView.Adapter<ListViewMoreAdapte
 
         if (!StringUtils.isNullOrEmpty(botListModel.getImage_url())) {
             holder.botListItemImage.setVisibility(View.VISIBLE);
-            Glide.with(context)
+            Glide.with(holder.botListItemImage.getContext())
                     .load(botListModel.getImage_url())
                     .transform(
                             new MultiTransformation<>(

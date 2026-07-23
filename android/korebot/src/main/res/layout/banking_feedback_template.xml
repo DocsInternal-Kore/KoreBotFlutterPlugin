@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dimen_10dp"
-        android:text="@string/text"
+        android:text="@string/title"
         android:textColor="@color/txtFontBlack"
         android:textSize="@dimen/text_size_header"
         android:textStyle="bold" />
@@ -33,7 +33,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dimen_15dp"
-        android:text="@string/text"
+        android:text="@string/title"
         android:textColor="@color/txtFontBlack"
         android:textSize="@dimen/text_size_sub_header"
         android:visibility="invisible" />
@@ -76,7 +76,6 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvButtonList"
             android:layout_width="match_parent"
-            android:nestedScrollingEnabled="false"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/dimen_15dp" />
 

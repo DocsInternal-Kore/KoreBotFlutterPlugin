@@ -23,14 +23,8 @@ import java.util.Objects;
 import kore.botssdk.models.KoreMedia;
 
 
-/**
- * Created by Shiva Krishna on 4/5/2018.
- */
-
 public class BitmapUtils {
 
-    public static final String MEDIA_APP_FOLDER = "Kore";
-    public static final String DOWNLOADED_IMAGE_FOLDER = "Kore Image";
     public static final String ORIENTATION_LS = "landscape";
     public static final String ORIENTATION_PT = "portrait";
     public static final String EXT_DOTX = "dotx";
@@ -454,12 +448,13 @@ public class BitmapUtils {
         }
     }
 
-    public static String createImageThumbnailForBulk(Context context, Bitmap thumbnail, String thumbPath, int compressQualityInt) {
-        String fileName = thumbPath.substring(thumbPath.lastIndexOf("/"), thumbPath.lastIndexOf("."));
-        String path = context.getFilesDir() + File.separator + MEDIA_APP_FOLDER;
-        String mediaStorageDir = new File(path, DOWNLOADED_IMAGE_FOLDER).getAbsolutePath();
-
-        thumbPath = mediaStorageDir + fileName + "_th.png";
+    public static String createImageThumbnailForBulk(Bitmap thumbnail, String thumbPath, int compressQualityInt) {
+        int index = thumbPath.lastIndexOf(".");
+        /*if(AppSandboxUtils.shouldEncryptLocalFiles){
+            thumbPath = thumbPath.substring(0, index) + "_th"+AppSandboxUtils.ENCRYPTED_FILE_SUFFIX+".png";
+        }else {*/
+        thumbPath = thumbPath.substring(0, index) + "_th.png";
+//        }
 
         LogUtils.d("BitmapUtils", "createImageThumbnailForBulk() - thumbnail path = " + thumbPath);
 

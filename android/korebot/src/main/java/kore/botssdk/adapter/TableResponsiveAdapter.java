@@ -18,7 +18,6 @@ import java.util.List;
 
 import kore.botssdk.R;
 import kore.botssdk.models.BotTableDataModel;
-import kore.botssdk.net.SDKConfiguration;
 
 public class TableResponsiveAdapter extends RecyclerView.Adapter<TableResponsiveAdapter.ViewHolder> {
     private final LayoutInflater inflater;
@@ -98,3 +97,4 @@ public class TableResponsiveAdapter extends RecyclerView.Adapter<TableResponsive
         }
     }
 }
+

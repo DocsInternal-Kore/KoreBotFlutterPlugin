@@ -42,7 +42,6 @@
                 android:text="@string/title"
                 android:textColor="@color/txtFontBlack"
                 android:textSize="@dimen/text_size_normal" />
-
         </LinearLayout>
 
         <RelativeLayout
@@ -70,8 +69,5 @@
                 android:indeterminateTint="@color/colorPrimary"
                 android:visibility="gone" />
         </RelativeLayout>
-
     </RelativeLayout>
-
-
 </RelativeLayout>

@@ -24,6 +24,4 @@
         android:text="Button"
         android:textColor="@color/white"
         android:textSize="15sp" />
-
-
 </RelativeLayout>

@@ -5,18 +5,17 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
-    <kore.botssdk.view.CustomTextView
+    <TextView
         android:id="@+id/more_txt_view"
         android:layout_width="150dp"
         android:layout_height="46dp"
         android:gravity="center_vertical"
         android:ellipsize="end"
-        android:paddingStart="@dimen/dimen_10dp"
-        android:paddingEnd="@dimen/dimen_10dp"
+        android:paddingLeft="@dimen/dimen_10dp"
         android:singleLine="true"
-        android:text="@string/select"
+        android:text="Select"
         android:textColor="@color/black"
-        android:textSize="18sp" />
+        android:textSize="18dp" />
 
 </LinearLayout>
 

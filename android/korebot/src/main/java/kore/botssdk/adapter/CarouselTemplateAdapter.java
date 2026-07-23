@@ -1,9 +1,15 @@
 package kore.botssdk.adapter;
 
+import static android.content.Context.MODE_PRIVATE;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_BG_COLOR;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_TEXT_COLOR;
+import static kore.botssdk.models.BotResponse.THEME_NAME;
+
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.text.Html;
 import android.text.SpannableStringBuilder;
@@ -37,7 +43,6 @@ import kore.botssdk.models.BotListDefaultModel;
 import kore.botssdk.models.BotResponse;
 import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.utils.BundleConstants;
-import kore.botssdk.utils.LogUtils;
 import kore.botssdk.utils.StringUtils;
 import kore.botssdk.utils.Utils;
 
@@ -47,12 +52,13 @@ public class CarouselTemplateAdapter extends RecyclerView.Adapter<CarouselTempla
     private ComposeFooterInterface composeFooterInterface;
     private InvokeGenericWebViewInterface invokeGenericWebViewInterface;
     private final LayoutInflater layoutInflater;
-    private final Context context;
+    private final SharedPreferences prefs;
+
     private String type;
 
     public CarouselTemplateAdapter(Context context) {
-        this.layoutInflater = LayoutInflater.from(context);
-        this.context = context;
+        layoutInflater = LayoutInflater.from(context);
+        prefs = context.getSharedPreferences(THEME_NAME, MODE_PRIVATE);
     }
 
     @NonNull
@@ -76,16 +82,15 @@ public class CarouselTemplateAdapter extends RecyclerView.Adapter<CarouselTempla
         }
         try {
             if (botCarouselModel.getImage_url() != null && !botCarouselModel.getImage_url().isEmpty()) {
-                holder.carouselItemImage.setVisibility(VISIBLE);
-
-                Glide.with(context)
+                Glide.with(holder.carouselItemImage.getContext())
                         .load(botCarouselModel.getImage_url())
                         .into(holder.carouselItemImage);
+                holder.carouselItemImage.setVisibility(VISIBLE);
             } else {
                 holder.carouselItemImage.setVisibility(GONE);
             }
         } catch (Exception e) {
-            LogUtils.e("Error at CarouselTemplateAdapter", e+"");
+            e.printStackTrace();
         }
         if (botCarouselModel.getButtons() != null) {
             CarouselItemButtonAdapter botCarouselItemButtonAdapter = new CarouselItemButtonAdapter(holder.itemView.getContext());
@@ -132,7 +137,7 @@ public class CarouselTemplateAdapter extends RecyclerView.Adapter<CarouselTempla
         BotListDefaultModel botDefaultModel = botCarouselModel.getDefault_action();
         if (botDefaultModel != null) {
             holder.carouselItemDefaultAction.setVisibility(VISIBLE);
-            holder.carouselItemDefaultAction.setTextColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
+            holder.carouselItemDefaultAction.setTextColor(Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
 
             if (BundleConstants.BUTTON_TYPE_WEB_URL.equalsIgnoreCase(botDefaultModel.getType())) {
                 holder.carouselItemDefaultAction.setText(botDefaultModel.getUrl());
@@ -174,7 +179,8 @@ public class CarouselTemplateAdapter extends RecyclerView.Adapter<CarouselTempla
                     invokeGenericWebViewInterface.handleUserActions(botListDefaultModel.getAction(), botListDefaultModel.getCustomData());
                     return;
                 }
-            } if (isEnabled && composeFooterInterface != null && botListDefaultModel != null) {
+            }
+            if (isEnabled && composeFooterInterface != null && botListDefaultModel != null) {
                 if (BundleConstants.BUTTON_TYPE_POSTBACK.equalsIgnoreCase(botListDefaultModel.getType())) {
                     String buttonPayload = botCarouselModel.getDefault_action().getPayload();
                     composeFooterInterface.onSendClick(botCarouselModel.getDefault_action().getTitle(), buttonPayload, false);

@@ -3,8 +3,6 @@ package kore.botssdk.speech.ui.animators;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
-import org.apache.commons.lang3.RandomUtils;
-
 import java.util.Random;
 
 import kore.botssdk.speech.ui.SpeechBar;
@@ -50,10 +48,10 @@ public class BarRmsAnimator implements BarParamsAnimator {
         if (rmsdB < QUIT_RMSDB_MAX) {
             newHeightPart = 0.2f;
         } else if (rmsdB >= QUIT_RMSDB_MAX && rmsdB <= MEDIUM_RMSDB_MAX) {
-            newHeightPart = 0.3f + RandomUtils.nextFloat(0.0f, 0.1f);
+            newHeightPart = 0.3f + new Random().nextFloat();
             if (newHeightPart > 0.6f) newHeightPart = 0.6f;
         } else {
-            newHeightPart = 0.7f + RandomUtils.nextFloat(0.0f, 0.1f);
+            newHeightPart = 0.7f + new Random().nextFloat();
             if (newHeightPart > 1f) newHeightPart = 1f;
 
         }

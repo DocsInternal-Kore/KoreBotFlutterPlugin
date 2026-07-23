@@ -2,21 +2,21 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="@color/white">
+    android:background="@color/white"
+    android:orientation="vertical">
 
-    <kore.botssdk.view.CustomTextView
+    <TextView
         android:id="@+id/hash_text_view"
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:paddingEnd="8dp"
         android:gravity="center_vertical"
-        android:paddingTop="5dp"
-        android:paddingBottom="8dp"
         android:paddingStart="16dp"
+        android:paddingTop="5dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="8dp"
         android:tag="regular"
         android:textColor="@color/color_1a1a1a"
-        android:textSize="@dimen/text_size_sub_header" />
+        android:textSize="16dp" />
 
     <View
         android:id="@+id/vDivider"

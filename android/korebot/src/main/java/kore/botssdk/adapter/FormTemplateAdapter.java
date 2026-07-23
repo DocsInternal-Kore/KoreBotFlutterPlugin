@@ -1,5 +1,10 @@
 package kore.botssdk.adapter;
 
+import static android.content.Context.MODE_PRIVATE;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_BG_COLOR;
+import static kore.botssdk.models.BotResponsePayLoadText.THEME_NAME;
+
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
@@ -18,12 +23,12 @@ import java.util.List;
 
 import kore.botssdk.R;
 import kore.botssdk.models.BotFormTemplateModel;
-import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.utils.StringUtils;
 
 public class FormTemplateAdapter extends RecyclerView.Adapter<FormTemplateAdapter.ViewHolder> {
     private final List<BotFormTemplateModel> list;
     private final String textColor;
+    private SharedPreferences prefs;
 
     public FormTemplateAdapter(List<BotFormTemplateModel> list, String textColor) {
         this.list = list;
@@ -33,6 +38,8 @@ public class FormTemplateAdapter extends RecyclerView.Adapter<FormTemplateAdapte
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (prefs == null)
+            prefs = parent.getContext().getSharedPreferences(THEME_NAME, MODE_PRIVATE);
         return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.form_templete_cell_view, parent, false));
     }
 
@@ -52,7 +59,7 @@ public class FormTemplateAdapter extends RecyclerView.Adapter<FormTemplateAdapte
         }
         holder.tvFormFieldTitle.setText(str);
         holder.edtFormInput.setHint(item.getPlaceHolder());
-        holder.edtFormInput.setBackground(createEditTextBackground(SDKConfiguration.BubbleColors.quickReplyColor, "#A7A9BE"));
+        holder.edtFormInput.setBackground(createEditTextBackground(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5"), "#A7A9BE"));
 
         if (!StringUtils.isNullOrEmpty(textColor)) {
             holder.tvFormFieldTitle.setTextColor(Color.parseColor(textColor));
@@ -91,7 +98,7 @@ public class FormTemplateAdapter extends RecyclerView.Adapter<FormTemplateAdapte
         return states;
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
         Button btnFieldButton;
         TextView tvFormFieldTitle;
         EditText edtFormInput;

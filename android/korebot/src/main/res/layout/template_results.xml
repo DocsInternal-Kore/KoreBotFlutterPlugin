@@ -17,7 +17,6 @@
             android:id="@+id/lvCentralPanel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false"
             android:divider="@android:color/transparent"
             android:dividerHeight="@dimen/dimen_12dp" />
     </RelativeLayout>
@@ -43,7 +42,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dimen_10dp"
-        android:text="@string/web_pages"
+        android:text="Web Pages"
         android:textAllCaps="true"
         android:textColor="@color/txtFontBlack"
         android:textSize="@dimen/text_size_normal"
@@ -64,7 +63,6 @@
             android:id="@+id/lvLiveSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false"
             android:divider="@android:color/transparent"
             android:dividerHeight="@dimen/dimen_12dp"
             android:visibility="visible" />

@@ -9,7 +9,9 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
@@ -27,8 +29,8 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
+import com.bumptech.glide.Glide;
 
 import java.util.HashMap;
 
@@ -38,14 +40,15 @@ import kore.botssdk.dialogs.WidgetActionSheetFragment;
 import kore.botssdk.event.KoreEventCenter;
 import kore.botssdk.events.EntityEditEvent;
 import kore.botssdk.models.BaseBotMessage;
+import kore.botssdk.models.BotResponse;
 import kore.botssdk.models.HeaderOptionsModel;
 import kore.botssdk.models.PayloadInner;
 import kore.botssdk.utils.StringUtils;
 
 public class ListWidgetTemplateHolder extends BaseViewHolder {
     private final RecyclerView botCustomListView;
-    private final ListWidgetAdapter listWidgetAdapter;
-//    private final TextView botCustomListViewButton;
+    private ListWidgetAdapter listWidgetAdapter = null;
+    //    private final TextView botCustomListViewButton;
     private PayloadInner payloadInner;
     private final ImageView iconImageLoad;
     private final TextView tvText;
@@ -55,6 +58,7 @@ public class ListWidgetTemplateHolder extends BaseViewHolder {
     private final ImageView imgMenu;
     private final TextView widgetHeader;
     private final TextView meetingDesc;
+    private final SharedPreferences sharedPreferences;
 
     public static ListWidgetTemplateHolder getInstance(ViewGroup parent) {
         return new ListWidgetTemplateHolder(createView(R.layout.template_list_widget, parent));
@@ -64,6 +68,7 @@ public class ListWidgetTemplateHolder extends BaseViewHolder {
         super(itemView, itemView.getContext());
         LinearLayoutCompat layoutBubble = itemView.findViewById(R.id.layoutBubble);
         initBubbleText(layoutBubble, false);
+        sharedPreferences = itemView.getContext().getSharedPreferences(BotResponse.THEME_NAME, Context.MODE_PRIVATE);
 
         botCustomListView = itemView.findViewById(R.id.botCustomListView);
         botCustomListView.setLayoutManager(new LinearLayoutManager(itemView.getContext()));
@@ -104,19 +109,20 @@ public class ListWidgetTemplateHolder extends BaseViewHolder {
             widgetHeader.setVisibility(VISIBLE);
             widgetHeader.setText(payloadInner.getTitle());
 
-//            if (sharedPreferences != null)
-//                widgetHeader.setTextColor(Color.parseColor(sharedPreferences.getString(BotResponse.BUTTON_ACTIVE_TXT_COLOR, "#000000")));
+            if (sharedPreferences != null)
+                widgetHeader.setTextColor(Color.parseColor(sharedPreferences.getString(BotResponse.BUTTON_ACTIVE_TXT_COLOR, "#000000")));
         }
 
         if (!StringUtils.isNullOrEmpty(payloadInner.getDescription())) {
             meetingDesc.setVisibility(VISIBLE);
             meetingDesc.setText(payloadInner.getDescription());
 
-//            if (sharedPreferences != null)
-//                meetingDesc.setTextColor(Color.parseColor(sharedPreferences.getString(BotResponse.BUTTON_ACTIVE_TXT_COLOR, "#000000")));
+            if (sharedPreferences != null)
+                meetingDesc.setTextColor(Color.parseColor(sharedPreferences.getString(BotResponse.BUTTON_ACTIVE_TXT_COLOR, "#000000")));
         }
 
-        if (payloadInner.getHeaderOptions() != null && payloadInner.getHeaderOptions() instanceof HeaderOptionsModel headerOptionsModel && ((HeaderOptionsModel) payloadInner.getHeaderOptions()).getType() != null) {
+        if (payloadInner.getHeaderOptions() != null && payloadInner.getHeaderOptions() instanceof HeaderOptionsModel && ((HeaderOptionsModel) payloadInner.getHeaderOptions()).getType() != null) {
+            HeaderOptionsModel headerOptionsModel = ((HeaderOptionsModel) payloadInner.getHeaderOptions());
             switch (headerOptionsModel.getType()) {
                 case "button":
                     iconImageLoad.setVisibility(GONE);
@@ -151,7 +157,7 @@ public class ListWidgetTemplateHolder extends BaseViewHolder {
                     imgMenu.setOnClickListener(v -> {
                         if (payloadInner.getHeaderOptions() != null && headerOptionsModel.getMenu() != null && !headerOptionsModel.getMenu().isEmpty()) {
                             WidgetActionSheetFragment bottomSheetDialog = new WidgetActionSheetFragment();
-                            bottomSheetDialog.setIsFromFullView(false);
+                            bottomSheetDialog.setisFromFullView(false);
                             bottomSheetDialog.setSkillName("skillName", "trigger");
                             bottomSheetDialog.setData(payloadInner, true);
                             bottomSheetDialog.setVerticalListViewActionHelper(null);
@@ -192,7 +198,6 @@ public class ListWidgetTemplateHolder extends BaseViewHolder {
                         Glide.with(context)
                                 .load(headerOptionsModel.getImage().getImage_src())
                                 .into(iconImageLoad);
-
                         iconImageLoad.setOnClickListener(v -> {
                             if (payloadInner.getHeaderOptions() != null && headerOptionsModel.getImage() != null && headerOptionsModel.getImage().getPayload() != null) {
                                 buttonAction(headerOptionsModel.getImage().getPayload());
@@ -203,15 +208,15 @@ public class ListWidgetTemplateHolder extends BaseViewHolder {
             }
         }
         listWidgetAdapter.setIsEnabled(isLastItem());
-        if (payloadInner.getWidgetlistElements() != null && !payloadInner.getWidgetlistElements().isEmpty() && !payloadInner.getTemplate_type().equals("loginURL")) {
+        if (payloadInner.getWidgetListElements() != null && !payloadInner.getWidgetListElements().isEmpty() && !payloadInner.getTemplate_type().equals("loginURL")) {
 //            if (payloadInner.getWidgetlistElements().size() > 3) {
 //                botCustomListViewButton.setVisibility(View.VISIBLE);
 //            }
 
-            listWidgetAdapter.setWidgetData(payloadInner.getWidgetlistElements());
+            listWidgetAdapter.setWidgetData(payloadInner.getWidgetListElements());
             listWidgetAdapter.setComposeFooterInterface(composeFooterInterface);
             listWidgetAdapter.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
-            listWidgetAdapter.setPreviewLength(payloadInner.getWidgetlistElements().size());
+            listWidgetAdapter.setPreviewLength(payloadInner.getWidgetListElements().size());
             botCustomListView.setAdapter(listWidgetAdapter);
         } else {
             listWidgetAdapter.setData(null);

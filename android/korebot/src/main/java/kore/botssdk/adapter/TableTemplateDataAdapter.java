@@ -19,22 +19,24 @@ public class TableTemplateDataAdapter extends RecyclerView.Adapter<TableTemplate
 
     private final List<List<String>> headers;
     private final List<Object> listItems;
+    private final boolean isEnabled;
     private final LayoutInflater layoutInflater;
 
-    public TableTemplateDataAdapter(Context context, List<List<String>> headers, List<Object> items) {
+    public TableTemplateDataAdapter(Context context, List<List<String>> headers, List<Object> items, boolean isEnabled) {
         layoutInflater = LayoutInflater.from(context);
         this.headers = headers;
         this.listItems = items;
+        this.isEnabled = isEnabled;
     }
 
     @NonNull
     @Override
-    public TableTemplateDataAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new TableTemplateDataAdapter.ViewHolder(layoutInflater.inflate(R.layout.table_child_cell, parent, false));
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        return new ViewHolder(layoutInflater.inflate(R.layout.table_child_cell, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(@NonNull TableTemplateDataAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Object value = listItems.get(position);
         List<String> cols = headers.get(position);
 

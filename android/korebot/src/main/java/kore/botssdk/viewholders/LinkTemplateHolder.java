@@ -28,7 +28,7 @@ import kore.botssdk.models.BaseBotMessage;
 import kore.botssdk.models.BotResponse;
 import kore.botssdk.models.PayloadInner;
 import kore.botssdk.utils.DownloadUtils;
-import kore.botssdk.viewUtils.FileUtils;
+import kore.botssdk.view.viewUtils.FileUtils;
 
 public class LinkTemplateHolder extends BaseViewHolder {
     private final ImageView ivPdfDownload, ivPdfImage;
@@ -50,7 +50,7 @@ public class LinkTemplateHolder extends BaseViewHolder {
 
         String leftBgColor = sharedPreferences.getString(BotResponse.BUBBLE_LEFT_BG_COLOR, "#FFFFFF");
         GradientDrawable leftDrawable = (GradientDrawable) ResourcesCompat.getDrawable(context.getResources(), R.drawable.theme1_left_bubble_bg, context.getTheme());
-        if(leftDrawable != null) {
+        if (leftDrawable != null) {
             leftDrawable.setColor(Color.parseColor(leftBgColor));
             rlLinkView.setBackground(leftDrawable);
         }
@@ -62,13 +62,12 @@ public class LinkTemplateHolder extends BaseViewHolder {
         PayloadInner payloadInner = getPayloadInner(baseBotMessage);
         if (payloadInner == null) return;
 
-        if(!StringUtils.isNullOrEmpty(payloadInner.getFileName()))
+        if (!StringUtils.isNullOrEmpty(payloadInner.getFileName()))
             tvPdfName.setText((payloadInner.getFileName()));
-        else if(!StringUtils.isNullOrEmpty(payloadInner.getName()))
+        else if (!StringUtils.isNullOrEmpty(payloadInner.getName()))
             tvPdfName.setText((payloadInner.getName()));
 
-        if(tvPdfName.getText().toString().contains("."))
-        {
+        if (tvPdfName.getText().toString().contains(".")) {
             String extension = tvPdfName.getText().toString().substring(tvPdfName.getText().toString().lastIndexOf("."));
             ivPdfImage.setImageResource(FileUtils.getDrawableByExt(!StringUtils.isNullOrEmpty(extension) ? extension.toLowerCase().replace(".", "") : ""));
 

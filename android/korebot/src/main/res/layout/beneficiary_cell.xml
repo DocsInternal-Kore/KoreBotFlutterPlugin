@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/bot_list_item_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -22,27 +23,25 @@
             android:layout_alignParentTop="true"
             android:layout_marginRight="5dp"
             android:clickable="false"
+            android:importantForAccessibility="no"
             android:minWidth="60dp"
             android:minHeight="60dp"
             android:scaleType="centerCrop"
-            android:visibility="visible"
-            android:importantForAccessibility="no" />
+            android:visibility="visible" />
 
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="@dimen/dimen_10dp"
+            android:layout_marginStart="@dimen/dimen_10dp"
+            android:layout_weight="1"
             android:orientation="vertical">
 
             <kore.botssdk.view.CustomTextViewBold
                 android:id="@+id/bot_list_item_subtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/bot_list_item_title"
-                android:layout_toRightOf="@id/bot_list_item_image"
                 android:clickable="false"
                 android:ellipsize="end"
                 android:maxLines="1"
@@ -56,21 +55,18 @@
             <kore.botssdk.view.CustomTextView
                 android:id="@+id/bot_list_item_title"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_toRightOf="@id/bot_list_item_image"
+                android:layout_height="0dp"
                 android:layout_weight="1"
+                android:alpha=".8"
                 android:clickable="false"
                 android:ellipsize="end"
-                android:textStyle="bold"
                 android:maxLines="2"
                 android:text="@string/title"
-                android:alpha=".8"
                 android:textColor="@color/txtFontBlack"
-                android:textSize="@dimen/text_size_normal" />
-
-
+                android:textSize="@dimen/text_size_normal"
+                android:textStyle="bold"
+                tools:ignore="NestedWeights" />
         </LinearLayout>
-
     </LinearLayout>
 
     <ImageView
@@ -79,5 +75,4 @@
         android:layout_marginTop="@dimen/dimen_15dp"
         android:background="@drawable/ic_transaction_line"
         android:importantForAccessibility="no" />
-
 </LinearLayout>

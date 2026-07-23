@@ -1,17 +1,12 @@
 package kore.botssdk.fragment.header;
 
-import android.content.res.Configuration;
-
-import android.widget.ImageView;
-
 import androidx.fragment.app.Fragment;
 
 import kore.botssdk.listener.ComposeFooterInterface;
 import kore.botssdk.listener.InvokeGenericWebViewInterface;
-import kore.botssdk.models.BrandingModel;
+import kore.botssdk.models.BrandingHeaderModel;
 
 public abstract class BaseHeaderFragment extends Fragment {
-    protected BrandingModel brandingModel;
     protected ComposeFooterInterface composeFooterInterface;
     protected InvokeGenericWebViewInterface invokeGenericWebViewInterface;
     public void setComposeFooterInterface(ComposeFooterInterface composeFooterInterface){
@@ -22,13 +17,5 @@ public abstract class BaseHeaderFragment extends Fragment {
         this.invokeGenericWebViewInterface = invokeGenericWebViewInterface;
     }
 
-    public abstract void setBrandingDetails(BrandingModel brandingModel);
-
-    public abstract ImageView getMinimize();
-
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-    }
+    public abstract void setBrandingDetails(BrandingHeaderModel brandingModel);
 }

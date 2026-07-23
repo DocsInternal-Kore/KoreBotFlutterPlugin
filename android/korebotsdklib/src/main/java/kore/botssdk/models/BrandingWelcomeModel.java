@@ -1,7 +1,11 @@
 package kore.botssdk.models;
 
-public class BrandingWelcomeModel {
-    private boolean show;
+import java.io.Serializable;
+
+import kore.botssdk.utils.StringUtils;
+
+public class BrandingWelcomeModel implements Serializable {
+    private Boolean show;
     private String layout;
     private BrandingWelcomeLogoModel logo;
     private BrandingTitleModel title;
@@ -11,6 +15,32 @@ public class BrandingWelcomeModel {
     private BrandingTitleModel top_fonts;
     private BrandingTitleModel bottom_background;
     private BrandingStarterBoxModel starter_box;
+    private PromotionalContentModel promotional_content;
+    private StaticLinksModel static_links;
+
+    public BrandingWelcomeModel updateWith(BrandingWelcomeModel configModel) {
+        show = configModel.show != null ? configModel.show : null;
+        layout = !StringUtils.isNullOrEmpty(configModel.layout) ? configModel.layout : layout;
+        logo = configModel.logo != null && logo != null ? logo.updateWith(configModel.logo) : logo;
+        title = configModel.title != null && title != null ? title.updateWith(configModel.title) : title;
+        sub_title = configModel.sub_title != null && sub_title != null ? sub_title.updateWith(configModel.sub_title) : sub_title;
+        note = configModel.note != null && note != null ? note.updateWith(configModel.note) : note;
+        background = configModel.background != null && background != null ? background.updateWith(configModel.background) : background;
+        top_fonts = configModel.top_fonts != null && top_fonts != null ? top_fonts.updateWith(configModel.top_fonts) : top_fonts;
+        bottom_background = configModel.bottom_background != null && bottom_background != null ? bottom_background.updateWith(configModel.bottom_background) : bottom_background;
+        starter_box = configModel.starter_box != null && starter_box != null ? starter_box.updateWith(configModel.starter_box) : starter_box;
+        promotional_content = configModel.promotional_content != null && promotional_content != null ? promotional_content.updateWith(configModel.promotional_content) : promotional_content;
+        static_links = configModel.static_links != null && static_links != null ? static_links.updateWith(configModel.static_links) : static_links;
+        return this;
+    }
+
+    public StaticLinksModel getStatic_links() {
+        return static_links;
+    }
+
+    public PromotionalContentModel getPromotional_content() {
+        return promotional_content;
+    }
 
     public BrandingTitleModel getSub_title() {
         return sub_title;
@@ -49,46 +79,10 @@ public class BrandingWelcomeModel {
     }
 
     public boolean isShow() {
-        return show;
-    }
-
-    public void setBackground(BrandingTitleModel background) {
-        this.background = background;
+        return show != null ? show : false;
     }
 
     public void setShow(boolean show) {
         this.show = show;
-    }
-
-    public void setSub_title(BrandingTitleModel sub_title) {
-        this.sub_title = sub_title;
-    }
-
-    public void setTitle(BrandingTitleModel title) {
-        this.title = title;
-    }
-
-    public void setLayout(String layout) {
-        this.layout = layout;
-    }
-
-    public void setBottom_background(BrandingTitleModel bottom_background) {
-        this.bottom_background = bottom_background;
-    }
-
-    public void setLogo(BrandingWelcomeLogoModel logo) {
-        this.logo = logo;
-    }
-
-    public void setNote(BrandingTitleModel note) {
-        this.note = note;
-    }
-
-    public void setStarter_box(BrandingStarterBoxModel starter_box) {
-        this.starter_box = starter_box;
-    }
-
-    public void setTop_fonts(BrandingTitleModel top_fonts) {
-        this.top_fonts = top_fonts;
     }
 }

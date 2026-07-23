@@ -1,31 +1,34 @@
 package kore.botssdk.fragment.footer;
 
 import static android.app.Activity.RESULT_OK;
-import static androidx.core.content.PermissionChecker.checkSelfPermission;
 import static kore.botssdk.activity.KaCaptureImageActivity.THUMBNAIL_FILE_PATH;
-import static kore.botssdk.viewUtils.FileUtils.EXT_JPG;
-import static kore.botssdk.viewUtils.FileUtils.EXT_PNG;
-import static kore.botssdk.viewUtils.FileUtils.EXT_VIDEO;
+import static kore.botssdk.view.viewUtils.FileUtils.EXT_JPG;
+import static kore.botssdk.view.viewUtils.FileUtils.EXT_PNG;
+import static kore.botssdk.view.viewUtils.FileUtils.EXT_VIDEO;
 
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.PermissionChecker;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -44,13 +47,22 @@ import kore.botssdk.event.KoreEventCenter;
 import kore.botssdk.listener.ComposeFooterInterface;
 import kore.botssdk.listener.ComposeFooterUpdate;
 import kore.botssdk.listener.TTSUpdate;
-import kore.botssdk.models.BotOptionsModel;
+import kore.botssdk.models.BotBrandingModel;
+import kore.botssdk.models.BrandingQuickStartButtonActionModel;
+import kore.botssdk.models.FreemiumData;
+import kore.botssdk.models.FreemiumType;
 import kore.botssdk.models.KoreMedia;
+import kore.botssdk.models.limits.Attachment;
 import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.speech.Speech;
 import kore.botssdk.speech.SpeechDelegate;
+import kore.botssdk.speech.SpeechUtil;
 import kore.botssdk.utils.BitmapUtils;
 import kore.botssdk.utils.BundleConstants;
+import kore.botssdk.utils.BundleUtils;
+import kore.botssdk.utils.KaPermissionsHelper;
+import kore.botssdk.utils.LogUtils;
+import kore.botssdk.utils.SharedPreferenceUtils;
 import kore.botssdk.utils.ToastUtils;
 import kore.botssdk.viewmodels.footer.BotFooterViewModel;
 import kore.botssdk.viewmodels.footer.BotFooterViewModelFactory;
@@ -62,63 +74,23 @@ import kore.botssdk.websocket.SocketWrapper;
 @SuppressLint("UnknownNullness")
 public abstract class BaseFooterFragment extends Fragment implements ComposeFooterUpdate, SpeechDelegate {
     protected final String LOG_TAG = BaseFooterFragment.class.getName();
+    protected boolean isDisabled;
     protected ComposeFooterInterface composeFooterInterface;
+    protected ArrayList<BrandingQuickStartButtonActionModel> botOptionsModel;
+    protected ReUsableListViewActionSheet listViewActionSheet;
+    protected AttachmentOptionsAdapter adapter;
     private static final int REQ_IMAGE = 444;
     private static final int REQ_CAMERA = 443;
     private static final int REQ_VIDEO = 445;
     private static final int REQ_VIDEO_CAPTURE = 446;
     private static final int REQ_FILE = 448;
+    protected Attachment attachment;
     protected String jwt;
+    protected BotBrandingModel botBrandingModel;
+    protected int[] colors;
     protected boolean isAgentConnected;
     protected BotClient botClient;
-    protected BotFooterViewModel footerViewModel;
-    private ReUsableListViewActionSheet listViewActionSheet;
-    private AttachmentOptionsAdapter adapter;
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Speech.init(getContext(), requireActivity().getPackageName());
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        updateUI();
-        BotFooterViewModelFactory factory = new BotFooterViewModelFactory(requireActivity(), BaseFooterFragment.this);
-        footerViewModel = new ViewModelProvider(this, factory).get(BotFooterViewModel.class);
-    }
-
-    @Override
-    public void onDestroy() {
-        KoreEventCenter.unregister(this);
-        if (Speech.getInstance() != null)
-            Speech.getInstance().shutdown();
-        super.onDestroy();
-    }
-
-    public abstract void setDisabled(boolean disabled);
-
-    public abstract void updateUI();
-
-    public abstract void changeThemeBackGround(String widgetFooterColor, String widgetFooterHintColor);
-
-    public void setComposeFooterInterface(ComposeFooterInterface composeFooterInterface) {
-        this.composeFooterInterface = composeFooterInterface;
-    }
-
-    public abstract void setBottomOptionData(BotOptionsModel botOptionsModel);
-
-    public abstract void setTtsUpdate(TTSUpdate ttsUpdate);
-
-    public abstract void enableSendButton();
-
-    public abstract boolean isTTSEnabled();
-
-    private void requestMicrophonePermission() {
-        requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO);
-    }
-
+    protected BotFooterViewModel mFooterViewModel;
     private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
             result -> {
@@ -127,6 +99,79 @@ public abstract class BaseFooterFragment extends Fragment implements ComposeFoot
                 }
             }
     );
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        isDisabled = true;
+        Speech.init(getContext(), requireActivity().getPackageName());
+        BotFooterViewModelFactory factory = new BotFooterViewModelFactory(requireActivity(), BaseFooterFragment.this);
+        mFooterViewModel = new ViewModelProvider(this, factory).get(BotFooterViewModel.class);
+        getBundleInfo();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        updateUI();
+    }
+
+    @Override
+    public void onDestroy() {
+        KoreEventCenter.unregister(this);
+        Speech.getInstance().shutdown();
+        super.onDestroy();
+    }
+
+    public void setDisabled(boolean disabled) {
+        isDisabled = disabled;
+    }
+
+    public void setBotClient(BotClient botClient) {
+        this.botClient = botClient;
+    }
+
+    public abstract void setBotBrandingModel(BotBrandingModel botBrandingModel);
+
+    void getBundleInfo() {
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            botBrandingModel = (BotBrandingModel) bundle.getSerializable(BundleUtils.BRANDING);
+        }
+    }
+
+    public abstract void updateUI();
+
+    protected void sendMessageText(String message) {
+        if (composeFooterInterface != null) {
+            composeFooterInterface.onSendClick(message.trim(), false);
+        } else {
+            LogUtils.e(LOG_TAG, "ComposeFooterInterface is not found. Please set the interface first.");
+        }
+    }
+
+    protected void sendMessageAttachmentText(String message, ArrayList<HashMap<String, String>> dataList) {
+        if (composeFooterInterface != null) {
+            composeFooterInterface.onSendClick(message.trim(), dataList, false);
+        } else {
+            LogUtils.e(LOG_TAG, "ComposeFooterInterface is not found. Please set the interface first.");
+        }
+    }
+
+    public void setComposeFooterInterface(ComposeFooterInterface composeFooterInterface) {
+        this.composeFooterInterface = composeFooterInterface;
+    }
+
+    public abstract void setTtsUpdate(TTSUpdate ttsUpdate);
+
+    @Override
+    public abstract void enableSendButton();
+
+    public abstract boolean isTTSEnabled();
+
+    protected void requestMicrophonePermission() {
+        requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO);
+    }
 
     protected void animateLayoutVisible(View view) {
         view.setVisibility(View.VISIBLE);
@@ -143,11 +188,11 @@ public abstract class BaseFooterFragment extends Fragment implements ComposeFoot
         });
     }
 
-    protected void onMicButtonClick() {
+    protected void onButtonClick() {
         if (Speech.getInstance().isListening()) {
             Speech.getInstance().stopListening();
         } else {
-            if (checkSelfPermission(requireActivity(), Manifest.permission.RECORD_AUDIO) == PermissionChecker.PERMISSION_GRANTED) {
+            if (KaPermissionsHelper.hasPermission(requireActivity(), Manifest.permission.RECORD_AUDIO)) {
                 onRecordAudioPermissionGranted();
             } else {
                 requestMicrophonePermission();
@@ -158,8 +203,7 @@ public abstract class BaseFooterFragment extends Fragment implements ComposeFoot
     protected abstract void onRecordAudioPermissionGranted();
 
     @Override
-    public void onStartOfSpeech() {
-    }
+    public abstract void onStartOfSpeech();
 
     @Override
     public void onSpeechRmsChanged(float value) {
@@ -171,17 +215,32 @@ public abstract class BaseFooterFragment extends Fragment implements ComposeFoot
     @Override
     public abstract void onSpeechResult(String result);
 
-    public void setBotClient(BotClient botClient) {
-        this.botClient = botClient;
+    void showSpeechNotSupportedDialog() {
+        DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+            switch (which) {
+                case DialogInterface.BUTTON_POSITIVE:
+                    SpeechUtil.redirectUserToGoogleAppOnPlayStore(requireActivity());
+                    break;
+
+                case DialogInterface.BUTTON_NEGATIVE:
+                    break;
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+        builder.setMessage(R.string.speech_not_available).setCancelable(false).setPositiveButton(R.string.yes, dialogClickListener).setNegativeButton(R.string.no, dialogClickListener).show();
     }
 
-    public void setIsAgentConnected(boolean isAgentConnected) {
-        this.isAgentConnected = isAgentConnected;
+    void showEnableGoogleVoiceTyping() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+        builder.setMessage(R.string.enable_google_voice_typing).setCancelable(false).setPositiveButton(R.string.yes, (dialogInterface, i) -> {
+            // do nothing
+        }).show();
     }
 
     public abstract void setComposeText(String text);
 
-    protected void showAttachmentActionSheet() {
+    void showAttachmentActionSheet() {
         if (listViewActionSheet == null) {
             listViewActionSheet = new ReUsableListViewActionSheet(requireActivity());
             listViewActionSheet.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -198,7 +257,7 @@ public abstract class BaseFooterFragment extends Fragment implements ComposeFoot
         }
     }
 
-    private void launchSelectedMode(String option) {
+    protected void launchSelectedMode(String option) {
         final String capturePhoto = getString(R.string.attachment_capture_photo);
         final String captureVideo = getString(R.string.attachment_capture_video);
         final String uploadPhoto = getString(R.string.attachment_upload_photo);
@@ -218,68 +277,78 @@ public abstract class BaseFooterFragment extends Fragment implements ComposeFoot
     }
 
     public void fileBrowsingActivity(String chooseType, int reqCode, String mediaType) {
-        Intent mediaPickerIntent = new Intent(requireActivity(), KaCaptureImageActivity.class);
-        mediaPickerIntent.putExtra("pickType", chooseType);
-        mediaPickerIntent.putExtra("fileContext", BundleConstants.FOR_MESSAGE);
-        mediaPickerIntent.putExtra("mediaType", mediaType);
-
-        if (reqCode == REQ_VIDEO || reqCode == REQ_VIDEO_CAPTURE) {
-            activityVideoResultLaunch.launch(mediaPickerIntent);
+        Intent photoPickerIntent = new Intent(requireActivity(), KaCaptureImageActivity.class);
+        photoPickerIntent.putExtra("pickType", chooseType);
+        photoPickerIntent.putExtra("fileContext", BundleConstants.FOR_MESSAGE);
+        photoPickerIntent.putExtra("mediaType", mediaType);
+        if (reqCode == REQ_VIDEO) {
+            activityVideoResultLaunch.launch(photoPickerIntent);
         } else {
-            activityImageResultLaunch.launch(mediaPickerIntent);
+            activityImageResultLaunch.launch(photoPickerIntent);
         }
     }
 
-    private final ActivityResultLauncher<Intent> activityImageResultLaunch = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+    final ActivityResultLauncher<Intent> activityImageResultLaunch = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+        @Override
+        public void onActivityResult(ActivityResult result) {
+            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                String filePath = result.getData().getStringExtra("filePath");
+                String fileName = result.getData().getStringExtra("fileName");
+                String filePathThumbnail = result.getData().getStringExtra(THUMBNAIL_FILE_PATH);
+                composeFooterInterface.sendImage(filePath, fileName, filePathThumbnail);
+            }
+        }
+    });
+
+    final ActivityResultLauncher<Intent> activityVideoResultLaunch = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+        @Override
+        public void onActivityResult(ActivityResult result) {
+            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                String fileExtn = result.getData().getStringExtra("fileExtn");
+                if (fileExtn != null && fileExtn.equals(EXT_VIDEO) && result.getData().getParcelableExtra("fileUri") != null) {
+                    mFooterViewModel.processVideoResponse(SDKConfiguration.Client.isWebHook ? jwt : SocketWrapper.getInstance(requireActivity()).getAccessToken(), result.getData().getParcelableExtra("fileUri"));
+                } else if (fileExtn != null && (fileExtn.equalsIgnoreCase(EXT_JPG) || fileExtn.equalsIgnoreCase(EXT_PNG))) {
+                    mFooterViewModel.processImageResponse(SDKConfiguration.Client.isWebHook ? jwt : SocketWrapper.getInstance(requireActivity()).getAccessToken(), result.getData());
+                } else {
                     String filePath = result.getData().getStringExtra("filePath");
-                    String fileName = result.getData().getStringExtra("fileName");
-                    String filePathThumbnail = result.getData().getStringExtra(THUMBNAIL_FILE_PATH);
-                    footerViewModel.sendImage(filePath, fileName, filePathThumbnail);
-                }
-            });
-
-    private final ActivityResultLauncher<Intent> activityVideoResultLaunch = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    String jwtToken = SDKConfiguration.Client.isWebHook ? jwt : SocketWrapper.getInstance(requireActivity()).getAccessToken();
-                    String fileExtn = result.getData().getStringExtra("fileExtn");
-                    if (fileExtn != null && fileExtn.equals(EXT_VIDEO) && result.getData().getParcelableExtra("fileUri") != null) {
-                        footerViewModel.processVideoResponse(jwtToken, result.getData().getParcelableExtra("fileUri"));
-                    } else if (fileExtn != null && (fileExtn.equalsIgnoreCase(EXT_JPG) || fileExtn.equalsIgnoreCase(EXT_PNG))) {
-                        footerViewModel.processImageResponse(jwtToken, result.getData());
-                    } else {
-                        String filePath = result.getData().getStringExtra("filePath");
-                        if (filePath == null) {
-                            ToastUtils.showToast(requireActivity(), "Unable to attach file!");
-                            return;
-                        }
-                        String fileName = result.getData().getStringExtra("fileName");
-                        String extn = filePath.substring(filePath.lastIndexOf(".") + 1);
-                        String mediaType = BitmapUtils.obtainMediaTypeOfExtn(extn);
-                        footerViewModel.processFileUpload(jwtToken, fileName, filePath, extn, mediaType, null, null);
+                    if (filePath == null) {
+                        ToastUtils.showToast(requireActivity(), "Unable to attach file!");
+                        return;
                     }
+                    String fileName = result.getData().getStringExtra("fileName");
+                    String extn = filePath.substring(filePath.lastIndexOf(".") + 1);
+                    String mediaType = BitmapUtils.obtainMediaTypeOfExtn(extn);
+                    mFooterViewModel.processFileUpload(SDKConfiguration.Client.isWebHook ? jwt : SocketWrapper.getInstance(requireActivity()).getAccessToken(), fileName, filePath, extn, mediaType, null, null);
                 }
-            });
+            }
+        }
+    });
 
-
-    public abstract void enableOrDisableSendButton(boolean enable);
-
-    public void setJwtToken(String jwt) {
-        this.jwt = jwt;
-        footerViewModel.setJwtToken(jwt);
-    }
 
     @Override
     public abstract void addAttachmentToAdapter(HashMap<String, String> attachmentKey);
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
+    /**
+     * this method update the ui of send button based on enable/disable
+     *
+     * @param enable
+     */
+    public abstract void enableOrDisableSendButton(boolean enable);
 
-        updateUI();
+    public void setJwtToken(String jwt) {
+        this.jwt = jwt;
+    }
+
+    public void setIsAgentConnected(boolean isAgentConnected) {
+        this.isAgentConnected = isAgentConnected;
+    }
+
+    @Override
+    public void showFreemiumDialog() {
+        if (attachment == null) {
+            attachment = SharedPreferenceUtils.getInstance(requireActivity()).getAttachmentPref("");
+        }
+        FreemiumData freemiumData = new FreemiumData(FreemiumType.alertDialogType);
+        freemiumData.message = "File uploads are limited to " + attachment.getSize() + "MB\nunder the Free plan.";
     }
 }

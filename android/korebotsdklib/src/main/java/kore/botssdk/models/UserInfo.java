@@ -49,14 +49,6 @@ public class UserInfo {
         return userId;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public void setOrgID(String orgID) {
-        this.orgID = orgID;
-    }
-
     public String getFirstName() {
         return firstName == null ? "" : firstName;
     }

@@ -20,7 +20,7 @@
         android:gravity="center_vertical"
         android:padding="@dimen/dimen_10dp"
         android:visibility="gone"
-        tools:visibility="gone">
+        tools:visibility="visible">
 
         <kore.botssdk.view.CustomTextViewBold
             android:id="@+id/tvOptionsTitle"
@@ -66,7 +66,7 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:visibility="gone"
-        tools:visibility="gone" />
+        tools:visibility="visible" />
 
     <LinearLayout
         android:id="@+id/llRbFeedback"
@@ -78,7 +78,8 @@
         android:gravity="center"
         android:orientation="horizontal"
         android:paddingVertical="10dp"
-        android:visibility="gone">
+        android:visibility="gone"
+        tools:visibility="visible">
 
         <androidx.appcompat.widget.AppCompatRatingBar
             android:id="@+id/rbFeedback"
@@ -98,7 +99,8 @@
         android:layout_marginBottom="@dimen/dimen_20dp"
         android:text="@string/app_name"
         android:textSize="@dimen/text_size_header"
-        android:visibility="gone" />
+        android:visibility="gone"
+        tools:visibility="visible" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/llFeedbackComment"
@@ -106,7 +108,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone"
-        tools:visibility="gone">
+        tools:visibility="visible">
 
         <kore.botssdk.view.CustomTextView
             android:id="@+id/tvCommentTitle"
@@ -153,10 +155,10 @@
         android:id="@+id/rlViewNPS"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
         android:layout_centerInParent="true"
         android:layout_marginTop="@dimen/dimen_5dp"
         android:layout_marginBottom="@dimen/dimen_5dp"
+        android:gravity="center"
         android:padding="@dimen/dimen_5dp"
         android:visibility="gone">
 

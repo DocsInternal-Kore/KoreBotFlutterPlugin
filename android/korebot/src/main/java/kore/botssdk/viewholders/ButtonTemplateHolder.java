@@ -1,6 +1,5 @@
 package kore.botssdk.viewholders;
 
-import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -10,7 +9,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.flexbox.FlexDirection;
-import com.google.android.flexbox.FlexWrap;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
 
@@ -18,6 +16,7 @@ import java.util.ArrayList;
 
 import kore.botssdk.R;
 import kore.botssdk.adapter.ButtonTemplateAdapter;
+import kore.botssdk.itemdecoration.SpaceItemDecoration;
 import kore.botssdk.models.BaseBotMessage;
 import kore.botssdk.models.BotButtonModel;
 import kore.botssdk.models.BotResponse;
@@ -64,11 +63,11 @@ public class ButtonTemplateHolder extends BaseViewHolder {
         if (payloadInner.isStackedButtons()) {
             FlexboxLayoutManager layoutManager = new FlexboxLayoutManager(itemView.getContext());
             layoutManager.setJustifyContent(JustifyContent.FLEX_START);
-            layoutManager.setFlexDirection(FlexDirection.COLUMN);
+            layoutManager.setFlexDirection(FlexDirection.ROW);
             buttonsList.setLayoutManager(layoutManager);
         }
 
-        if(buttonsList.getItemDecorationCount() == 0)
+        if (buttonsList.getItemDecorationCount() == 0)
             buttonsList.addItemDecoration(new SpaceItemDecoration(20));
 
         if (botButtonModels != null && !botButtonModels.isEmpty()) {
@@ -78,21 +77,6 @@ public class ButtonTemplateHolder extends BaseViewHolder {
             buttonsList.setAdapter(buttonTypeAdapter);
             buttonTypeAdapter.setComposeFooterInterface(composeFooterInterface);
             buttonTypeAdapter.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
-        }
-    }
-
-    public static class SpaceItemDecoration extends RecyclerView.ItemDecoration {
-
-        private final int space;
-
-        public SpaceItemDecoration(int space) {
-            this.space = space;
-        }
-
-        @Override
-        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-            outRect.right = space;   // horizontal gap
-            outRect.top = space;  // vertical gap
         }
     }
 }

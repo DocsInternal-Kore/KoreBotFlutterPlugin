@@ -1,14 +1,31 @@
 package kore.botssdk.models;
 
-public class BrandingBodyTimeStampModel {
-    private boolean show;
+import com.google.gson.annotations.SerializedName;
+
+import java.io.Serializable;
+
+import kore.botssdk.utils.StringUtils;
+
+public class BrandingBodyTimeStampModel implements Serializable {
+    private Boolean show;
     private String show_type;
     private String position;
     private String separator;
     private String color;
+    @SerializedName("time_format") private String timeFormat = "12";
+    @SerializedName("date_format") private String dateFormat = "";
+
+    public BrandingBodyTimeStampModel updateWith(BrandingBodyTimeStampModel configModel) {
+        show = configModel.show != null ? configModel.show : show;
+        show_type = !StringUtils.isNullOrEmpty(configModel.show_type) ? configModel.show_type : show_type;
+        position = !StringUtils.isNullOrEmpty(configModel.position) ? configModel.position : position;
+        separator = !StringUtils.isNullOrEmpty(configModel.separator) ? configModel.separator : separator;
+        color = !StringUtils.isNullOrEmpty(configModel.color) ? configModel.color : color;
+        return this;
+    }
 
     public boolean isShow() {
-        return show;
+        return show != null ? show : false;
     }
 
     public String getSeparator() {
@@ -45,5 +62,13 @@ public class BrandingBodyTimeStampModel {
 
     public void setShow_type(String show_type) {
         this.show_type = show_type;
+    }
+
+    public String getTimeFormat() {
+        return timeFormat;
+    }
+
+    public String getDateFormat() {
+        return dateFormat;
     }
 }

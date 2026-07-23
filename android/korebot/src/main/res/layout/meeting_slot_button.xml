@@ -14,7 +14,7 @@
         android:ellipsize="end"
         android:gravity="center"
         android:maxLines="2"
-        android:minHeight="@dimen/button_min_height"
+        android:minHeight="@dimen/dimen_40dp"
         android:tag="medium"
         android:text="@string/hi"
         android:textColor="@color/colorPrimary"

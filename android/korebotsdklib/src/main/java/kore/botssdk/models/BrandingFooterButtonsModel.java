@@ -1,11 +1,23 @@
 package kore.botssdk.models;
 
-public class BrandingFooterButtonsModel {
+import java.io.Serializable;
+
+@SuppressWarnings("UnKnownNullness")
+public class BrandingFooterButtonsModel implements Serializable {
     private BrandingFooterMenuButtonModel menu;
     private BrandingIconModel emoji;
     private BrandingIconModel microphone;
     private BrandingIconModel attachment;
     private BrandingIconModel speaker;
+
+    public BrandingFooterButtonsModel updateWith(BrandingFooterButtonsModel configModel) {
+        menu = menu != null && configModel.menu != null ? menu.updateWith(configModel.menu) : menu;
+        emoji = emoji != null && configModel.emoji != null ? emoji.updateWith(configModel.emoji) : emoji;
+        microphone = microphone != null && configModel.microphone != null ? microphone.updateWith(configModel.microphone) : microphone;
+        attachment = attachment != null && configModel.attachment != null ? attachment.updateWith(configModel.attachment) : attachment;
+        speaker = speaker != null && configModel.speaker != null ? speaker.updateWith(configModel.speaker) : speaker;
+        return this;
+    }
 
     public BrandingFooterMenuButtonModel getMenu() {
         return menu;
@@ -25,21 +37,5 @@ public class BrandingFooterButtonsModel {
 
     public BrandingIconModel getMicrophone() {
         return microphone;
-    }
-
-    public void setAttachment(BrandingIconModel attachment) {
-        this.attachment = attachment;
-    }
-
-    public void setEmoji(BrandingIconModel emoji) {
-        this.emoji = emoji;
-    }
-
-    public void setMenu(BrandingFooterMenuButtonModel menu) {
-        this.menu = menu;
-    }
-
-    public void setMicrophone(BrandingIconModel microphone) {
-        this.microphone = microphone;
     }
 }

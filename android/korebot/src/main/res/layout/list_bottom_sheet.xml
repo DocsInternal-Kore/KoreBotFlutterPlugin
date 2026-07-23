@@ -36,7 +36,6 @@
                 android:importantForAccessibility="no" />
         </LinearLayout>
 
-
         <LinearLayout
             android:id="@+id/llTabHeader"
             android:layout_width="match_parent"
@@ -56,13 +55,12 @@
                     android:id="@+id/tvTab1"
                     android:layout_width="60dp"
                     android:layout_height="30dp"
-                    android:background="@drawable/theme_1_button_bg"
+                    android:background="@drawable/selector_bottom_sheet_list_tab"
                     android:gravity="center"
                     android:text="@string/tab1"
-                    android:textColor="@color/white"
+                    android:textColor="@color/selector_bottom_sheet_list_tab"
                     android:textSize="@dimen/text_size_normal"
                     android:textStyle="bold" />
-
             </LinearLayout>
 
             <LinearLayout
@@ -76,12 +74,13 @@
                     android:id="@+id/tvTab2"
                     android:layout_width="60dp"
                     android:layout_height="@dimen/dimen_30dp"
-                    android:background="@drawable/theme_1_button_bg"
+                    android:background="@drawable/selector_bottom_sheet_list_tab"
                     android:gravity="center"
-                    android:text="@string/tab2" />
-
+                    android:text="@string/tab2"
+                    android:textColor="@color/selector_bottom_sheet_list_tab"
+                    android:textSize="@dimen/text_size_normal"
+                    android:textStyle="bold" />
             </LinearLayout>
-
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -107,7 +106,5 @@
             android:headerDividersEnabled="true"
             android:padding="2dp"
             android:scrollbars="none" />
-
     </LinearLayout>
-
 </LinearLayout>

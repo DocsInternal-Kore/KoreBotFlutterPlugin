@@ -1,6 +1,6 @@
 package kore.botssdk.dialogs;
 
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -30,10 +30,10 @@ import kore.botssdk.application.AppControl;
 import kore.botssdk.fileupload.utils.StringUtils;
 import kore.botssdk.listener.ComposeFooterInterface;
 import kore.botssdk.listener.InvokeGenericWebViewInterface;
+import kore.botssdk.listener.VerticalListViewActionHelper;
 import kore.botssdk.models.BotListViewMoreDataModel;
 import kore.botssdk.models.BotResponse;
 import kore.botssdk.net.SDKConfiguration;
-import kore.botssdk.viewUtils.DimensionUtil;
 
 public class ListActionSheetFragment extends BottomSheetDialogFragment {
 
@@ -42,22 +42,29 @@ public class ListActionSheetFragment extends BottomSheetDialogFragment {
     private InvokeGenericWebViewInterface invokeGenericWebViewInterface;
     private TextView tvTab1;
     private TextView tvTab2;
+    private TextView tvOptionsTitle;
+    private boolean isEnabled;
     private String title;
     private BottomSheetDialog bottomSheetDialog;
     private boolean showHeader = false;
-    private String language;
+
+    public String getSkillName() {
+        return skillName;
+    }
+
+    public void setSkillName(String skillName, String trigger) {
+        this.skillName = skillName;
+    }
+
+    private String skillName;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.list_bottom_sheet, container, false);
-        String resolvedLanguage = SDKConfiguration.Server.resolveLanguage(language);
-        view.setLayoutDirection(SDKConfiguration.Server.isRtlLanguage(resolvedLanguage)
-                ? View.LAYOUT_DIRECTION_RTL
-                : View.LAYOUT_DIRECTION_LTR);
         ListView lvMoreData = view.findViewById(R.id.lvMoreData);
         tvTab1 = view.findViewById(R.id.tvTab1);
         tvTab2 = view.findViewById(R.id.tvTab2);
-        TextView tvOptionsTitle = view.findViewById(R.id.tvOptionsTitle);
+        tvOptionsTitle = view.findViewById(R.id.tvOptionsTitle);
         LinearLayout llCloseBottomSheet = view.findViewById(R.id.llCloseBottomSheet);
         LinearLayout llTabHeader = view.findViewById(R.id.llTabHeader);
         LinearLayout llBottomLayout = view.findViewById(R.id.llBottomLayout);
@@ -77,19 +84,11 @@ public class ListActionSheetFragment extends BottomSheetDialogFragment {
         }
 
         tvTab1.setText(ContextCompat.getString(requireActivity(), R.string.tab1));
-        GradientDrawable gDrawable = (GradientDrawable) tvTab1.getBackground().mutate();
-        gDrawable.setStroke((int) (1 * dp1), Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-        gDrawable.setColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-        tvTab1.setTextColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyTextColor));
-
         tvTab2.setText(ContextCompat.getString(requireActivity(), R.string.tab2));
-        GradientDrawable ungDrawable = (GradientDrawable) tvTab2.getBackground().mutate();
-        ungDrawable.setStroke((int) (1 * dp1), Color.parseColor(SDKConfiguration.BubbleColors.whiteColor));
-        ungDrawable.setColor(Color.parseColor(SDKConfiguration.BubbleColors.whiteColor));
-        tvTab2.setTextColor(ContextCompat.getColor(requireActivity(), R.color.txtFontBlack));
 
         botListTemplateAdapter.setBotListModelArrayList(model.getTab1());
         botListTemplateAdapter.notifyDataSetChanged();
+        tvTab1.setSelected(true);
         tvOptionsTitle.setVisibility(!StringUtils.isNullOrEmpty(title) ? View.VISIBLE : View.GONE);
         tvOptionsTitle.setText(title);
 
@@ -98,35 +97,14 @@ public class ListActionSheetFragment extends BottomSheetDialogFragment {
             llTabHeader.setVisibility(View.GONE);
 
         tvTab1.setOnClickListener(v -> {
-            tvTab1.setText(ContextCompat.getString(requireActivity(), R.string.tab1));
-            GradientDrawable gradientDrawable = (GradientDrawable) tvTab1.getBackground().mutate();
-            gradientDrawable.setStroke((int) (1 * dp1), Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-            gradientDrawable.setColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-            tvTab1.setTextColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyTextColor));
-
-            tvTab2.setText(ContextCompat.getString(requireActivity(), R.string.tab2));
-            GradientDrawable unGradientDrawable = (GradientDrawable) tvTab2.getBackground().mutate();
-            unGradientDrawable.setStroke((int) (1 * dp1), Color.parseColor(SDKConfiguration.BubbleColors.whiteColor));
-            unGradientDrawable.setColor(Color.parseColor(SDKConfiguration.BubbleColors.whiteColor));
-            tvTab2.setTextColor(ContextCompat.getColor(requireActivity(), R.color.txtFontBlack));
-
+            tvTab1.setSelected(true);
+            tvTab2.setSelected(false);
             botListTemplateAdapter.setBotListModelArrayList(model.getTab1());
         });
 
         tvTab2.setOnClickListener(v -> {
-            tvTab2.setText(ContextCompat.getString(requireActivity(), R.string.tab2));
-            GradientDrawable gradientDrawable = (GradientDrawable) tvTab2.getBackground().mutate();
-            gradientDrawable.setStroke((int) (1 * dp1), Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-            gradientDrawable.setColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-            tvTab2.setTextColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyTextColor));
-
-
-            tvTab1.setText(ContextCompat.getString(requireActivity(), R.string.tab1));
-            GradientDrawable unGradientDrawable = (GradientDrawable) tvTab1.getBackground().mutate();
-            unGradientDrawable.setStroke((int) (1 * dp1), Color.parseColor(SDKConfiguration.BubbleColors.whiteColor));
-            unGradientDrawable.setColor(Color.parseColor(SDKConfiguration.BubbleColors.whiteColor));
-            tvTab1.setTextColor(ContextCompat.getColor(requireActivity(), R.color.txtFontBlack));
-
+            tvTab1.setSelected(false);
+            tvTab2.setSelected(true);
             botListTemplateAdapter.setBotListModelArrayList(model.getTab2());
         });
 
@@ -135,7 +113,6 @@ public class ListActionSheetFragment extends BottomSheetDialogFragment {
                 bottomSheetDialog.dismiss();
         });
         return view;
-
     }
 
     public void setComposeFooterInterface(ComposeFooterInterface composeFooterInterface) {
@@ -150,6 +127,10 @@ public class ListActionSheetFragment extends BottomSheetDialogFragment {
         this.invokeGenericWebViewInterface = invokeGenericWebViewInterface;
     }
 
+    public void setIsEnabled(boolean isEnabled) {
+        this.isEnabled = isEnabled;
+    }
+
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -159,9 +140,9 @@ public class ListActionSheetFragment extends BottomSheetDialogFragment {
             FrameLayout bottomSheet = d.findViewById(com.google.android.material.R.id.design_bottom_sheet);
 
             if (bottomSheet != null) {
-                bottomSheet.getLayoutParams().height = (int) (AppControl.getInstance(getContext()).getDimensionUtil().screenHeight - 40 * DimensionUtil.dp1);
+                bottomSheet.getLayoutParams().height = (int) (AppControl.getInstance(getContext()).getDimensionUtil().screenHeight - 40 * dp1);
                 BottomSheetBehavior<FrameLayout> bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
-                bottomSheetBehavior.setPeekHeight((int) (500 * DimensionUtil.dp1));
+                bottomSheetBehavior.setPeekHeight((int) (500 * dp1));
             }
         });
 
@@ -169,12 +150,20 @@ public class ListActionSheetFragment extends BottomSheetDialogFragment {
         return bottomSheetDialog;
     }
 
+    public void setIsFromFullView(boolean isFromFullView) {
+    }
+
     public void setData(String title, BotListViewMoreDataModel taskTemplateModel) {
         this.title = title;
         model = taskTemplateModel;
     }
 
-    public void setLanguage(String language) {
-        this.language = language;
+    public void setData(String title, BotListViewMoreDataModel taskTemplateModel, boolean isFromListMenu) {
+        this.title = title;
+        model = taskTemplateModel;
+    }
+
+    public void setVerticalListViewActionHelper(VerticalListViewActionHelper verticalListViewActionHelper) {
     }
 }
+

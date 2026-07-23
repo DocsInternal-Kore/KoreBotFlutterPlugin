@@ -1,27 +1,19 @@
 package kore.botssdk.net;
 
-/*
- * Copyright (c) 2014 Kore Inc. All rights reserved.
- */
-
 import android.annotation.SuppressLint;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
 import java.util.HashMap;
 import java.util.Locale;
 
-import kore.botssdk.models.BrandingModel;
-import kore.botssdk.models.NotificationModel;
 import kore.botssdk.websocket.BotStatusListener;
 
 /**
  * This class is for defining properties
  */
-@SuppressLint({"UnknownNullness", "HardcodedPassword"})
+@SuppressLint("UnknownNullness")
 public class SDKConfiguration {
 
     public static final String APP_REQ_COLOR = "#3942f6"; // KORA COLOR "#3942f6" // BMC COLOR 2f91e5
@@ -30,14 +22,9 @@ public class SDKConfiguration {
      */
     private static boolean TIME_STAMPS_REQUIRED = true;
     private static final boolean APPLY_FONT_STYLE = true;
+    private static Locale LOCALE_DEVICE;
     protected static HashMap<String, View> hsh = new HashMap<>();
     protected static HashMap<String, Class<?>> hshViewHolders = new HashMap<>();
-    private static Locale LOCALE_DEVICE;
-
-    public static boolean isApplyFontStyle() {
-        return APPLY_FONT_STYLE;
-    }
-
     private static Typeface regular;
     private static Typeface bold;
     private static Typeface semiBold;
@@ -55,9 +42,11 @@ public class SDKConfiguration {
     public static Typeface getSemiBold() { return semiBold; }
 
     public static Typeface getBold() { return bold; }
+    public static boolean isApplyFontStyle() {
+        return APPLY_FONT_STYLE;
+    }
 
     //JWTServer related configurations
-    @SuppressLint({"HardcodedPassword", "emptyPassword"})
     public static class JWTServer {
         public static void setJwtServerUrl(String jwtServerUrl) {
             JWT_SERVER_URL = jwtServerUrl;
@@ -81,19 +70,14 @@ public class SDKConfiguration {
     }
 
     //Server related configurations
-    @SuppressLint("HardcodedPassword")
     public static class Server {
-        private static final String DEFAULT_LANGUAGE = "en";
-        private static String preferredLanguage = DEFAULT_LANGUAGE;
-
         public static void setServerUrl(String serverUrl) {
             SERVER_URL = serverUrl;
         }
-        public static NotificationModel notificationModel;
+
         public static final String TTS_WS_URL = "wss://speech.kore.ai/tts/ws";
         public static String SERVER_URL = "PLEASE_ENTER_SERVER_URL";
         public static String Branding_SERVER_URL = "PLEASE_ENTER_BRANDING_SERVER_URL";
-        public static String notificationDeviceId = "";
         public static HashMap<String, Object> queryParams = new HashMap<>();
 
         public static RestResponse.BotCustomData customData = new RestResponse.BotCustomData();
@@ -111,62 +95,18 @@ public class SDKConfiguration {
             Server.customData = customData;
         }
 
-        public static void setNotificationDeviceId(String notificationDeviceId) {
-            Server.notificationDeviceId = notificationDeviceId;
-        }
-
         public static void setBotStatusListener(BotStatusListener botStatusListener) {
             Server.botStatusListener = botStatusListener;
-        }
-
-        public static void setNotificationModel(NotificationModel notificationModel) {
-            Server.notificationModel = notificationModel;
-        }
-
-        public static NotificationModel getNotificationModel() {
-            return notificationModel;
         }
 
         public static BotStatusListener getBotStatusListener() {
             return botStatusListener;
         }
-
-        public static void setPreferredLanguage(String language) {
-            preferredLanguage = normalizeLanguage(language);
-        }
-
-        public static String getPreferredLanguage() {
-            return preferredLanguage;
-        }
-
-        public static String resolveLanguage(String responseLanguage) {
-            return responseLanguage == null || responseLanguage.trim().isEmpty()
-                    ? preferredLanguage
-                    : normalizeLanguage(responseLanguage);
-        }
-
-        public static boolean isRtl() {
-            return isRtlLanguage(preferredLanguage);
-        }
-
-        public static boolean isRtlLanguage(String language) {
-            Locale locale = Locale.forLanguageTag(normalizeLanguage(language));
-            return TextUtils.getLayoutDirectionFromLocale(locale) == View.LAYOUT_DIRECTION_RTL;
-        }
-
-        private static String normalizeLanguage(String language) {
-            if (language == null || language.trim().isEmpty()) return DEFAULT_LANGUAGE;
-            String normalized = language.trim().replace('_', '-');
-            Locale locale = Locale.forLanguageTag(normalized);
-            String tag = locale.toLanguageTag();
-            return tag == null || tag.isEmpty() || "und".equalsIgnoreCase(tag)
-                    ? DEFAULT_LANGUAGE
-                    : tag;
-        }
     }
 
-    @SuppressLint("HardcodedPassword")
     public static class Client {
+
+        public static boolean timeStampBottom = false;
 
         public static void setClient_id(String client_id) {
             Client.client_id = client_id;
@@ -187,31 +127,73 @@ public class SDKConfiguration {
         public static void setBot_id(String bot_id) {
             Client.bot_id = bot_id;
         }
-
+        public static String connection_mode = "";
+        public static boolean connection_mode_on_reconnect = true;
+        public static boolean history_on_network_resume = false;
         public static String client_id = "PLEASE_ENTER_CLIENT_ID";
         public static String client_secret = "PLEASE_ENTER_CLIENT_SECRET";
         public static String identity = "PLEASE_ENTER_IDENTITY";
         public static String bot_name = "Kore.ai Bot";
-        public static String bot_id = "PLEASE_ENTER_BOT_ID";
-        public static String connection_mode = "";
-        public static boolean connection_mode_on_reconnect = false;
-        public static boolean history_on_network_resume = true;
+        public static String bot_id = "st-fc50f8c4-91a0-5ae7-bff2-283ad3c81700";
         public static boolean enable_ack_delivery = false;
 
         //Webhook
         public static boolean isWebHook = false;
     }
 
-    @SuppressLint("HardcodedPassword")
     public static class BubbleColors {
-        public static boolean enableLocalBranding = false;
-        public static BrandingModel localBranding;
+        public static String rightBubbleSelected = APP_REQ_COLOR;
+
+        public static void setRightBubbleSelected(String rightBubbleSelected) {
+            BubbleColors.rightBubbleSelected = rightBubbleSelected;
+        }
+
+        public static void setRightBubbleUnSelected(String rightBubbleUnSelected) {
+            BubbleColors.rightBubbleUnSelected = rightBubbleUnSelected;
+        }
+
+        public static void setLeftBubbleSelected(String leftBubbleSelected) {
+            BubbleColors.leftBubbleSelected = leftBubbleSelected;
+        }
+
+        public static void setLeftBubbleUnSelected(String leftBubbleUnSelected) {
+            BubbleColors.leftBubbleUnSelected = leftBubbleUnSelected;
+        }
+
+        public static void setLeftBubbleTextColor(String leftBubbleTextColor) {
+            BubbleColors.leftBubbleTextColor = leftBubbleTextColor;
+        }
+
+        public static void setRightBubbleTextColor(String rightBubbleTextColor) {
+            BubbleColors.rightBubbleTextColor = rightBubbleTextColor;
+        }
+
+        public static void setWhiteColor(String whiteColor) {
+            BubbleColors.whiteColor = whiteColor;
+        }
+
+        public static void setLeftBubbleBorderColor(String leftBubbleBorderColor) {
+            BubbleColors.leftBubbleBorderColor = leftBubbleBorderColor;
+        }
+
+        public static void setRightLinkColor(String rightLinkColor) {
+            BubbleColors.rightLinkColor = rightLinkColor;
+        }
+
+        public static void setLeftLinkColor(String leftLinkColor) {
+            BubbleColors.leftLinkColor = leftLinkColor;
+        }
+
         public static String rightBubbleUnSelected = APP_REQ_COLOR;
         public static String leftBubbleSelected = "#D3D3D3";
+        public static String leftBubbleUnSelected = "#f8f9f8";
+        public static String leftBubbleTextColor = "#404051";
+        public static String rightBubbleTextColor = "#161628";//"#757587";
         public static String whiteColor = "#FFFFFF";
+        public static String leftBubbleBorderColor = "#eeeef2";
         public static String rightLinkColor = APP_REQ_COLOR;
         public static String leftLinkColor = APP_REQ_COLOR;
-        public static String footer_hint_text = "Type your message...";
+        public static final boolean BubbleUI = false;
         public static boolean showIcon = false;
 
         public static int getIcon() {
@@ -232,49 +214,33 @@ public class SDKConfiguration {
 
         private static int icon = -1;
         private static String icon_url = "";
-        private static Drawable agentAvatar;
-        private static String agent_url = "";
 
+        public static String getProfileColor() {
+            return profileColor;
+        }
+
+        static String profileColor = APP_REQ_COLOR;
         public static String quickReplyColor = "#EEEEF0";
         public static String quickReplyTextColor = "#000000";
         public static String quickBorderColor = "#000000";
-
-        public static void setAgentAvatar(Drawable agent_Avatar, String agentUrl) {
-            agentAvatar = agent_Avatar;
-            agent_url = agentUrl;
-        }
-
-        public static Drawable getAgentAvatar() {
-            return agentAvatar;
-        }
-
-        public static String getAgent_url() {
-            return agent_url;
-        }
     }
 
-    @SuppressLint("HardcodedPassword")
     public static class OverrideKoreConfig {
         public static boolean isEmojiShortcutEnable = true;
         public static int typing_indicator_timeout = 10000;
         public static boolean history_enable = true;
-        public static int history_batch_size = 10;
         public static boolean paginated_scroll_enable = true;
+        public static int history_batch_size = 10;
         public static int paginated_scroll_batch_size = 10;
         public static String paginated_scroll_loading_label = "Loading old messages";
         public static boolean showIconTop = true;
         public static boolean showAttachment = true;
         public static boolean showASRMicroPhone = true;
         public static boolean showTextToSpeech = true;
-        public static boolean showHamburgerMenu = false;
         public static boolean history_initial_call = false;
-        public static boolean disable_action_bar = true;
-        public static boolean disable_alert_on_max_reconnection = false;
         public static boolean update_custom_data_to_user_message = false;
+        public static boolean disable_alert_on_max_reconnection = false;
         public static boolean showLocalNotification = true;
-        public static boolean reconnectionBySDK = true;
-        public static boolean sendAllDeepLink = false;
-        public static boolean default_notifications = true;
     }
 
     public static boolean isTimeStampsRequired() {
@@ -285,6 +251,11 @@ public class SDKConfiguration {
         TIME_STAMPS_REQUIRED = timeStampsRequired;
     }
 
+    public static void setCustomTemplateView(String templateName, View templateView) {
+        hsh.put(templateName, templateView);
+        Log.e("HashMap Count", hsh.size() + "");
+    }
+
     public static Locale getDeviceLocale()
     {
         return LOCALE_DEVICE;
@@ -293,11 +264,6 @@ public class SDKConfiguration {
     public static void setDeviceLocale(Locale locale)
     {
         LOCALE_DEVICE = locale;
-    }
-
-    public static void setCustomTemplateView(String templateName, View templateView) {
-        hsh.put(templateName, templateView);
-        Log.e("HashMap Count", hsh.size() + "");
     }
 
     public static HashMap<String, View> getCustomTemplateView() {

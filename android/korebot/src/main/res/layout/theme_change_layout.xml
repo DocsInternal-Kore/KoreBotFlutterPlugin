@@ -5,7 +5,7 @@
     android:background="@drawable/rounded_rect_feedback"
     android:orientation="vertical">
 
-    <kore.botssdk.view.CustomTextView
+    <TextView
         android:id="@+id/tvTheme1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -19,12 +19,11 @@
         android:layout_height="1dp"
         android:background="@color/colorSelected" />
 
-    <kore.botssdk.view.CustomTextView
+    <TextView
         android:id="@+id/tvTheme2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:padding="@dimen/dimen_10dp"
         android:text="@string/shopping_theme" />
-
 </LinearLayout>

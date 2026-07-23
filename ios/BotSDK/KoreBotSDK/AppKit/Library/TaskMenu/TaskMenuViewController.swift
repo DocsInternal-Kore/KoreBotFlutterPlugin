@@ -2,23 +2,26 @@
 //  TaskMenuViewController.swift
 //  KoreBotSDKDemo
 //
-//  Created by MatrixStream_01 on 29/05/20.
+//  Created by Pagidimarri Kartheek on 29/05/20.
 //  Copyright © 2020 Kore. All rights reserved.
 //
 
 import UIKit
 protocol TaskMenuNewDelegate {
     func optionsButtonTapNewAction(text:String, payload:String)
+    func linkButtonTapAction(urlString: String)
 }
 class TaskMenuViewController: UIViewController {
 
     @IBOutlet weak var subView: UIView!
     @IBOutlet weak var titleLabel: UILabel!
+    @IBOutlet weak var titleLeadingConstraint: NSLayoutConstraint!
+    @IBOutlet weak var cancelBtnTrailingConstraint: NSLayoutConstraint!
     @IBOutlet weak var tableview: UITableView!
-    var arrayOftasks = [Task]()
+    var arrayOftasks = [Actions]()
     fileprivate let taskMenuCellIdentifier = "TaskMenuTablViewCell"
     var viewDelegate: TaskMenuNewDelegate?
-    
+    let bundle = Bundle.sdkModule
     // MARK: init
        init() {
            super.init(nibName: "TaskMenuViewController", bundle: .sdkModule)
@@ -31,9 +34,6 @@ class TaskMenuViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
        // Do any additional setup after loading the view.
-        if #available(iOS 13.0, *) {
-            overrideUserInterfaceStyle = .light
-        }
         subView.layer.masksToBounds = false
         subView?.layer.shadowColor = UIColor.lightGray.cgColor
         subView?.layer.shadowOffset =  CGSize.zero
@@ -41,24 +41,41 @@ class TaskMenuViewController: UIViewController {
         subView?.layer.shadowRadius = 4
         getData()
         self.tableview.register(Bundle.xib(named: taskMenuCellIdentifier), forCellReuseIdentifier: taskMenuCellIdentifier)
+        updateTitleLeadingSpacing()
+    }
+
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        updateTitleLeadingSpacing()
+    }
+
+    private func updateTitleLeadingSpacing() {
+        // Treat landscape as width > height for robust behavior across devices
+        let isLandscape = view.bounds.width > view.bounds.height
+        // Default portrait spacing is 15 (as in XIB). Increase slightly in landscape for visual balance
+        titleLeadingConstraint?.constant = isLandscape ? 24 : 15
+        cancelBtnTrailingConstraint?.constant = isLandscape ? 10 : 1
     }
 
     func getData(){
-        if let path = Bundle.main.path(forResource: "TaskMenu", ofType: "json") {
-            do {
-                let data = try Data(contentsOf: URL(fileURLWithPath: path), options: .mappedIfSafe)
-                let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
-                if let jsonResult = jsonResult as? Dictionary<String, AnyObject> {
-                    // do stuff
-                    let jsonData = try DictionaryDecoder().decode(TaskMenu.self, from: jsonResult as [String : Any])
-                    self.arrayOftasks = jsonData.tasks
-                    titleLabel.text = jsonData.heading
-                    self.tableview.reloadData()
+        if let footerViewLeftMenu = brandingValues.footer?.buttons?.menu{
+            
+            self.arrayOftasks = footerViewLeftMenu.actions ?? []
+        }else{
+            if let path = Bundle.main.path(forResource: "TaskMenu", ofType: "json") {
+                do {
+                    let data = try Data(contentsOf: URL(fileURLWithPath: path), options: .mappedIfSafe)
+                    let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
+                    if let jsonResult = jsonResult as? Dictionary<String, AnyObject> {
+                        let jsonData = try DictionaryDecoder().decode(TaskMenu.self, from: jsonResult as [String : Any])
+                        self.tableview.reloadData()
+                    }
+                } catch {
+                    // handle error
                 }
-            } catch {
-                // handle error
             }
         }
+        
     }
     @IBAction func tapsOnCloseBtnAct(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
@@ -86,7 +103,6 @@ extension TaskMenuViewController: UITableViewDelegate,UITableViewDataSource{
            return 1
        }
        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-           
            return  self.arrayOftasks.count
        }
        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -95,26 +111,37 @@ extension TaskMenuViewController: UITableViewDelegate,UITableViewDataSource{
            cell.selectionStyle = .none
            let tasks =  self.arrayOftasks[indexPath.row]
            cell.titleLabel.text = tasks.title
-           let image = base64ToImage(base64String: tasks.icon)
-           cell.imgView.image = image
+           cell.titleLabel.font = UIFont.init(name: regularCustomFont, size: 15.0)
+           cell.titleLabel.textColor = BubbleViewBotChatTextColor
+           cell.imagVWidthConstarint.constant  = 25.0
+           if let iconImg = tasks.icon{
+               if iconImg.contains("base64"){
+                   let image = Utilities.base64ToImage(base64String: tasks.icon)
+                   cell.imgView.image = image.withRenderingMode(.alwaysTemplate)
+               }else{
+                   if let url = URL(string: iconImg){
+                       cell.imgView.af.setImage(withURL: url, placeholderImage: UIImage.init(named: "placeholder_image", in: bundle, compatibleWith: nil))
+                   }else{
+                       cell.imagVWidthConstarint.constant  = 0.0
+                       cell.titleLabel.textAlignment = .center
+                   }
+               }
+           }
            return cell
        }
        func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-           let elements = arrayOftasks[indexPath.row]
-           self.viewDelegate?.optionsButtonTapNewAction(text: (elements.postback.title), payload: (elements.postback.value))
            self.dismiss(animated: true, completion: nil)
+           let elements = arrayOftasks[indexPath.row]
+           if let type = elements.type, type == "postback"{
+               if let titile = elements.title{
+                   self.viewDelegate?.optionsButtonTapNewAction(text: titile, payload: (elements.value ?? titile))
+               }
+           }else if let type = elements.type, type == "url"{
+               if let urlstr = elements.value{
+                   self.viewDelegate?.linkButtonTapAction(urlString: urlstr)
+               }
+           }
+           
     }
        
-       func base64ToImage(base64String: String?) -> UIImage{
-           if (base64String?.isEmpty)! {
-               return #imageLiteral(resourceName: "no_image_found")
-           }else {
-               // Separation part is optional, depends on your Base64String !
-               let tempImage = base64String?.components(separatedBy: ",")
-               let dataDecoded : Data = Data(base64Encoded: tempImage![1], options: .ignoreUnknownCharacters)!
-               let decodedimage = UIImage(data: dataDecoded)
-               return decodedimage!
-           }
-       }
-   
 }

@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import korebotplugin
 
 public enum KREMeetingStatus: String {
     case accepted = "accepted", declined = "declined", tentative = "tentative", needsAction = "needsAction"

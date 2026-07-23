@@ -1,11 +1,14 @@
 package kore.botssdk.adapter;
 
+import static android.content.Context.MODE_PRIVATE;
 import static android.view.View.GONE;
 import static org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4;
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static kore.botssdk.models.BotResponse.THEME_NAME;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -47,9 +50,9 @@ import kore.botssdk.listener.ComposeFooterInterface;
 import kore.botssdk.listener.InvokeGenericWebViewInterface;
 import kore.botssdk.models.AdvanceOptionsModel;
 import kore.botssdk.models.AdvancedListModel;
+import kore.botssdk.models.BotResponse;
 import kore.botssdk.models.HeaderOptionsModel;
 import kore.botssdk.models.Widget;
-import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.utils.BundleConstants;
 import kore.botssdk.utils.StringUtils;
 import kore.botssdk.utils.markdown.MarkdownImageTagHandler;
@@ -67,9 +70,11 @@ public class AdvancedListAdapter extends BaseAdapter implements AdvanceButtonCli
     private int count;
     final PopupWindow popupWindow, btnsPopUpWindow;
     private final View popUpView, btnsPopUpView;
+    private final SharedPreferences prefs;
 
     public AdvancedListAdapter(Context context, ListView parentListView) {
         this.context = context;
+        prefs = context.getSharedPreferences(THEME_NAME, MODE_PRIVATE);
         this.parentListView = parentListView;
         popUpView = View.inflate(context, R.layout.advancelist_drop_down_popup, null);
         popupWindow = new PopupWindow(popUpView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, true);
@@ -133,9 +138,9 @@ public class AdvancedListAdapter extends BaseAdapter implements AdvanceButtonCli
 
     private void populateVIew(ViewHolder holder, int position) {
         AdvancedListModel botListModel = getItem(position);
-        holder.buttonMore.setTextColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
+        holder.buttonMore.setTextColor(Color.parseColor(prefs.getString(BotResponse.BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
         VectorDrawable drawable = (VectorDrawable) holder.ivBtnImage.getBackground();
-        drawable.setTintList(ColorStateList.valueOf(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor)));
+        drawable.setTintList(ColorStateList.valueOf(Color.parseColor(prefs.getString(BotResponse.BUBBLE_RIGHT_BG_COLOR, "#3F51B5"))));
         if (!StringUtils.isNullOrEmpty(botListModel.getIcon())) {
             holder.ivDescription.setVisibility(View.VISIBLE);
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(100, 100);
@@ -289,7 +294,7 @@ public class AdvancedListAdapter extends BaseAdapter implements AdvanceButtonCli
         if (!StringUtils.isNullOrEmpty(botListModel.getView()) && botListModel.getView().equalsIgnoreCase(BundleConstants.DEFAULT)) {
             if (botListModel.getTextInformation() != null && !botListModel.getTextInformation().isEmpty()) {
                 holder.lvDetails.setVisibility(View.VISIBLE);
-                holder.lvDetails.setAdapter(new AdvanceListDetailsAdapter(context, botListModel.getTextInformation()));
+                holder.lvDetails.setAdapter(new AdvanceListdetailsAdapter(context, botListModel.getTextInformation()));
             }
 
             if (botListModel.getButtons() != null && !botListModel.getButtons().isEmpty()) {
@@ -307,10 +312,10 @@ public class AdvancedListAdapter extends BaseAdapter implements AdvanceButtonCli
                 holder.rvDefaultButtons.setAdapter(advanceListButtonAdapter);
 
                 if (displayLimit != 0) {
-                    ArrayList<Widget.Button> tempButtons = new ArrayList<>();
+                    ArrayList<Widget.Button> tempBtns = new ArrayList<>();
 
                     for (int i = displayLimit - 1; i < botListModel.getButtons().size(); i++) {
-                        tempButtons.add(botListModel.getButtons().get(i));
+                        tempBtns.add(botListModel.getButtons().get(i));
                     }
 
                     holder.llButtonMore.setVisibility(View.VISIBLE);
@@ -320,7 +325,7 @@ public class AdvancedListAdapter extends BaseAdapter implements AdvanceButtonCli
                     ImageView ivDropDownCLose = btnsPopUpView.findViewById(R.id.ivDropDownCLose);
 
                     recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
-                    AdvanceListButtonAdapter advanceButtonAdapter = new AdvanceListButtonAdapter(context, tempButtons, BundleConstants.FULL_WIDTH, AdvancedListAdapter.this, composeFooterInterface, invokeGenericWebViewInterface, false);
+                    AdvanceListButtonAdapter advanceButtonAdapter = new AdvanceListButtonAdapter(context, tempBtns, BundleConstants.FULL_WIDTH, AdvancedListAdapter.this, composeFooterInterface, invokeGenericWebViewInterface, false);
                     recyclerView.setAdapter(advanceButtonAdapter);
 
                     ivDropDownCLose.setOnClickListener(view -> btnsPopUpWindow.dismiss());
@@ -601,7 +606,7 @@ public class AdvancedListAdapter extends BaseAdapter implements AdvanceButtonCli
         });
     }
 
-    public void displayCount(int count) {
+    public void dispalyCount(int count) {
         this.count = count;
     }
 

@@ -4,7 +4,6 @@ import android.content.Context;
 
 import kore.botssdk.models.JWTTokenResponse;
 import kore.botssdk.models.TokenResponseModel;
-import kore.botssdk.models.UserNameModel;
 import kore.botssdk.net.RestResponse;
 import kore.botssdk.websocket.SocketConnectionListener;
 
@@ -45,8 +44,8 @@ public abstract class BaseSocketConnectionManager implements SocketConnectionLis
         CONNECTING,
         CONNECTED,
         DISCONNECTED,
-        CONNECTED_BUT_DISCONNECTED,
-        RECONNECTION_STOPPED
+        RECONNECTION_STOPPED,
+        CONNECTED_BUT_DISCONNECTED
     }
 
     public abstract void startAndInitiateConnectionWithAuthToken(Context mContext, String userId, String accessToken, RestResponse.BotCustomData botCustomData);
@@ -62,6 +61,4 @@ public abstract class BaseSocketConnectionManager implements SocketConnectionLis
     public abstract void startAndInitiateConnectionWithConfig(Context mContext, RestResponse.BotCustomData botCustomData);
 
     public abstract void startAndInitiateConnectionWithReconnect(Context mContext, RestResponse.BotCustomData botCustomData, boolean isReconnect);
-
-    public abstract void startAndInitiateConnection(Context mContext, String userId, String accessToken, UserNameModel userNameModel, String orgId);
 }

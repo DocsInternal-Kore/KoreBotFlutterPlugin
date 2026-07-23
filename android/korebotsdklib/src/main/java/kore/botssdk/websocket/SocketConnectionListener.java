@@ -1,11 +1,7 @@
 package kore.botssdk.websocket;
 
-
-/*
- * Copyright (c) 2014 Kore Inc. All rights reserved.
- */
+@SuppressWarnings("UnKnownNullness")
 public interface SocketConnectionListener {
-
     /**
      * Fired when the WebSockets connection has been established.
      * After this happened, messages may be sent.
@@ -48,15 +44,13 @@ public interface SocketConnectionListener {
     void refreshJwtToken();
 
     /**
-     * Fired when a sdk reached maximum attempts to connect to Bot.
-     * @param reconnectionStopped with reason.
+     * Callback for when reconnection attempts stopped
      */
-    void onReconnectStopped(String reconnectionStopped);
+    void onReconnectStopped(String reason);
 
     /**
      * Fired when a sdk completed start call during connect to Bot.
      * @param isReconnect with reconnect status.
      */
     void onStartCompleted(boolean isReconnect);
-
 }

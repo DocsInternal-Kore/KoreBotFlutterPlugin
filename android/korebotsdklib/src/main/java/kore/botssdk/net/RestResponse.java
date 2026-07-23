@@ -6,13 +6,14 @@ import java.util.HashMap;
 
 import kore.botssdk.models.Authorization;
 import kore.botssdk.models.BotInfoModel;
+import kore.botssdk.models.BotResponse;
 import kore.botssdk.models.BotUserInfo;
 import kore.botssdk.models.User;
 
 /**
  * Copyright (c) 2014 Kore Inc. All rights reserved.
  */
-@SuppressWarnings({"UnknownNullness"})
+@SuppressWarnings("UnKnownNullness")
 public class RestResponse {
     public static class LoginResponse extends User {
         public String status;
@@ -90,7 +91,7 @@ public class RestResponse {
 
     public static class BotMessage {
         private String renderMsg;
-        private String body;
+        private Object body;
         private BotCustomData customData;
 
         public HashMap<String, Object> getParams() {
@@ -111,6 +112,11 @@ public class RestResponse {
 
         public String getType() {
             return type;
+        }
+
+        public BotMessage(Object body) {
+            this.body = body;
+            renderMsg = "";
         }
 
         public BotMessage(String body, String renderMsg) {
@@ -137,7 +143,7 @@ public class RestResponse {
             this.attachments = attachments;
         }
 
-        public String getBody() {
+        public Object getBody() {
             return body;
         }
 

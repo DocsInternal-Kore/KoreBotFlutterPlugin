@@ -1,6 +1,5 @@
 package kore.botssdk.view;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.text.Layout;
 import android.text.Selection;
@@ -13,7 +12,6 @@ import android.widget.TextView;
 
 import androidx.appcompat.widget.AppCompatTextView;
 
-@SuppressLint("UnknownNullness")
 public class LinkifyTextView extends AppCompatTextView {
 
     public LinkifyTextView(Context context, AttributeSet attrs, int defStyle) {
@@ -38,17 +36,18 @@ public class LinkifyTextView extends AppCompatTextView {
     /**
      * @Linkify applies to a movementMethod to the textView @LinkMovementMethod. That movement method thought it
      * implements a scrolling vertically method it overrides any other scrolling method the parent has.
+     *
      * Although touchEvent can be dispached to the parent, the specific parent ScrollView needed the whole sequence
      * ACTION_DOWN , ACTION_MOVE, ACTION_UP to perform (sweep detection). So the solution to this problem is after
      * applying @Linkify we need to remove the textView's scrolling method and handle the @LinkMovementMethod link
      * detection action in onTouchEvent of the textView.
      */
-    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         final TextView widget = this;
         final Object text = widget.getText();
-        if (text instanceof Spannable buffer) {
+        if (text instanceof Spannable) {
+            final Spannable buffer = (Spannable)text;
             final int action = event.getAction();
 
             if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_DOWN) {
@@ -70,7 +69,7 @@ public class LinkifyTextView extends AppCompatTextView {
                 if (link.length != 0) {
                     if (action == MotionEvent.ACTION_UP) {
                         link[0].onClick(widget);
-                    } else {
+                    } else if (action == MotionEvent.ACTION_DOWN) {
                         Selection.setSelection(buffer, buffer.getSpanStart(link[0]), buffer.getSpanEnd(link[0]));
                     }
                     return true;

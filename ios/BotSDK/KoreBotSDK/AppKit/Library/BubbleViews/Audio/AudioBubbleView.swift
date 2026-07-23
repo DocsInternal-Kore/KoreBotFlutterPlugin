@@ -47,6 +47,7 @@ class AudioBubbleView: BubbleView, UICollectionViewDataSource, UICollectionViewD
     override func awakeFromNib() {
         super.awakeFromNib()
         
+        //self.collectionView.register(UINib.init(nibName: "ImageComponentCollectionViewCell", bundle:nil), forCellWithReuseIdentifier: "ImageComponentCollectionViewCell")
         if let xib = Bundle.xib(named: "ImageComponentCollectionViewCell") {
             self.collectionView.register(xib, forCellWithReuseIdentifier: "ImageComponentCollectionViewCell")
                 }
@@ -61,7 +62,7 @@ class AudioBubbleView: BubbleView, UICollectionViewDataSource, UICollectionViewD
     
     
     override var intrinsicContentSize : CGSize {
-        return CGSize(width: BubbleViewMaxWidth, height: 200)
+        return CGSize(width: BubbleViewMaxWidth, height: 160)
     }
     
     func visibleCells() -> NSArray {
@@ -116,7 +117,7 @@ class AudioBubbleView: BubbleView, UICollectionViewDataSource, UICollectionViewD
                 cell.playerViewController.view.frame = cell.videoPlayerView.frame
                 cell.playerViewController.player?.pause()
                 cell.videoPlayerView.addSubview(cell.playerViewController.view)
-                cell.playerViewController.view.backgroundColor = BubbleViewLeftTint
+                cell.playerViewController.view.backgroundColor = .lightGray
     
     
         // cell.component = self.components.object(at: (indexPath as NSIndexPath).row) as! Component //kk

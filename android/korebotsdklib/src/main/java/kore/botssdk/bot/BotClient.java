@@ -21,13 +21,12 @@ import kore.botssdk.websocket.SocketWrapper;
  * Copyright (c) 2014 Kore Inc. All rights reserved.
  */
 
-/**
+/*
  * Gateway for clients to interact with Bots.
  */
 @SuppressWarnings("UnKnownNullness")
 public class BotClient {
     private final Context mContext;
-    Gson gson = new Gson();
 
     public RestResponse.BotCustomData getCustomData() {
         return customData;
@@ -64,8 +63,7 @@ public class BotClient {
      * Connection for anonymous user
      */
     public void connectAsAnonymousUser(String jwtToken, String chatBotName, String taskBotId, SocketConnectionListener socketConnectionListener, boolean isReconnect) {
-        if (customData == null) customData = new RestResponse.BotCustomData();
-        customData.put("interactiveLanguage", SDKConfiguration.Server.getPreferredLanguage());
+
         botInfoModel = new BotInfoModel(chatBotName, taskBotId, customData);
         SocketWrapper.getInstance(mContext).connectAnonymous(jwtToken, botInfoModel, socketConnectionListener, null, isReconnect);
     }
@@ -114,6 +112,35 @@ public class BotClient {
         }
     }
 
+    public void sendMessage(Object msg) {
+
+        if (msg != null) {
+            RestResponse.BotPayLoad botPayLoad = new RestResponse.BotPayLoad();
+            RestResponse.BotMessage botMessage = new RestResponse.BotMessage(msg);
+            customData.put("botToken", getAccessToken());
+            customData.put("rtmType", "mobile");
+
+            botPayLoad.setMessage(botMessage);
+            botPayLoad.setEvent("event");
+
+            if (botInfoModel != null)
+                botPayLoad.setBotInfo(botInfoModel);
+            else {
+                botInfoModel = new BotInfoModel(SDKConfiguration.Client.bot_name, SDKConfiguration.Client.bot_id, customData);
+                botPayLoad.setBotInfo(botInfoModel);
+            }
+
+            RestResponse.Meta meta = new RestResponse.Meta(TimeZone.getDefault().getID(), Locale.getDefault().getISO3Language());
+            botPayLoad.setMeta(meta);
+
+            Gson gson = new Gson();
+            String jsonPayload = gson.toJson(botPayLoad);
+
+            Log.d("BotClient", "Payload : " + jsonPayload);
+            SocketWrapper.getInstance(mContext).sendAgentMessage(jsonPayload);
+        }
+    }
+
     /**
      * Method to send message acknowledgement over socket.
      */
@@ -124,7 +151,7 @@ public class BotClient {
         botMessageAckModel.setKey(key);
         botMessageAckModel.setReplyto(timestamp);
 
-
+        Gson gson = new Gson();
         String jsonPayload = gson.toJson(botMessageAckModel);
 
         Log.d("BotClient", "Payload : " + jsonPayload);
@@ -139,25 +166,25 @@ public class BotClient {
      * pass 'msg' as NULL on reconnection of the socket to empty the pool
      * by sending messages from the pool.
      */
-    public void sendReceipts(String eventName, String msgId)
-    {
+    public void sendReceipts(String eventName, String msgId) {
         RestResponse.BotPayLoad botPayLoad = new RestResponse.BotPayLoad();
         RestResponse.BotMessage botMessage = new RestResponse.BotMessage("", "", "");
-        customData.put("botToken",getAccessToken());
+        customData.put("botToken", getAccessToken());
         botMessage.setCustomData(customData);
         botPayLoad.setMessage(botMessage);
         botPayLoad.setEvent(eventName);
 
-        if(!StringUtils.isNullOrEmpty(msgId))
+        if (!StringUtils.isNullOrEmpty(msgId))
             botPayLoad.setMsgId(msgId);
 
-        botInfoModel = new BotInfoModel(SDKConfiguration.Client.bot_name,SDKConfiguration.Client.bot_id,customData);
+        botInfoModel = new BotInfoModel(SDKConfiguration.Client.bot_name, SDKConfiguration.Client.bot_id, customData);
         botPayLoad.setBotInfo(botInfoModel);
         botPayLoad.setResourceid("/bot.message");
 
         RestResponse.Meta meta = new RestResponse.Meta(TimeZone.getDefault().getID(), Locale.getDefault().getISO3Language());
         botPayLoad.setMeta(meta);
 
+        Gson gson = new Gson();
         String jsonPayload = gson.toJson(botPayLoad);
 
         LogUtils.d("BotClient", "Payload : " + jsonPayload);
@@ -167,17 +194,18 @@ public class BotClient {
     public void sendAgentCloseMessage(String msg, String botName, String botId) {
         RestResponse.BotPayLoad botPayLoad = new RestResponse.BotPayLoad();
         RestResponse.BotMessage botMessage = new RestResponse.BotMessage(msg, "");
-        customData.put("botToken",getAccessToken());
+        customData.put("botToken", getAccessToken());
         botMessage.setCustomData(customData);
         botPayLoad.setMessage(botMessage);
         botPayLoad.setEvent("close_agent_chat");
-        botInfoModel = new BotInfoModel(botName,botId,customData);
+        botInfoModel = new BotInfoModel(botName, botId, customData);
         botPayLoad.setBotInfo(botInfoModel);
         botPayLoad.setResourceid("/bot.message");
 
         RestResponse.Meta meta = new RestResponse.Meta(TimeZone.getDefault().getID(), Locale.getDefault().getISO3Language());
         botPayLoad.setMeta(meta);
 
+        Gson gson = new Gson();
         String jsonPayload = gson.toJson(botPayLoad);
 
         LogUtils.d("BotClient", "Payload : " + jsonPayload);

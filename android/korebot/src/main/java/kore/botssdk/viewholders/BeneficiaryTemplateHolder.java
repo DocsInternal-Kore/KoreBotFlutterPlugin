@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import kore.botssdk.R;
 import kore.botssdk.adapter.BotBeneficiaryTemplateAdapter;
 import kore.botssdk.dialogs.ListActionSheetFragment;
-import kore.botssdk.listener.ListClickableListener;
 import kore.botssdk.models.BaseBotMessage;
 import kore.botssdk.models.BotBeneficiaryModel;
 import kore.botssdk.models.BotButtonModel;
@@ -32,8 +31,7 @@ import kore.botssdk.utils.KaFontUtils;
 import kore.botssdk.utils.LogUtils;
 import kore.botssdk.view.AutoExpandListView;
 
-public class BeneficiaryTemplateHolder extends BaseViewHolder implements ListClickableListener {
-
+public class BeneficiaryTemplateHolder extends BaseViewHolder {
     private final AutoExpandListView autoExpandListView;
     private final TextView botCustomListViewButton;
     private final LinearLayout botCustomListRoot;
@@ -53,9 +51,13 @@ public class BeneficiaryTemplateHolder extends BaseViewHolder implements ListCli
 
         SharedPreferences sharedPreferences = itemView.getContext().getSharedPreferences(BotResponse.THEME_NAME, Context.MODE_PRIVATE);
 
+        String quickWidgetColor = SDKConfiguration.BubbleColors.quickReplyColor;
+        String quickReplyFontColor = SDKConfiguration.BubbleColors.quickReplyTextColor;
         String fillColor = SDKConfiguration.BubbleColors.quickReplyColor;
 
         fillColor = sharedPreferences.getString(BotResponse.BUTTON_ACTIVE_BG_COLOR, fillColor);
+        quickWidgetColor = sharedPreferences.getString(BotResponse.BUTTON_ACTIVE_TXT_COLOR, quickWidgetColor);
+        quickReplyFontColor = sharedPreferences.getString(BotResponse.BUTTON_INACTIVE_TXT_COLOR, quickReplyFontColor);
 
         botCustomListViewButton.setTextColor(Color.parseColor(fillColor));
     }
@@ -85,7 +87,6 @@ public class BeneficiaryTemplateHolder extends BaseViewHolder implements ListCli
             autoExpandListView.setAdapter(botListTemplateAdapter);
             botListTemplateAdapter.setComposeFooterInterface(composeFooterInterface);
             botListTemplateAdapter.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
-            botListTemplateAdapter.setListClickableInterface(BeneficiaryTemplateHolder.this);
             botListTemplateAdapter.setBotListModelArrayList(botListModelArrayList);
             botListTemplateAdapter.setListClickable(payloadInner.isIs_end());
             botListTemplateAdapter.notifyDataSetChanged();
@@ -93,16 +94,15 @@ public class BeneficiaryTemplateHolder extends BaseViewHolder implements ListCli
             botCustomListRoot.setVisibility(VISIBLE);
             if (botButtonModelArrayList != null && !botButtonModelArrayList.isEmpty()) {
                 botCustomListViewButton.setText(Html.fromHtml(botButtonModelArrayList.get(0).getTitle()));
-                botCustomListViewButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        ListActionSheetFragment bottomSheetDialog = new ListActionSheetFragment();
+                botCustomListViewButton.setOnClickListener(v -> {
+                    ListActionSheetFragment bottomSheetDialog = new ListActionSheetFragment();
+                    bottomSheetDialog.setIsFromFullView(false);
+                    bottomSheetDialog.setSkillName("skillName", "trigger");
 //                        bottomSheetDialog.setData(botListModelArrayList);
-                        bottomSheetDialog.setHeaderVisible(true);
-                        bottomSheetDialog.setComposeFooterInterface(composeFooterInterface);
-                        bottomSheetDialog.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
-                        bottomSheetDialog.show(((FragmentActivity) itemView.getContext()).getSupportFragmentManager(), "add_tags");
-                    }
+                    bottomSheetDialog.setHeaderVisible(true);
+                    bottomSheetDialog.setComposeFooterInterface(composeFooterInterface);
+                    bottomSheetDialog.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
+                    bottomSheetDialog.show(((FragmentActivity) itemView.getContext()).getSupportFragmentManager(), "add_tags");
                 });
 
 
@@ -118,11 +118,5 @@ public class BeneficiaryTemplateHolder extends BaseViewHolder implements ListCli
             botCustomListRoot.setVisibility(GONE);
             botCustomListViewButton.setVisibility(GONE);
         }
-    }
-
-    @Override
-    public void listClicked(boolean isListClicked) {
-        if (payloadInner != null)
-            payloadInner.setIs_end(true);
     }
 }

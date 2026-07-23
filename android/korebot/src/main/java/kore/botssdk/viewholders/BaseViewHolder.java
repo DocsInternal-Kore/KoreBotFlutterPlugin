@@ -1,7 +1,7 @@
 package kore.botssdk.viewholders;
 
 import static org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4;
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -88,7 +88,7 @@ public abstract class BaseViewHolder extends RecyclerView.ViewHolder {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View baseView = inflater.inflate(R.layout.base_view_holder, parent, false);
         View childView = inflater.inflate(layoutId, null);
-        LinearLayoutCompat contentLayout = baseView.findViewById(R.id.contentLayout);
+        LinearLayoutCompat contentLayout = (LinearLayoutCompat) baseView.findViewById(R.id.contentLayout);
         contentLayout.addView(childView, LinearLayoutCompat.LayoutParams.MATCH_PARENT, LinearLayoutCompat.LayoutParams.WRAP_CONTENT);
         return baseView;
     }
@@ -100,9 +100,9 @@ public abstract class BaseViewHolder extends RecyclerView.ViewHolder {
         TextView timeStamp = itemView.findViewById(R.id.time_stamp);
         LinearLayoutCompat.LayoutParams params = (LinearLayoutCompat.LayoutParams) timeStamp.getLayoutParams();
         if (this instanceof RequestTextTemplateHolder) {
-            params.setMarginEnd(ChatAdapterItemDecoration.getMessageMargin(context) / 2);
+            params.setMarginEnd(ChatAdapterItemDecoration.messageMargin / 2);
         } else {
-            params.setMarginStart(ChatAdapterItemDecoration.getMessageMargin(context) / 2);
+            params.setMarginStart(ChatAdapterItemDecoration.messageMargin / 2);
         }
         if (SDKConfiguration.BubbleColors.showIcon && !SDKConfiguration.OverrideKoreConfig.showIconTop) {
             ImageView botIcon = itemView.findViewById(R.id.bot_icon);
@@ -126,9 +126,9 @@ public abstract class BaseViewHolder extends RecyclerView.ViewHolder {
             if (bottomSheetDialog != null) return;
             if (SDKConfiguration.BubbleColors.showIcon) {
                 if (StringUtils.isNotEmpty(iconUrl))
-                    Glide.with(context).load(iconUrl).error(R.drawable.ic_launcher).into(new DrawableImageViewTarget(botIcon));
+                    Glide.with(context).load(iconUrl).error(R.mipmap.ic_launcher).into(new DrawableImageViewTarget(botIcon));
                 else
-                    botIcon.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_launcher, context.getTheme()));
+                    botIcon.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.mipmap.ic_launcher, context.getTheme()));
             }
 
             if (SDKConfiguration.isTimeStampsRequired() && SDKConfiguration.OverrideKoreConfig.showIconTop) {
@@ -137,19 +137,13 @@ public abstract class BaseViewHolder extends RecyclerView.ViewHolder {
             }
         }
     }
-
     public void setAgentBotIcon() {
         ImageView botIcon = itemView.findViewById(R.id.bot_icon);
         if (botIcon != null) {
             botIcon.setVisibility(SDKConfiguration.BubbleColors.showIcon && bottomSheetDialog == null ? View.VISIBLE : View.GONE);
             if (bottomSheetDialog != null) return;
             if (SDKConfiguration.BubbleColors.showIcon) {
-                if(SDKConfiguration.BubbleColors.getAgentAvatar() != null)
-                    botIcon.setImageDrawable(SDKConfiguration.BubbleColors.getAgentAvatar());
-                else if (StringUtils.isNotEmpty(SDKConfiguration.BubbleColors.getAgent_url())) {
-                    Glide.with(context).load(SDKConfiguration.BubbleColors.getAgent_url()).error(R.drawable.agent_icon).into(new DrawableImageViewTarget(botIcon));
-                } else
-                    botIcon.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.agent_icon, context.getTheme()));
+                botIcon.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.agent_icon, context.getTheme()));
             }
 
             if (SDKConfiguration.isTimeStampsRequired() && SDKConfiguration.OverrideKoreConfig.showIconTop) {
@@ -259,14 +253,13 @@ public abstract class BaseViewHolder extends RecyclerView.ViewHolder {
         if (!isBotRequest) {
             if (!(this instanceof ResponseTextTemplateHolder)) {
                 LinearLayoutCompat.LayoutParams params = (LinearLayoutCompat.LayoutParams) bubbleText.getLayoutParams();
-                params.bottomMargin = ChatAdapterItemDecoration.getCommonVerticalMargin(context) * 2;
+                params.bottomMargin = ChatAdapterItemDecoration.commonVerticalMargin * 2;
             }
-
             Typeface regular = KaFontUtils.getCustomTypeface("regular", context);
-            if(SDKConfiguration.getRegular() != null) {
+
+            if (SDKConfiguration.getRegular() != null) {
                 regular = SDKConfiguration.getRegular();
             }
-
 
             GradientDrawable leftDrawable = (GradientDrawable) ResourcesCompat.getDrawable(context.getResources(), R.drawable.theme1_left_bubble_bg, context.getTheme());
 
@@ -286,7 +279,7 @@ public abstract class BaseViewHolder extends RecyclerView.ViewHolder {
             bubbleText.setBackground(leftDrawable);
             bubbleText.setTextColor(Color.parseColor(leftTextColor));
             bubbleText.setAutoLinkMask(Linkify.WEB_URLS);
-            bubbleText.setLinkTextColor(Color.parseColor(leftTextColor));
+            bubbleText.setLinkTextColor(Color.parseColor(SDKConfiguration.BubbleColors.leftLinkColor));
         } else {
             layoutBubble.setGravity(Gravity.END);
 
@@ -309,7 +302,7 @@ public abstract class BaseViewHolder extends RecyclerView.ViewHolder {
             LinearLayoutCompat.LayoutParams params = (LinearLayoutCompat.LayoutParams) bubbleText.getLayoutParams();
             params.rightMargin = (int) (5 * dp1);
 
-            bubbleText.setLinkTextColor(Color.parseColor(rightTextColor));
+            bubbleText.setLinkTextColor(Color.parseColor(SDKConfiguration.BubbleColors.rightLinkColor));
             bubbleText.setTypeface(medium);
             bubbleText.setBackground(rightDrawable);
             bubbleText.setTextColor(Color.parseColor(rightTextColor));
@@ -481,5 +474,13 @@ public abstract class BaseViewHolder extends RecyclerView.ViewHolder {
         Drawable wrappedDrawable = DrawableCompat.wrap(buttonDrawable);
         DrawableCompat.setTint(wrappedDrawable, Color.parseColor(color));
         return wrappedDrawable;
+    }
+
+    public static String getDotMessage(String strPassword) {
+        StringBuilder strDots = new StringBuilder();
+        for (int i = 0; i < strPassword.length(); i++) {
+            strDots.append("•");
+        }
+        return strDots.toString();
     }
 }

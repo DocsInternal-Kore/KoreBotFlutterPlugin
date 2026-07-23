@@ -1,12 +1,6 @@
 package kore.botssdk.models;
 
-import com.google.gson.annotations.SerializedName;
-
 import java.util.List;
-
-/**
- * Created by Ramachandra Pradeep on 12-Apr-18.
- */
 
 public class BotMiniTableModel {
     private List<List<String>> primary = null;
@@ -27,4 +21,6 @@ public class BotMiniTableModel {
     public void setAdditional(List<List<String>> additional) {
         this.additional = additional;
     }
+
+
 }

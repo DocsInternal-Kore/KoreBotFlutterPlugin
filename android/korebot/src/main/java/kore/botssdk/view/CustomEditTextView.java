@@ -26,12 +26,10 @@ public class CustomEditTextView extends AppCompatEditText {
     }
 
     private void style(Context context, AttributeSet attrs) {
-
-        if(SDKConfiguration.getRegular() != null) {
+        if (SDKConfiguration.getRegular() != null) {
             setTypeface(SDKConfiguration.getRegular());
             return;
         }
-
         Typeface tfRegular = ResourcesCompat.getFont(context, R.font.latoregular);
         setTypeface(tfRegular);
     }

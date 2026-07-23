@@ -8,10 +8,19 @@
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
+    <customFonts key="customFonts">
+        <array key="Gilroy-Bold.otf">
+            <string>Gilroy-Bold</string>
+        </array>
+        <array key="Gilroy-Regular.otf">
+            <string>Gilroy-Regular</string>
+        </array>
+    </customFonts>
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="CalenderViewController" customModule="KoreBotSDK" customModuleProvider="target">
             <connections>
                 <outlet property="bgView" destination="Djm-YW-F5N" id="Of8-7p-416"/>
+                <outlet property="closeBtnTrailingConstarint" destination="qhh-F8-jdq" id="YX1-tA-9Z6"/>
                 <outlet property="confirmButton" destination="Fyj-zI-ltK" id="Ybq-Tj-Ahf"/>
                 <outlet property="datePicker" destination="dbX-js-ngB" id="8NX-W9-CgJ"/>
                 <outlet property="dateRangeSubView" destination="3C6-vg-PbV" id="uQ0-Ex-get"/>
@@ -22,6 +31,7 @@
                 <outlet property="fromDateView" destination="vHH-LE-5vJ" id="57U-lq-zSC"/>
                 <outlet property="fromYearLabel" destination="8Lo-xW-nAC" id="erF-ax-51b"/>
                 <outlet property="headingLabel" destination="zCG-rQ-KY0" id="Uw6-bo-ecV"/>
+                <outlet property="titleLblLeadingConstarint" destination="snd-Py-qwB" id="MQU-zb-zcs"/>
                 <outlet property="toDateButton" destination="42a-XA-mJQ" id="kQt-hJ-phU"/>
                 <outlet property="toDateRangeLabel" destination="fJd-CR-P8q" id="tci-dd-OXt"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
@@ -80,7 +90,7 @@
                                             <constraints>
                                                 <constraint firstAttribute="height" constant="21" id="RJy-pL-OWb"/>
                                             </constraints>
-                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <fontDescription key="fontDescription" name="Gilroy-Regular" family="Gilroy" pointSize="17"/>
                                             <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                             <nil key="highlightedColor"/>
                                         </label>
@@ -89,7 +99,7 @@
                                             <constraints>
                                                 <constraint firstAttribute="height" constant="25" id="QpA-hD-QAX"/>
                                             </constraints>
-                                            <fontDescription key="fontDescription" type="system" pointSize="21"/>
+                                            <fontDescription key="fontDescription" name="Gilroy-Bold" family="Gilroy" pointSize="21"/>
                                             <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                             <nil key="highlightedColor"/>
                                         </label>
@@ -194,9 +204,9 @@
                         <constraint firstItem="dbX-js-ngB" firstAttribute="top" secondItem="5vi-6K-swE" secondAttribute="bottom" constant="13" id="Fm7-OB-63K"/>
                         <constraint firstItem="dbX-js-ngB" firstAttribute="leading" secondItem="Djm-YW-F5N" secondAttribute="leading" id="GYE-NG-ika"/>
                         <constraint firstAttribute="trailing" secondItem="5vi-6K-swE" secondAttribute="trailing" id="Gbj-rq-c6l"/>
+                        <constraint firstAttribute="bottom" secondItem="Fyj-zI-ltK" secondAttribute="bottom" constant="30" id="Ii9-72-boX"/>
                         <constraint firstItem="gDW-LO-tKU" firstAttribute="top" secondItem="zCG-rQ-KY0" secondAttribute="bottom" constant="10" id="Qvt-X6-77c"/>
                         <constraint firstAttribute="trailing" secondItem="Fyj-zI-ltK" secondAttribute="trailing" constant="15" id="R50-GC-r5C"/>
-                        <constraint firstAttribute="bottom" secondItem="Fyj-zI-ltK" secondAttribute="bottom" constant="30" id="cEh-rt-1FX"/>
                         <constraint firstItem="zCG-rQ-KY0" firstAttribute="top" secondItem="Djm-YW-F5N" secondAttribute="top" constant="10" id="cyo-aJ-6YW"/>
                         <constraint firstAttribute="trailing" secondItem="gDW-LO-tKU" secondAttribute="trailing" id="dwW-CW-ZKB"/>
                         <constraint firstItem="HNX-qV-AsK" firstAttribute="leading" secondItem="zCG-rQ-KY0" secondAttribute="trailing" constant="8" id="kcS-9v-1vU"/>
@@ -210,10 +220,10 @@
                 </view>
             </subviews>
             <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
-            <color key="backgroundColor" white="0.0" alpha="0.30328455110000002" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.30328455110000002" colorSpace="calibratedRGB"/>
             <constraints>
-                <constraint firstItem="Djm-YW-F5N" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="Mbf-hQ-0G9"/>
-                <constraint firstItem="Djm-YW-F5N" firstAttribute="trailing" secondItem="fnl-2z-Ty3" secondAttribute="trailing" id="NfN-OF-JoG"/>
+                <constraint firstItem="Djm-YW-F5N" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="Mbf-hQ-0G9"/>
+                <constraint firstItem="Djm-YW-F5N" firstAttribute="trailing" secondItem="i5M-Pr-FkT" secondAttribute="trailing" id="NfN-OF-JoG"/>
                 <constraint firstItem="Djm-YW-F5N" firstAttribute="bottom" secondItem="i5M-Pr-FkT" secondAttribute="bottom" id="OQW-Hi-deW"/>
             </constraints>
             <point key="canvasLocation" x="138.40000000000001" y="107.49625187406298"/>
@@ -225,7 +235,7 @@
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemBlueColor">
-            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

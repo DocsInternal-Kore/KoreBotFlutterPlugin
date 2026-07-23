@@ -28,28 +28,24 @@
 
         <kore.botssdk.view.CustomTextView
             android:id="@+id/bot_list_item_title"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="false"
             android:ellipsize="end"
-            android:gravity="start"
             android:maxLines="1"
-            android:textAlignment="viewStart"
             android:text="@string/title"
             android:textColor="@color/left_bubble_text_color"
             android:textSize="14sp" />
 
         <kore.botssdk.view.CustomTextView
             android:id="@+id/bot_list_item_subtitle"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="false"
             android:ellipsize="end"
-            android:gravity="start"
             android:paddingTop="2dp"
             android:paddingBottom="2dp"
             android:text="@string/subtitle"
-            android:textAlignment="viewStart"
             android:textColor="@color/left_bubble_text_color"
             android:textSize="12sp"
             android:visibility="gone" />
@@ -60,9 +56,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginBottom="2dp"
-            android:minHeight="@dimen/button_min_height"
             android:background="@drawable/rounded_image_bg_blue"
             android:textColor="@android:color/white"
-            android:textSize="@dimen/text_size_very_small" />
+            android:textSize="12dp" />
     </LinearLayout>
 </LinearLayout>

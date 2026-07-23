@@ -177,9 +177,7 @@ open class RTMPersistentConnection : NSObject, WebSocketDelegate {
     //    fileprivate let pingInterval: TimeInterval
     fileprivate var receivedLastPong = true
     open var tryReconnect = false
-    
     var queryParams: [[String: Any]] = []
-    
     // MARK: init
     override public init() {
         super.init()
@@ -281,6 +279,14 @@ open class RTMPersistentConnection : NSObject, WebSocketDelegate {
                 if let model = try? BotMessageModel(JSON: responseObject), let botMessageModel = model as? BotMessageModel {
                     connectionDelegate?.didReceiveMessage(botMessageModel)
                 }
+//                let receViedStr = ""
+//                            let staticresponseObject = convertStringToDictionary(receViedStr)
+//                            guard let array = staticresponseObject?["message"] as? Array<[String: Any]>, array.count > 0 else {
+//                                return
+//                            }
+//                            if let model = try? BotMessageModel(JSON: staticresponseObject ?? [:]), let botMessageModel = model as? BotMessageModel {
+//                                connectionDelegate?.didReceiveMessage(botMessageModel)
+//                            }
             case "user_message":
                 connectionDelegate?.didReceivedUserMessage(responseObject)
             case "events":

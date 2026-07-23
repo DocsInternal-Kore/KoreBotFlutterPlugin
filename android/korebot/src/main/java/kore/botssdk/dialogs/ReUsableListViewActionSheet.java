@@ -10,8 +10,6 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.Objects;
-
 import kore.botssdk.R;
 import kore.botssdk.utils.KaFontUtils;
 import kore.botssdk.utils.Utility;
@@ -19,6 +17,7 @@ import kore.botssdk.utils.Utility;
 public class ReUsableListViewActionSheet extends Dialog {
     private final Context mContext;
     private final LayoutInflater layoutInflater;
+    private ListAdapter adapter;
     private final float dp1;
 
     public ListView getOptionsListView() {
@@ -55,6 +54,7 @@ public class ReUsableListViewActionSheet extends Dialog {
     }
 
     public void setAdapter(ListAdapter adapter){
+        this.adapter =adapter;
         optionsListView.setAdapter(adapter);
 
         ViewGroup.LayoutParams params = optionsListView.getLayoutParams();
@@ -62,11 +62,10 @@ public class ReUsableListViewActionSheet extends Dialog {
         optionsListView.setLayoutParams(params);
     }
 
-
     @Override
     protected void onStart() {
         super.onStart();
-        Objects.requireNonNull(getWindow()).setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
     }
 
     @Override

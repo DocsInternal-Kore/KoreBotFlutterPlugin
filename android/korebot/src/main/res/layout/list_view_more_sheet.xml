@@ -18,12 +18,12 @@
             android:gravity="center_vertical"
             android:padding="@dimen/dimen_20dp">
 
-            <kore.botssdk.view.CustomTextView
+            <TextView
                 android:id="@+id/tvOptionsTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/title"
+                android:text="Title"
                 android:textColor="@color/black"
                 android:textSize="@dimen/text_size_sub_header"
                 android:textStyle="bold"
@@ -32,8 +32,7 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/ic_close_black_24dp"
-                android:importantForAccessibility="no" />
+                android:background="@drawable/ic_close_black_24dp" />
         </LinearLayout>
 
         <View
@@ -49,7 +48,6 @@
             android:id="@+id/rvMoreData"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false"
             android:layout_marginLeft="@dimen/dimen_10dp"
             android:layout_marginRight="@dimen/dimen_10dp"
             android:layout_marginBottom="@dimen/dimen_20dp"

@@ -31,10 +31,8 @@ A new Flutter plugin project.
     s.dependency 'Starscream'
     s.dependency 'ObjectMapper'
     s.dependency 'GhostTypewriter'
-    s.dependency 'MarkdownKit'
     s.dependency 'DGCharts'
-    s.dependency 'ObjectMapper'
-    s.dependency 'AssetsPickerViewController'
+    s.dependency 'FMPhotoPicker'
     s.dependency 'SwiftUTI'
     s.dependency 'Emoji-swift'
 end

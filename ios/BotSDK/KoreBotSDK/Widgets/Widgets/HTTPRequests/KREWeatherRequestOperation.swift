@@ -8,7 +8,6 @@
 
 import UIKit
 import Alamofire
-import korebotplugin
 
 // MARK: - KREOperation
 class KREOperation: Foundation.Operation {

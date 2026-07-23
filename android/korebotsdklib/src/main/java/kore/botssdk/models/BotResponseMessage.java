@@ -26,6 +26,8 @@ public class BotResponseMessage {
         this.cInfo = cInfo;
     }
 
+
+
     public String getType() {
         return type;
     }

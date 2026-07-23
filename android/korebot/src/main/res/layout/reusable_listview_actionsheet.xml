@@ -6,18 +6,17 @@
     android:gravity="bottom"
     android:orientation="vertical">
 
-    <kore.botssdk.view.CustomTextView
+    <TextView
         android:id="@+id/temp_sel_headerLabel"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:layout_alignParentTop="true"
         android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="@dimen/dimen_10dp"
+        android:paddingLeft="16dp"
         android:tag="regular"
-        android:text="@string/choose"
+        android:text="Choose"
         android:textColor="@color/color_8b93a0"
-        android:textSize="18sp" />
+        android:textSize="18dp" />
 
     <ScrollView
         android:id="@+id/scrollViewTasks"
@@ -47,7 +46,7 @@
                     android:headerDividersEnabled="false" />
             </LinearLayout>
 
-            <kore.botssdk.view.CustomTextView
+            <TextView
                 android:id="@+id/template_empty_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -56,9 +55,9 @@
                 android:layout_marginTop="@dimen/dimen_20dp"
                 android:gravity="center_horizontal"
                 android:tag="regular"
-                android:text="@string/no_options"
+                android:text="No Options"
                 android:textColor="@color/color_8b93a0"
-                android:textSize="20sp"
+                android:textSize="@dimen/dimen_20dp"
                 android:visibility="gone" />
 
         </RelativeLayout>

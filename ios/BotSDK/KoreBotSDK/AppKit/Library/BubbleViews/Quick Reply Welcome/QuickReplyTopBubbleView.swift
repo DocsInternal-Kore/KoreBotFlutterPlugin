@@ -7,7 +7,6 @@
 
 import UIKit
 #if SWIFT_PACKAGE
-import ObjcSupport
 #endif
 class QuickReplyTopBubbleView: BubbleView {
     static let elementsLimit: Int = 4
@@ -158,23 +157,18 @@ class QuickReplyTopBubbleView: BubbleView {
     }
     
     func setCornerRadiousToTitleView(){
-        let bubbleStyle = brandingShared.bubbleShape
-        var radius = 10.0
+        let bubbleStyle = brandingBodyDic.bubble_style
+        let radius = 10.0
         let borderWidth = 0.0
         let borderColor = UIColor.clear
         if #available(iOS 11.0, *) {
             if bubbleStyle == "balloon"{
                 self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "rounded" || bubbleStyle == "circle"{
-                radius = 15.0
+            }else if bubbleStyle == "rounded"{
                 self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "rectangle"{
-                radius = 8.0
-                self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "square"{
+                
+        }else if bubbleStyle == "rectangle"{
                 self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else{
-                self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: 20.0, borderColor: UIColor.lightGray, borderWidth: 0.0)
             }
         }
     }
@@ -313,17 +307,17 @@ extension QuickReplyTopBubbleView : UICollectionViewDelegate, UICollectionViewDa
             let elements = arrayOfButtons[indexPath.row]
             cell.textlabel.text = elements.title
         }
-        let bgColor = (brandingShared.buttonActiveBgColor) ?? "#f3f3f5"
-        let textColor = (brandingShared.buttonActiveTextColor) ?? "#2881DF"
-        cell.bgV.backgroundColor = UIColor.init(hexString: bgColor)
+
+        let textColor = themeColor
+        cell.bgV.backgroundColor = .clear
         
         cell.textlabel.font = UIFont(name: mediumCustomFont, size: 14.0)
         cell.textlabel.textAlignment = .center
-        cell.textlabel.textColor = UIColor.init(hexString: textColor)
+        cell.textlabel.textColor = textColor
         cell.textlabel.numberOfLines = 2
         cell.imagvWidthConstraint.constant = 0.0
         
-        cell.layer.borderColor = UIColor.init(hexString: bgColor).cgColor
+        cell.layer.borderColor = themeColor.cgColor
         cell.layer.borderWidth = 1.5
         cell.layer.cornerRadius = 15
         cell.backgroundColor = .clear

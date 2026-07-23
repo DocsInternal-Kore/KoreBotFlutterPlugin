@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <kore.botssdk.view.CustomTextView
+    <TextView
         android:id="@+id/tvborder"
         android:layout_width="match_parent"
         android:layout_height="1dp"
@@ -32,8 +32,7 @@
             android:layout_marginEnd="10dp"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:scaleType="fitCenter"
-            android:importantForAccessibility="no" />
+            android:scaleType="fitCenter" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -52,7 +51,7 @@
                 android:layout_weight="1"
                 android:orientation="horizontal">
 
-                <kore.botssdk.view.CustomTextView
+                <TextView
                     android:id="@+id/txtTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -75,11 +74,10 @@
                     android:minHeight="24dp"
                     android:src="@mipmap/ic_more_vert_black_24dp"
                     android:textColor="@color/color_7a799a"
-                    android:textSize="18sp"
-                    android:importantForAccessibility="no" />
+                    android:textSize="18sp" />
             </RelativeLayout>
 
-            <kore.botssdk.view.CustomTextView
+            <TextView
                 android:id="@+id/txtSubtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -91,7 +89,7 @@
                 android:textSize="14sp" />
 
 
-            <kore.botssdk.view.CustomTextView
+            <TextView
                 android:id="@+id/txtText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -104,7 +102,7 @@
                 android:maxLines="3"
                 android:textSize="12sp" />
 
-            <kore.botssdk.view.CustomTextView
+            <TextView
                 android:id="@+id/txtTextModif"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -120,7 +118,6 @@
                 android:id="@+id/buttonsList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
                 android:layout_marginTop="10dp"/>
 
         </LinearLayout>

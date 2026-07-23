@@ -1,7 +1,7 @@
 package kore.botssdk.adapter;
 
 import static android.view.View.GONE;
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -66,12 +66,12 @@ public class CardTemplateAdapter extends RecyclerView.Adapter<CardTemplateAdapte
     @NonNull
     @io.reactivex.annotations.NonNull
     @Override
-    public CardTemplateAdapter.CardViewHolder onCreateViewHolder(@NonNull @io.reactivex.annotations.NonNull ViewGroup parent, int viewType) {
-        return new CardTemplateAdapter.CardViewHolder(layoutInflater.inflate(R.layout.card_template_cell, parent, false));
+    public CardViewHolder onCreateViewHolder(@NonNull @io.reactivex.annotations.NonNull ViewGroup parent, int viewType) {
+        return new CardViewHolder(layoutInflater.inflate(R.layout.card_template_cell, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(@NonNull @io.reactivex.annotations.NonNull CardTemplateAdapter.CardViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull @io.reactivex.annotations.NonNull CardViewHolder holder, int position) {
         CardTemplateModel cardTemplateModel = arrCardTemplateModels.get(position);
         holder.bot_list_item_subtitle.setVisibility(View.GONE);
         holder.bot_list_item_image.setVisibility(View.GONE);
@@ -198,7 +198,7 @@ public class CardTemplateAdapter extends RecyclerView.Adapter<CardTemplateAdapte
                         }
                     }
 
-                    if (!StringUtils.isNullOrEmpty(headerOptions.getType()) && headerOptions.getType().equalsIgnoreCase(BundleConstants.DROP_DOWN) && headerOptions.getDropdownOptions() != null && !headerOptions.getDropdownOptions().isEmpty()) {
+                    if (!StringUtils.isNullOrEmpty(headerOptions.getType()) && headerOptions.getType().equalsIgnoreCase(BundleConstants.DROP_DOWN) && headerOptions.getDropdownOptions() != null && headerOptions.getDropdownOptions().size() > 0) {
                         RecyclerView recyclerView = popUpView.findViewById(R.id.rvDropDown);
                         ImageView ivDropDownCLose = popUpView.findViewById(R.id.ivDropDownCLose);
 

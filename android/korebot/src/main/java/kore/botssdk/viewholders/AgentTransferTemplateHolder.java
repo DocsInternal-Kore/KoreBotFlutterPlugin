@@ -77,7 +77,6 @@ public class AgentTransferTemplateHolder extends BaseViewHolder {
 
             if (!StringUtils.isNullOrEmpty(payloadInner.getImage_url())) {
                 ivAgentImage.setVisibility(View.VISIBLE);
-
                 Glide.with(context)
                         .load(payloadInner.getImage_url())
                         .circleCrop()

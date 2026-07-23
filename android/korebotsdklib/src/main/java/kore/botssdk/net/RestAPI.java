@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 
 import java.util.HashMap;
 
+import kore.botssdk.models.BotActiveThemeModel;
 import kore.botssdk.models.BotHistory;
 import kore.botssdk.models.BotMetaModel;
 import kore.botssdk.models.JWTTokenResponse;
@@ -27,14 +28,11 @@ import retrofit2.http.Url;
 /**
  * Copyright (c) 2014 Kore Inc. All rights reserved.
  */
-@SuppressWarnings("UnKnownNullness")
 public interface RestAPI {
 
     String URL_VERSION = "/1.1";
 
-    /**
-     * Login Service
-     **/
+    /** Login Service **/
     @POST("/api/oAuth/token")
     Call<RestResponse.LoginResponse> loginUser(@Body HashMap<String, Object> userCredentials);
 
@@ -55,7 +53,7 @@ public interface RestAPI {
 
     //Getting jwt grant
     @POST("/api/oAuth/token/jwtgrant")
-    Call<RestResponse.BotAuthorization> jwtGrant(@Body HashMap<String, Object> jwtToken);
+    Call<RestResponse.BotAuthorization> jwtGrant(@Body HashMap<String,Object> jwtToken);
 
 //    //Getting jwt grant Anonymous
 //    @POST("/api/oAuth/token/jwtgrant/anonymous")
@@ -73,7 +71,6 @@ public interface RestAPI {
 //    Call<MarketStreamList> getMarketStreams(@Path("userId") String userId, @Header("Authorization") String token);
 
     //Subscribe to Push notification
-//    api/public/streams/PLEASE_ENTER_STREAM_ID/sdknotifications/subscribe'
     @POST("/api/users/{userId}/sdknotifications/subscribe")
     Call<ResponseBody> subscribeForPushNotification(@Path("userId") String userId, @Header("Authorization") String token, @Body HashMap<String, Object> req);
 
@@ -92,11 +89,8 @@ public interface RestAPI {
     Call<BotHistory> getBotHistory(@Header("Authorization") String token, @Query("botId") String botId, @Query("limit") int limit, @Query("offset") int offset, @Query("forward") boolean forward);
 
     // Get JWT Token
-//    @GET("workbench/api/workbench/sdkData?objectId=hamburgermenu&objectId=brandingwidgetdesktop")
-//    Call<ArrayList<BrandingNewModel>> getBrandingNewDetails(@Header("Authorization") String token, @Header("tenantId") String tenantId, @Header("state") String state, @Header("Accepts-version") String version, @Header("Accept-Language") String language, @Header("botid") String botId);
-
     @GET("api/websdkthemes/{botId}/activetheme")
-    Call<ResponseBody> getBrandingNewDetails(@Path("botId") String bot_Id, @Header("Authorization") String token, @Header("state") String state, @Header("Accepts-version") String version, @Header("Accept-Language") String language, @Header("botid") String botId);
+    Call<BotActiveThemeModel> getBrandingNewDetails(@Path("botId") String bot_Id, @Header("Authorization") String token, @Header("state") String state, @Header("Accepts-version") String version, @Header("Accept-Language") String language, @Header("botid") String botId);
 
     // Send WebHook Message
     @POST("chatbot/v2/webhook/{streamId}")
@@ -110,10 +104,8 @@ public interface RestAPI {
 
     @GET("chatbot/v2/webhook/{streamId}/poll/{pollId}")
     Call<WebHookResponseDataModel> getPollIdData(@Header("Authorization") String token, @Path("streamId") String streamId, @Path("pollId") String pollId);
-
     @POST
     Call<PdfResponseModel> getPdfBaseDetails(@Url String url, @HeaderMap HashMap<String, String> header, @Body JsonObject body);
-
     @POST
-    Call<ResponseBody> getPdfDetails(@Url String url, @HeaderMap HashMap<String, String> header, @Body JsonObject body);
+    Call<ResponseBody> getPdfDetails(@Url String url, @HeaderMap HashMap<String, String> header,  @Body JsonObject body);
 }

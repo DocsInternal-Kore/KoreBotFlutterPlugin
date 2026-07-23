@@ -1,6 +1,5 @@
 package kore.botssdk.view.coverflow;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -12,8 +11,6 @@ public class RecyclerCoverFlow extends RecyclerView {
     private float mDownX;
 
     private CoverFlowLayoutManger.Builder mManagerBuilder;
-
-    private boolean isScrollable = true;
 
     public RecyclerCoverFlow(Context context) {
         super(context);
@@ -28,10 +25,6 @@ public class RecyclerCoverFlow extends RecyclerView {
     public RecyclerCoverFlow(Context context, @Nullable AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init();
-    }
-
-    public void setScrollable(boolean isScrollable) {
-        this.isScrollable = isScrollable;
     }
 
     private void init() {
@@ -122,17 +115,6 @@ public class RecyclerCoverFlow extends RecyclerView {
         getCoverFlowLayout().setOnSelectedListener(l);
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    @Override
-    public boolean onTouchEvent(MotionEvent e) {
-        return isScrollable && super.onTouchEvent(e);
-    }
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent e) {
-        return isScrollable && super.onInterceptTouchEvent(e);
-    }
-
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         switch (ev.getAction()) {
@@ -141,8 +123,13 @@ public class RecyclerCoverFlow extends RecyclerView {
                 getParent().requestDisallowInterceptTouchEvent(true);
                 break;
             case MotionEvent.ACTION_MOVE:
-                getParent().requestDisallowInterceptTouchEvent((!(ev.getX() > mDownX) || getCoverFlowLayout().getCenterPosition() != 0) &&
-                        (!(ev.getX() < mDownX) || getCoverFlowLayout().getCenterPosition() != getCoverFlowLayout().getItemCount() - 1));
+                if ((ev.getX() > mDownX && getCoverFlowLayout().getCenterPosition() == 0) ||
+                        (ev.getX() < mDownX && getCoverFlowLayout().getCenterPosition() ==
+                                getCoverFlowLayout().getItemCount() - 1)) {
+                    getParent().requestDisallowInterceptTouchEvent(false);
+                } else {
+                    getParent().requestDisallowInterceptTouchEvent(true);
+                }
                 break;
         }
         return super.dispatchTouchEvent(ev);

@@ -1,7 +1,6 @@
 package kore.botssdk.models;
 
-public class LanguageModel
-{
+public class LanguageModel {
     private String type;
     private String from;
     private BotInfoModel botInfo;

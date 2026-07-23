@@ -8,15 +8,14 @@ import androidx.lifecycle.ViewModelProvider;
 
 import kore.botssdk.listener.BotContentFragmentUpdate;
 import kore.botssdk.repository.history.HistoryRepository;
-import kore.botssdk.viewmodels.chat.BotChatViewModel;
 
 public class BotContentViewModelFactory implements ViewModelProvider.Factory {
     final HistoryRepository repository;
     Context context;
     BotContentFragmentUpdate chatView;
 
-    public BotContentViewModelFactory(Context context, BotContentFragmentUpdate chatView, HistoryRepository historyRepository) {
-        this.repository = historyRepository;
+    public BotContentViewModelFactory(Context context, BotContentFragmentUpdate chatView) {
+        this.repository = new HistoryRepository(context, chatView);
         this.context = context;
         this.chatView = chatView;
     }

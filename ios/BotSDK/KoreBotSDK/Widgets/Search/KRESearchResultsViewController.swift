@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import korebotplugin
 
 // MARK: -
 public class KRESearchResultsViewController: UIViewController {

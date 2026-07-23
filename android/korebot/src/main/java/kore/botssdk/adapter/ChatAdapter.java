@@ -2,7 +2,6 @@ package kore.botssdk.adapter;
 
 import android.os.Build;
 import android.util.Log;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -32,6 +31,8 @@ import kore.botssdk.utils.StringUtils;
 import kore.botssdk.viewholders.AdvanceMultiSelectTemplateHolder;
 import kore.botssdk.viewholders.AdvancedListTemplateHolder;
 import kore.botssdk.viewholders.AgentTransferTemplateHolder;
+import kore.botssdk.viewholders.AnswerTemplateHolder;
+import kore.botssdk.viewholders.ArticleTemplateHolder;
 import kore.botssdk.viewholders.BankingFeedbackTemplateHolder;
 import kore.botssdk.viewholders.BarChartTemplateHolder;
 import kore.botssdk.viewholders.BaseViewHolder;
@@ -43,6 +44,7 @@ import kore.botssdk.viewholders.CarouselStackedTemplateHolder;
 import kore.botssdk.viewholders.CarouselTemplateHolder;
 import kore.botssdk.viewholders.ClockTemplateHolder;
 import kore.botssdk.viewholders.ContactCardTemplateHolder;
+import kore.botssdk.viewholders.DigitalFormTemplateHolder;
 import kore.botssdk.viewholders.DropDownTemplateHolder;
 import kore.botssdk.viewholders.FeedbackTemplateHolder;
 import kore.botssdk.viewholders.FormTemplateHolder;
@@ -54,10 +56,12 @@ import kore.botssdk.viewholders.ListWidgetTemplateHolder;
 import kore.botssdk.viewholders.MediaTemplateHolder;
 import kore.botssdk.viewholders.MiniTableTemplateHolder;
 import kore.botssdk.viewholders.MultiSelectTemplateHolder;
+import kore.botssdk.viewholders.OtpValidationTemplateHolder;
 import kore.botssdk.viewholders.PdfTemplateHolder;
 import kore.botssdk.viewholders.PieChartTemplateHolder;
 import kore.botssdk.viewholders.RadioOptionsTemplateHolder;
 import kore.botssdk.viewholders.RequestTextTemplateHolder;
+import kore.botssdk.viewholders.ResetPinTemplateHolder;
 import kore.botssdk.viewholders.ResponseTextTemplateHolder;
 import kore.botssdk.viewholders.ResultsTemplateHolder;
 import kore.botssdk.viewholders.TableListTemplateHolder;
@@ -67,9 +71,9 @@ import kore.botssdk.viewholders.WelcomeQuickRepliesTemplateHolder;
 
 @SuppressWarnings("UnKnownNullness")
 public class ChatAdapter extends RecyclerView.Adapter<BaseViewHolder> implements ChatContentStateListener {
+
     private final HashMap<String, Integer> headersMap = new HashMap<>();
-    private BottomSheetDialog bottomSheetDialog;
-    private ComposeFooterInterface composeFooterInterface;
+    ComposeFooterInterface composeFooterInterface;
     private InvokeGenericWebViewInterface invokeGenericWebViewInterface;
 
     private final ArrayList<BaseBotMessage> baseBotMessageArrayList;
@@ -108,9 +112,15 @@ public class ChatAdapter extends RecyclerView.Adapter<BaseViewHolder> implements
     public static final int TEMPLATE_MULTI_SELECT = 30;
     public static final int TEMPLATE_ADVANCE_MULTI_SELECT = 31;
     public static final int TEMPLATE_RESULTS = 32;
-    public static final int TEMPLATE_LINK = 33;
+    public static final int TEMPLATE_ARTICLE = 33;
+    public static final int TEMPLATE_OTP_VALIDATION = 34;
+    public static final int TEMPLATE_RESET_PIN = 35;
+    public static final int TEMPLATE_ANSWER = 36;
+    public static final int TEMPLATE_DIGITAL_FORM = 37;
+    public static final int TEMPLATE_LINK = 38;
 
     private final HashMap<Integer, String> customTemplates = new HashMap<>();
+    private BottomSheetDialog bottomSheetDialog;
 
     public ComposeFooterInterface getComposeFooterInterface() {
         return composeFooterInterface;
@@ -128,12 +138,12 @@ public class ChatAdapter extends RecyclerView.Adapter<BaseViewHolder> implements
         this.invokeGenericWebViewInterface = invokeGenericWebViewInterface;
     }
 
-    public void setBottomSheetDialog(BottomSheetDialog bottomSheetDialog) {
-        this.bottomSheetDialog = bottomSheetDialog;
-    }
-
     public ArrayList<BaseBotMessage> getBaseBotMessageArrayList() {
         return baseBotMessageArrayList;
+    }
+
+    public void setBottomSheetDialog(BottomSheetDialog bottomSheetDialog) {
+        this.bottomSheetDialog = bottomSheetDialog;
     }
 
     public ChatAdapter() {
@@ -157,134 +167,140 @@ public class ChatAdapter extends RecyclerView.Adapter<BaseViewHolder> implements
         } else {
             ComponentModel componentModel = getComponentModel(baseBotMessage);
             PayloadOuter payOuter = componentModel.getPayload();
-            if(payOuter != null)
-            {
-                PayloadInner payInner;
-                payInner = payOuter.getPayload();
-                if (BotResponse.COMPONENT_TYPE_TEMPLATE.equalsIgnoreCase(payOuter.getType()) && payInner != null) {
-                    int customTemplateType = getCustomTemplateType(payInner.getTemplate_type());
-                    if (customTemplateType == -1) {
-                        if (payInner.getTableDesign() != null) {
-                            customTemplateType = getCustomTemplateType(payInner.getTableDesign());
-                        } else if (payInner.getCarousel_type() != null) {
-                            customTemplateType = getCustomTemplateType(payInner.getCarousel_type());
-                        } else if (payInner.getDirection() != null) {
-                            customTemplateType = getCustomTemplateType(payInner.getDirection());
-                        } else if (payInner.getPie_type() != null) {
-                            customTemplateType = getCustomTemplateType(payInner.getPie_type());
-                        }
-                    }
-                    if (customTemplateType != -1) {
-                        if (payInner.getSliderView() && bottomSheetDialog == null)
-                            return TEMPLATE_BUBBLE_RESPONSE;
-                        else return customTemplateType;
-                    }
-
-                    if (StringUtils.isNotEmpty(payInner.getTemplate_type())) {
-                        switch (payInner.getTemplate_type()) {
-                            case BotResponse.TEMPLATE_TYPE_BUTTON:
-                                return TEMPLATE_BUTTON;
-                            case BotResponse.TEMPLATE_TYPE_CAROUSEL:
-                                if (payInner.getCarousel_type() != null && payInner.getCarousel_type().equals(BotResponse.STACKED)) {
-                                    return TEMPLATE_CAROUSEL_STACKED;
-                                }
-                                return TEMPLATE_CAROUSEL;
-                            case BotResponse.TEMPLATE_TYPE_LIST:
-                                return TEMPLATE_LIST;
-                            case BotResponse.TEMPLATE_TYPE_PIECHART:
-                                return TEMPLATE_PIE_CHART;
-                            case BotResponse.TEMPLATE_TYPE_TABLE:
-                                if (payInner.getTableDesign().equals(BotResponse.TABLE_VIEW_RESPONSIVE)) {
-                                    return TEMPLATE_TABLE_RESPONSIVE;
-                                } else {
-                                    return TEMPLATE_TABLE;
-                                }
-                            case BotResponse.CUSTOM_TABLE_TEMPLATE:
-                                break;
-                            case BotResponse.TEMPLATE_TYPE_CLOCK:
-                                return TEMPLATE_CLOCK;
-                            case BotResponse.TEMPLATE_TYPE_MINITABLE:
-                                return TEMPLATE_MINI_TABLE;
-                            case BotResponse.TEMPLATE_TYPE_MULTI_SELECT:
-                                return TEMPLATE_MULTI_SELECT;
-                            case BotResponse.ADVANCED_LIST_TEMPLATE:
-                                return TEMPLATE_ADVANCED_LIST_TEMPLATE;
-                            case BotResponse.TEMPLATE_TYPE_LINECHART:
-                                return TEMPLATE_LINE_CHART;
-                            case BotResponse.TEMPLATE_TYPE_BARCHART:
-                                return TEMPLATE_BAR_CHART;
-                            case BotResponse.TEMPLATE_TYPE_FORM:
-                                return TEMPLATE_FORM;
-                            case BotResponse.TEMPLATE_TYPE_LIST_VIEW:
-                                return TEMPLATE_LIST_VIEW;
-                            case BotResponse.TEMPLATE_TYPE_TABLE_LIST:
-                                return TEMPLATE_TABLE_LIST;
-                            case BotResponse.TEMPLATE_TYPE_FEEDBACK:
-                                return TEMPLATE_FEEDBACK;
-                            case BotResponse.TEMPLATE_TYPE_LIST_WIDGET_2:
-                                return TEMPLATE_LIST_WIDGET_2;
-                            case BotResponse.TEMPLATE_DROPDOWN:
-                                return TEMPLATE_DROP_DOWN;
-                            case BotResponse.CARD_TEMPLATE:
-                                return TEMPLATE_CARD;
-                            case BotResponse.COMPONENT_TYPE_IMAGE:
-                                return TEMPLATE_MEDIA;
-                            case BotResponse.TEMPLATE_TYPE_RADIO_OPTIONS:
-                                return TEMPLATE_RADIO_OPTIONS;
-                            case BotResponse.TEMPLATE_TYPE_WELCOME_QUICK_REPLIES:
-                                return TEMPLATE_WELCOME_QUICK_REPLIES;
-                            case BotResponse.TEMPLATE_TYPE_NOTIFICATIONS:
-                                return TEMPLATE_NOTIFICATIONS;
-                            case BotResponse.CONTACT_CARD_TEMPLATE:
-                                return TEMPLATE_CONTACT_CARD;
-                            case BotResponse.TEMPLATE_BANKING_FEEDBACK:
-                                return TEMPLATE_BANKING_FEEDBACK;
-                            case BotResponse.TEMPLATE_PDF_DOWNLOAD:
-                                return TEMPLATE_PDF_DOWNLOAD;
-                            case BotResponse.TEMPLATE_BENEFICIARY:
-                                return TEMPLATE_BENEFICIARY;
-                            case BotResponse.ADVANCED_MULTI_SELECT_TEMPLATE:
-                                return payInner.getSliderView() && bottomSheetDialog == null ? TEMPLATE_BUBBLE_RESPONSE : TEMPLATE_ADVANCE_MULTI_SELECT;
-                            case BotResponse.TEMPLATE_TYPE_RESULTS_LIST:
-                                return TEMPLATE_RESULTS;
-                            case BotResponse.COMPONENT_TYPE_LINK:
-                                return TEMPLATE_LINK;
-                            case BotResponse.TEMPLATE_BUTTON_LINK:
-                                return TEMPLATE_BUTTON_LINK;
-                            default:
-                                return TEMPLATE_BUBBLE_RESPONSE;
-                        }
-                    }
-                } else if (BotResponse.COMPONENT_TYPE_MESSAGE.equalsIgnoreCase(payOuter.getType()) && payInner != null) {
-                    if (!StringUtils.isNullOrEmpty(payInner.getVideoUrl())) {
-                        payOuter.setType(BundleConstants.MEDIA_TYPE_VIDEO);
-                        int customTemplateType = getCustomTemplateType(payOuter.getType());
-                        if (customTemplateType != -1) return customTemplateType;
-                        return TEMPLATE_MEDIA;
-                    } else if (!StringUtils.isNullOrEmpty(payInner.getAudioUrl())) {
-                        payOuter.setType(BundleConstants.MEDIA_TYPE_AUDIO);
-                        int customTemplateType = getCustomTemplateType(payOuter.getType());
-                        if (customTemplateType != -1) return customTemplateType;
-                        return TEMPLATE_MEDIA;
+            if (payOuter == null) return TEMPLATE_BUBBLE_RESPONSE;
+            PayloadInner payInner;
+            payInner = payOuter.getPayload();
+            if (BotResponse.COMPONENT_TYPE_TEMPLATE.equalsIgnoreCase(payOuter.getType()) && payInner != null) {
+                int customTemplateType = getCustomTemplateType(payInner.getTemplate_type());
+                if (customTemplateType == -1) {
+                    if (payInner.getTableDesign() != null) {
+                        customTemplateType = getCustomTemplateType(payInner.getTableDesign());
+                    } else if (payInner.getCarousel_type() != null) {
+                        customTemplateType = getCustomTemplateType(payInner.getCarousel_type());
+                    } else if (payInner.getDirection() != null) {
+                        customTemplateType = getCustomTemplateType(payInner.getDirection());
+                    } else if (payInner.getPie_type() != null) {
+                        customTemplateType = getCustomTemplateType(payInner.getPie_type());
                     }
                 }
-                else if (BotResponse.COMPONENT_TYPE_LINK.equalsIgnoreCase(payOuter.getType()) && payInner != null)
-                    return TEMPLATE_LINK;
-                else if (!StringUtils.isNullOrEmpty(payOuter.getType())) {
+                if (customTemplateType != -1) {
+                    if (payInner.getSliderView() && bottomSheetDialog == null)
+                        return TEMPLATE_BUBBLE_RESPONSE;
+                    else return customTemplateType;
+                }
+
+                if (StringUtils.isNotEmpty(payInner.getTemplate_type())) {
+                    switch (payInner.getTemplate_type()) {
+                        case BotResponse.TEMPLATE_TYPE_BUTTON:
+                            if (payOuter.getFormData() != null)
+                                return TEMPLATE_DIGITAL_FORM;
+                            return TEMPLATE_BUTTON;
+                        case BotResponse.TEMPLATE_TYPE_CAROUSEL:
+                            if (payInner.getCarousel_type() != null && payInner.getCarousel_type().equals(BotResponse.STACKED)) {
+                                return TEMPLATE_CAROUSEL_STACKED;
+                            }
+                            return TEMPLATE_CAROUSEL;
+                        case BotResponse.TEMPLATE_TYPE_LIST:
+                            return TEMPLATE_LIST;
+                        case BotResponse.TEMPLATE_TYPE_PIE_CHART:
+                            return TEMPLATE_PIE_CHART;
+                        case BotResponse.TEMPLATE_TYPE_TABLE:
+                            if (payInner.getTableDesign().equals(BotResponse.TABLE_VIEW_RESPONSIVE)) {
+                                return TEMPLATE_TABLE_RESPONSIVE;
+                            } else {
+                                return TEMPLATE_TABLE;
+                            }
+                        case BotResponse.CUSTOM_TABLE_TEMPLATE:
+                            break;
+                        case BotResponse.TEMPLATE_TYPE_CLOCK:
+                            return TEMPLATE_CLOCK;
+                        case BotResponse.TEMPLATE_TYPE_MINI_TABLE:
+                            return TEMPLATE_MINI_TABLE;
+                        case BotResponse.TEMPLATE_TYPE_MULTI_SELECT:
+                            return TEMPLATE_MULTI_SELECT;
+                        case BotResponse.ADVANCED_LIST_TEMPLATE:
+                            return TEMPLATE_ADVANCED_LIST_TEMPLATE;
+                        case BotResponse.TEMPLATE_TYPE_LINE_CHART:
+                            return TEMPLATE_LINE_CHART;
+                        case BotResponse.TEMPLATE_TYPE_BARCHART:
+                            return TEMPLATE_BAR_CHART;
+                        case BotResponse.TEMPLATE_TYPE_FORM:
+                            return TEMPLATE_FORM;
+                        case BotResponse.TEMPLATE_TYPE_LIST_VIEW:
+                            return TEMPLATE_LIST_VIEW;
+                        case BotResponse.TEMPLATE_TYPE_TABLE_LIST:
+                            return TEMPLATE_TABLE_LIST;
+                        case BotResponse.TEMPLATE_TYPE_FEEDBACK:
+                            return TEMPLATE_FEEDBACK;
+                        case BotResponse.TEMPLATE_TYPE_LIST_WIDGET_2:
+                            return TEMPLATE_LIST_WIDGET_2;
+                        case BotResponse.TEMPLATE_DROPDOWN:
+                            return TEMPLATE_DROP_DOWN;
+                        case BotResponse.CARD_TEMPLATE:
+                            return TEMPLATE_CARD;
+                        case BotResponse.COMPONENT_TYPE_IMAGE:
+                            return TEMPLATE_MEDIA;
+                        case BotResponse.TEMPLATE_TYPE_RADIO_OPTIONS:
+                            return TEMPLATE_RADIO_OPTIONS;
+                        case BotResponse.TEMPLATE_TYPE_WELCOME_QUICK_REPLIES:
+                            return TEMPLATE_WELCOME_QUICK_REPLIES;
+                        case BotResponse.TEMPLATE_TYPE_NOTIFICATIONS:
+                            return TEMPLATE_NOTIFICATIONS;
+                        case BotResponse.CONTACT_CARD_TEMPLATE:
+                            return TEMPLATE_CONTACT_CARD;
+                        case BotResponse.TEMPLATE_BANKING_FEEDBACK:
+                            return TEMPLATE_BANKING_FEEDBACK;
+                        case BotResponse.TEMPLATE_PDF_DOWNLOAD:
+                            return TEMPLATE_PDF_DOWNLOAD;
+                        case BotResponse.TEMPLATE_BENEFICIARY:
+                            return TEMPLATE_BENEFICIARY;
+                        case BotResponse.ADVANCED_MULTI_SELECT_TEMPLATE:
+                            return payInner.getSliderView() && bottomSheetDialog == null ? TEMPLATE_BUBBLE_RESPONSE : TEMPLATE_ADVANCE_MULTI_SELECT;
+                        case BotResponse.TEMPLATE_TYPE_RESULTS_LIST:
+                            return TEMPLATE_RESULTS;
+                        case BotResponse.TEMPLATE_TYPE_ARTICLE:
+                            return TEMPLATE_ARTICLE;
+                        case BotResponse.TEMPLATE_TYPE_OTP_VALIDATION:
+                            return payInner.getSliderView() && bottomSheetDialog == null ? TEMPLATE_BUBBLE_RESPONSE : TEMPLATE_OTP_VALIDATION;
+                        case BotResponse.TEMPLATE_TYPE_RESET_PIN:
+                            return payInner.getSliderView() && bottomSheetDialog == null ? TEMPLATE_BUBBLE_RESPONSE : TEMPLATE_RESET_PIN;
+                        case BotResponse.TEMPLATE_TYPE_ANSWER:
+                            return TEMPLATE_ANSWER;
+                        case BotResponse.COMPONENT_TYPE_LINK:
+                            return TEMPLATE_LINK;
+                        case BotResponse.TEMPLATE_TYPE_BUTTON_LINK:
+                            return TEMPLATE_BUTTON_LINK;
+                        default:
+                            return TEMPLATE_BUBBLE_RESPONSE;
+                    }
+                }
+            } else if (BotResponse.COMPONENT_TYPE_MESSAGE.equalsIgnoreCase(payOuter.getType()) && payInner != null) {
+                if (!StringUtils.isNullOrEmpty(payInner.getVideoUrl())) {
+                    payOuter.setType(BundleConstants.MEDIA_TYPE_VIDEO);
                     int customTemplateType = getCustomTemplateType(payOuter.getType());
                     if (customTemplateType != -1) return customTemplateType;
+                    return TEMPLATE_MEDIA;
+                } else if (!StringUtils.isNullOrEmpty(payInner.getAudioUrl())) {
+                    payOuter.setType(BundleConstants.MEDIA_TYPE_AUDIO);
+                    int customTemplateType = getCustomTemplateType(payOuter.getType());
+                    if (customTemplateType != -1) return customTemplateType;
+                    return TEMPLATE_MEDIA;
+                }
+            } else if (BotResponse.COMPONENT_TYPE_LINK.equalsIgnoreCase(payOuter.getType()) && payInner != null)
+                return TEMPLATE_LINK;
+            else if (!StringUtils.isNullOrEmpty(payOuter.getType())) {
+                int customTemplateType = getCustomTemplateType(payOuter.getType());
+                if (customTemplateType != -1) return customTemplateType;
 
-                    switch (payOuter.getType()) {
-                        case BotResponse.COMPONENT_TYPE_IMAGE:
-                        case BotResponse.COMPONENT_TYPE_AUDIO:
-                        case BotResponse.COMPONENT_TYPE_VIDEO:
-                            return TEMPLATE_MEDIA;
-                        default:
-                            break;
-                    }
+                switch (payOuter.getType()) {
+                    case BotResponse.COMPONENT_TYPE_IMAGE:
+                    case BotResponse.COMPONENT_TYPE_AUDIO:
+                    case BotResponse.COMPONENT_TYPE_VIDEO:
+                        return TEMPLATE_MEDIA;
+                    default:
+                        break;
                 }
             }
-
             return TEMPLATE_BUBBLE_RESPONSE;
         }
     }
@@ -331,6 +347,7 @@ public class ChatAdapter extends RecyclerView.Adapter<BaseViewHolder> implements
         return switch (viewType) {
             case TEMPLATE_BUBBLE_REQUEST -> RequestTextTemplateHolder.getInstance(parent);
             case TEMPLATE_BUTTON -> ButtonTemplateHolder.getInstance(parent);
+            case TEMPLATE_DIGITAL_FORM -> DigitalFormTemplateHolder.getInstance(parent);
             case TEMPLATE_BUTTON_LINK -> ButtonLinkTemplateHolder.getInstance(parent);
             case TEMPLATE_LIST_VIEW -> ListViewTemplateHolder.getInstance(parent);
             case TEMPLATE_LIST -> ListTemplateHolder.getInstance(parent);
@@ -363,6 +380,10 @@ public class ChatAdapter extends RecyclerView.Adapter<BaseViewHolder> implements
             case TEMPLATE_ADVANCE_MULTI_SELECT ->
                     AdvanceMultiSelectTemplateHolder.getInstance(parent);
             case TEMPLATE_RESULTS -> ResultsTemplateHolder.getInstance(parent);
+            case TEMPLATE_ARTICLE -> ArticleTemplateHolder.getInstance(parent);
+            case TEMPLATE_OTP_VALIDATION -> OtpValidationTemplateHolder.getInstance(parent);
+            case TEMPLATE_RESET_PIN -> ResetPinTemplateHolder.getInstance(parent);
+            case TEMPLATE_ANSWER -> AnswerTemplateHolder.getInstance(parent);
             case TEMPLATE_LINK -> LinkTemplateHolder.getInstance(parent);
             default -> ResponseTextTemplateHolder.getInstance(parent);
         };
@@ -376,45 +397,18 @@ public class ChatAdapter extends RecyclerView.Adapter<BaseViewHolder> implements
         holder.setBottomSheetDialog(bottomSheetDialog);
         holder.setMsgTime(baseBotMessage.getTimeStamp(), baseBotMessage instanceof BotRequest, getItemViewType(position));
         if (baseBotMessage instanceof BotResponse) {
-            applyBotIcon(holder, (BotResponse) baseBotMessage);
+            if (StringUtils.isNotEmpty(((BotResponse) baseBotMessage).getIcon()))
+                holder.setBotIcon(((BotResponse) baseBotMessage).getIcon());
+            else if (StringUtils.isNotEmpty(SDKConfiguration.BubbleColors.getIcon_url()))
+                holder.setBotIcon(SDKConfiguration.BubbleColors.getIcon_url());
+            else holder.setBotIcon(null);
         }
         Integer headerPosition = headersMap.get(baseBotMessage.getFormattedDate());
         holder.setTimeStamp(headerPosition != null && headerPosition == position ? baseBotMessage.getFormattedDate() : null);
         holder.setContentStateListener(this);
         holder.setComposeFooterInterface(composeFooterInterface);
         holder.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
-        applyLanguageDirection(holder, baseBotMessage);
         holder.bind(getItem(position));
-    }
-
-    private void applyLanguageDirection(BaseViewHolder holder, BaseBotMessage message) {
-        holder.itemView.setLayoutDirection(isMessageRtl(message)
-                ? View.LAYOUT_DIRECTION_RTL
-                : View.LAYOUT_DIRECTION_LTR);
-    }
-
-    public boolean isItemRtl(int position) {
-        return position >= 0 && position < getItemCount() && isMessageRtl(getItem(position));
-    }
-
-    private boolean isMessageRtl(BaseBotMessage message) {
-        String responseLanguage = getResponseLanguage(message);
-        return SDKConfiguration.Server.isRtlLanguage(
-                SDKConfiguration.Server.resolveLanguage(responseLanguage));
-    }
-
-    private String getResponseLanguage(BaseBotMessage message) {
-        if (message instanceof BotResponse) {
-            BotResponse response = (BotResponse) message;
-            if (response.getMessage() != null && !response.getMessage().isEmpty()
-                    && response.getMessage().get(0) != null
-                    && response.getMessage().get(0).getComponent() != null) {
-                PayloadOuter payloadOuter = response.getMessage().get(0).getComponent().getPayload();
-                PayloadInner payloadInner = payloadOuter == null ? null : payloadOuter.getPayload();
-                return payloadInner == null ? null : payloadInner.getLang();
-            }
-        }
-        return null;
     }
 
     private void applyBotIcon(BaseViewHolder holder, BotResponse response) {
@@ -440,15 +434,10 @@ public class ChatAdapter extends RecyclerView.Adapter<BaseViewHolder> implements
         return baseBotMessageArrayList.size();
     }
 
-    public void clearMessages() {
-        baseBotMessageArrayList.clear();
-        notifyDataSetChanged();
-    }
-
     private BaseViewHolder getCustomTemplate(ViewGroup parent, Class<?> clazzType) {
-        Class<?> clazz;
-        Method method;
-        BaseViewHolder holder;
+        Class<?> clazz = null;
+        Method method = null;
+        BaseViewHolder holder = null;
         try {
             clazz = Class.forName(clazzType.getName());
             // Get the method by name and parameter types
@@ -543,9 +532,8 @@ public class ChatAdapter extends RecyclerView.Adapter<BaseViewHolder> implements
         }
     }
 
-    public void addStreamingMessage(String message)
-    {
-        BotResponse botResponse = (BotResponse) baseBotMessageArrayList.get(baseBotMessageArrayList.size()-1);
+    public void addStreamingMessage(String message) {
+        BotResponse botResponse = (BotResponse) baseBotMessageArrayList.get(baseBotMessageArrayList.size() - 1);
         PayloadOuter payOuter;
         if (!botResponse.getMessage().isEmpty()) {
             ComponentModel compModel = botResponse.getMessage().get(0).getComponent();
@@ -553,7 +541,7 @@ public class ChatAdapter extends RecyclerView.Adapter<BaseViewHolder> implements
                 payOuter = compModel.getPayload();
                 if (payOuter != null) {
                     payOuter.setText(payOuter.getText() + message);
-                    notifyItemChanged(baseBotMessageArrayList.size()-1);
+                    notifyItemChanged(baseBotMessageArrayList.size() - 1);
                 }
             }
         }

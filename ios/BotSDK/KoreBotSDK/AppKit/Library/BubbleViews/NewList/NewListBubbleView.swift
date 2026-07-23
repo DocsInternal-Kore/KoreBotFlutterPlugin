@@ -2,7 +2,7 @@
 //  NewListBubbleView.swift
 //  KoreBotSDKDemo
 //
-//  Created by MatrixStream_01 on 11/05/20.
+//  Created by Pagidimarri Kartheek on 11/05/20.
 //  Copyright © 2020 Kore. All rights reserved.
 //
 
@@ -14,12 +14,13 @@ class NewListBubbleView: BubbleView {
     var titleLbl: UILabel!
     var tableView: UITableView!
     var cardView: UIView!
-    let kMaxTextWidth: CGFloat = BubbleViewMaxWidth - 20.0
+    let kMaxTextWidth: CGFloat = BubbleViewMaxWidth - 32.0
     let kMinTextWidth: CGFloat = 20.0
     fileprivate let listCellIdentifier = "NewListTableViewCell"
     var rowsDataLimit = 4
     var isShowMore = false
-    
+    var headerViewText = ""
+    public var maskview: UIView!
     let yourAttributes : [NSAttributedString.Key: Any] = [
         NSAttributedString.Key.font : UIFont(name: mediumCustomFont, size: 12.0) as Any,
         NSAttributedString.Key.foregroundColor : themeColor]
@@ -79,11 +80,20 @@ class NewListBubbleView: BubbleView {
         if #available(iOS 15.0, *){
             self.tableView.sectionHeaderTopPadding = 0.0
         }
+        
+        self.maskview = UIView(frame:.zero)
+        self.maskview.translatesAutoresizingMaskIntoConstraints = false
+        self.cardView.addSubview(self.maskview)
+        self.maskview.isHidden = true
+        self.maskview.backgroundColor = .clear
 
-        let views: [String: UIView] = ["tileBgv": tileBgv, "tableView": tableView]
-        self.cardView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-5-[tileBgv]-5-[tableView]-0-|", options: [], metrics: nil, views: views))
-        self.cardView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[tileBgv]-0-|", options: [], metrics: nil, views: views))
+        let views: [String: UIView] = ["tileBgv": tileBgv, "tableView": tableView, "maskview": maskview]
+        self.cardView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[tileBgv]-5-[tableView]-0-|", options: [], metrics: nil, views: views))
+        self.cardView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[tileBgv]", options: [], metrics: nil, views: views))
         self.cardView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[tableView]-0-|", options: [], metrics: nil, views: views))
+        
+        self.cardView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[maskview]|", options: [], metrics: nil, views: views))
+        self.cardView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[maskview]-0-|", options: [], metrics: nil, views: views))
 
         self.titleLbl = UILabel(frame: CGRect.zero)
         self.titleLbl.textColor = BubbleViewBotChatTextColor
@@ -101,29 +111,25 @@ class NewListBubbleView: BubbleView {
         self.titleLbl.sizeToFit()
         
         let subView: [String: UIView] = ["titleLbl": titleLbl]
-        self.tileBgv.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-5-[titleLbl(>=31)]-5-|", options: [], metrics: nil, views: subView))
-        self.tileBgv.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[titleLbl]-10-|", options: [], metrics: nil, views: subView))
+        let metrics: [String: NSNumber] = ["textLabelMaxWidth": NSNumber(value: Float(kMaxTextWidth)), "textLabelMinWidth": NSNumber(value: Float(kMinTextWidth))]
+        self.tileBgv.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[titleLbl]-10-|", options: [], metrics: metrics, views: subView))
+        self.tileBgv.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[titleLbl(>=textLabelMinWidth,<=textLabelMaxWidth)]-10-|", options: [], metrics: metrics, views: subView))
         setCornerRadiousToTitleView()
     }
     
     func setCornerRadiousToTitleView(){
-        let bubbleStyle = brandingShared.bubbleShape
-        var radius = 10.0
+        let bubbleStyle = brandingBodyDic.bubble_style
+        let radius = 10.0
         let borderWidth = 0.0
         let borderColor = UIColor.clear
         if #available(iOS 11.0, *) {
             if bubbleStyle == "balloon"{
                 self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "rounded" || bubbleStyle == "circle"{
-                radius = 15.0
+            }else if bubbleStyle == "rounded"{
                 self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "rectangle"{
-                radius = 8.0
-                self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "square"{
+                
+        }else if bubbleStyle == "rectangle"{
                 self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else{
-                self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: 20.0, borderColor: UIColor.lightGray, borderWidth: 0.0)
             }
         }
     }
@@ -135,7 +141,7 @@ class NewListBubbleView: BubbleView {
         cardView.backgroundColor =  UIColor.clear
         cardView.layer.cornerRadius = 4.0
         cardView.layer.borderWidth = 0.0
-        cardView.layer.borderColor = BubbleViewLeftTint.cgColor
+        cardView.layer.borderColor = UIColor.init(hexString: templateBoarderColor).cgColor
         cardView.clipsToBounds = true
         let cardViews: [String: UIView] = ["cardView": cardView]
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[cardView]-0-|", options: [], metrics: nil, views: cardViews))
@@ -159,6 +165,10 @@ class NewListBubbleView: BubbleView {
                 arrayOfComponents = allItems.elements ?? []
                 arrayOfButtons = allItems.buttons ?? []
                 self.titleLbl.text = allItems.text ?? ""
+                headerViewText = ""
+                if let heading = allItems.heading{
+                    headerViewText = heading
+                }
                 self.rowsDataLimit = (allItems.moreCount != nil ? allItems.moreCount : arrayOfComponents.count)!
                 isShowMore = (allItems.seeMore != nil ? allItems.seeMore : false)!
                 self.tableView.reloadData()
@@ -190,7 +200,11 @@ class NewListBubbleView: BubbleView {
         }else{
              moreButtonHeight = 0.0
         }
-        return CGSize(width: 0.0, height: textSize.height+30+finalHeight+moreButtonHeight)
+        var headerViewHeight = 50.0
+        if headerViewText == ""{
+            headerViewHeight = 0.0
+        }
+        return CGSize(width: 0.0, height: textSize.height+25+finalHeight+moreButtonHeight+headerViewHeight)
     }
     
     @objc fileprivate func showMoreButtonAction(_ sender: AnyObject!) {
@@ -249,6 +263,7 @@ extension NewListBubbleView: UITableViewDelegate,UITableViewDataSource{
         let elements = arrayOfComponents[indexPath.row]
         if elements.action?.type != nil {
             if elements.action?.type == "postback"{
+                maskview.isHidden = false
                 self.optionsAction?(elements.action?.title,elements.action?.payload ?? elements.action?.title)
             }else{
                 if elements.action?.fallback_url != nil {
@@ -293,6 +308,23 @@ extension NewListBubbleView: UITableViewDelegate,UITableViewDataSource{
     }
     func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
         return self.isShowMore ? 30 : 0
+    }
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+            let headerView = UIView.init(frame: CGRect.init(x: 0, y: 0, width: tableView.frame.width, height: 50))
+            let label = UILabel()
+            label.frame = CGRect.init(x: 5, y: 5, width: headerView.frame.width-10, height: headerView.frame.height-10)
+            label.text = headerViewText
+            label.font = UIFont(name: boldCustomFont, size: 16.0)
+            label.textColor = BubbleViewBotChatTextColor
+            headerView.addSubview(label)
+            
+            return headerView
+        }
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        if headerViewText == ""{
+            return 0.0
+        }
+        return 50.0
     }
     
 }

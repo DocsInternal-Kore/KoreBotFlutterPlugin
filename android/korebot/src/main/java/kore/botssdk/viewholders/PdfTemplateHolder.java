@@ -75,7 +75,7 @@ public class PdfTemplateHolder extends BaseViewHolder {
         if (payloadInner == null) return;
         ArrayList<PdfDownloadModel> arrPdfDownloadModels = payloadInner.getPdfDownloadModels();
 
-        if (arrPdfDownloadModels != null && arrPdfDownloadModels.size() > 0) {
+        if (arrPdfDownloadModels != null && !arrPdfDownloadModels.isEmpty()) {
             lvPdfs.setAdapter(new PdfDownloadAdapter(itemView.getContext(), arrPdfDownloadModels));
 
             lvPdfs.setOnItemClickListener(new AdapterView.OnItemClickListener() {

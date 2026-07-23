@@ -1,8 +1,12 @@
 package kore.botssdk.viewholders;
 
+import static android.content.Context.MODE_PRIVATE;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_BG_COLOR;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_TEXT_COLOR;
+import static kore.botssdk.models.BotResponse.THEME_NAME;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -20,7 +24,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.LinearLayoutCompat;
-import androidx.core.widget.ImageViewCompat;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
@@ -42,6 +45,7 @@ public class DropDownTemplateHolder extends BaseViewHolder {
     private String placeHolder;
     private String msgId;
     private int selectedIndex;
+    private final SharedPreferences prefs;
 
     public static DropDownTemplateHolder getInstance(ViewGroup parent) {
         return new DropDownTemplateHolder(createView(R.layout.template_dropdown, parent));
@@ -49,6 +53,7 @@ public class DropDownTemplateHolder extends BaseViewHolder {
 
     private DropDownTemplateHolder(@NonNull View itemView) {
         super(itemView, itemView.getContext());
+        prefs = itemView.getContext().getSharedPreferences(THEME_NAME, MODE_PRIVATE);
         tvDropDownTitle = itemView.findViewById(R.id.tvDropDownTitle);
         tvSubmit = itemView.findViewById(R.id.submit);
         spinner = itemView.findViewById(R.id.spinner);
@@ -57,9 +62,9 @@ public class DropDownTemplateHolder extends BaseViewHolder {
         setRoundedCorner(llSpinner, 10);
 
         GradientDrawable gradientDrawable = (GradientDrawable) tvSubmit.getBackground().mutate();
-        gradientDrawable.setStroke((int) (1 * dp1), Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-        gradientDrawable.setColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-        tvSubmit.setTextColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyTextColor));
+        gradientDrawable.setStroke((int) (1 * dp1), Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
+        gradientDrawable.setColor(Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
+        tvSubmit.setTextColor(Color.parseColor(prefs.getString(BUBBLE_RIGHT_TEXT_COLOR, "#ffffff")));
     }
 
     @Override
@@ -94,7 +99,7 @@ public class DropDownTemplateHolder extends BaseViewHolder {
         private final Spinner spinner;
         private final boolean isLastItem;
         private final int selectedPosition;
-        SharedPreferences sharedPreferences = context.getSharedPreferences(BotResponse.THEME_NAME, Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences(THEME_NAME, MODE_PRIVATE);
         String leftBgColor = sharedPreferences.getString(BotResponse.BUBBLE_LEFT_BG_COLOR, "#FFFFFF");
 
         public SpinnerAdapter(Context context, List<DropDownElementsModel> elements, Spinner spinner, boolean isLastItem, int selectedPosition) {
@@ -154,7 +159,7 @@ public class DropDownTemplateHolder extends BaseViewHolder {
 
             if ((selectedPosition == -1 && position == 0) || selectedPosition == position) {
                 view.setBackgroundColor(Color.parseColor(leftBgColor));
-                ColorStateList colorStateList = ColorStateList.valueOf(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
+                ColorStateList colorStateList = ColorStateList.valueOf(Color.parseColor(prefs.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
                 ivTick.setImageTintList(colorStateList);
                 ivTick.setVisibility(VISIBLE);
             } else {

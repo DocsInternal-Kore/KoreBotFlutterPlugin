@@ -5,9 +5,15 @@ import android.content.Context;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.TimeZone;
 
+import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.utils.DateUtils;
+
+/**
+ * Copyright (c) 2014 Kore Inc. All rights reserved.
+ */
 
 public abstract class BaseBotMessage {
 
@@ -64,7 +70,7 @@ public abstract class BaseBotMessage {
 
     public long getTimeInMillis(String timeStamp, boolean timezoneModifiedRequired) throws ParseException {
         if (timeStamp == null || timeStamp.isEmpty()) return System.currentTimeMillis();
-        return isoFormatter.parse(timeStamp).getTime() + ((timezoneModifiedRequired) ? TimeZone.getDefault().getRawOffset() + TimeZone.getDefault().getDSTSavings() : 0);
+        return Objects.requireNonNull(isoFormatter.parse(timeStamp)).getTime() + ((timezoneModifiedRequired) ? TimeZone.getDefault().getRawOffset() + TimeZone.getDefault().getDSTSavings() : 0);
     }
 
     public void setCreatedInMillis(long createdInMillis) {
@@ -72,15 +78,20 @@ public abstract class BaseBotMessage {
     }
 
     public String getFormattedDate() {
-        return formattedDate;//DateUtils.formattedSentDateV6(getCreatedInMillis());
+        return formattedDate;
     }
 
     public String getTimeStamp() {
-        return timeStamp;//prepareTimeStamp(getCreatedInMillis(), SDKConfiguration.Client.bot_name);
+        return timeStamp;
     }
 
     public String prepareTimeStamp(long milliSecs) {
-        return DateUtils.getDateEEMMMDDYYYYHhMmSs(milliSecs);
+        if (this instanceof BotRequest) {
+            return (DateUtils.getTimeInAmPm(milliSecs) + ", " + DateUtils.formattedSentDateV6(milliSecs)) + "<medium><b>" + " You" + "</b></medium>";
+        } else {
+            return "<medium><b>" + SDKConfiguration.Client.bot_name + "</b></medium>" + " " + DateUtils.getTimeInAmPm(milliSecs) + ", " +
+                    DateUtils.formattedSentDateV6(milliSecs);
+        }
     }
     public String prepareLocaleTimeStamp(Context context, long milliSecs) {
         return DateUtils.getDateEEMMMDDYYYYHhMmSs(context, milliSecs);

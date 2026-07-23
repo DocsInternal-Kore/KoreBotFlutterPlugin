@@ -12,6 +12,7 @@ public class BotRequest extends BaseBotMessage {
     private final String resourceid = "/bot.message";
     private BotInfoModel botInfo;
     private long id;
+    private MessageStatus status;
 
     public void setMessage(RestResponse.BotMessage message) {
         this.message = message;
@@ -33,7 +34,6 @@ public class BotRequest extends BaseBotMessage {
     public void setCreatedOn(String createdOn) {
         this.createdOn = createdOn;
     }
-
     public long getId() {
         return id;
     }
@@ -43,8 +43,6 @@ public class BotRequest extends BaseBotMessage {
         SENT,
         FAILED
     }
-
-    private MessageStatus status;
 
     public MessageStatus getStatus() {
         return status;

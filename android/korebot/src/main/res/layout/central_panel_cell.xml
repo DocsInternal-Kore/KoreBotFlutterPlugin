@@ -53,6 +53,7 @@
                     android:text="Title"
                     android:textColor="@color/txtFontBlack"
                     android:textSize="@dimen/text_size_sub_header" />
+
             </LinearLayout>
 
             <kore.botssdk.view.CustomTextView
@@ -89,7 +90,9 @@
                 android:text="Read More"
                 android:textColor="@color/colorPrimary"
                 android:textSize="@dimen/text_size_normal" />
+
         </LinearLayout>
+
     </LinearLayout>
 
     <kore.botssdk.view.CustomTextViewBold
@@ -131,5 +134,8 @@
             android:background="@drawable/ic_launch_24px2"
             android:backgroundTint="@color/colorPrimary"
             android:visibility="visible" />
+
     </LinearLayout>
+
+
 </RelativeLayout>

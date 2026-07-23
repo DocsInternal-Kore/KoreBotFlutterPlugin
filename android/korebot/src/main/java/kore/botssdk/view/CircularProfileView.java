@@ -24,7 +24,7 @@ import java.io.File;
 import kore.botssdk.R;
 import kore.botssdk.drawables.ProfileDrawable;
 import kore.botssdk.utils.StringConstants;
-import kore.botssdk.viewUtils.DimensionUtil;
+import kore.botssdk.view.viewUtils.DimensionUtil;
 
 public class CircularProfileView extends AppCompatImageView {
 
@@ -198,16 +198,7 @@ public class CircularProfileView extends AppCompatImageView {
                                int color,
                                boolean ignored) {
 
-        populateLayout(
-                nameInitials,
-                url,
-                drawable,
-                imageRes,
-                color,
-                ignored,
-                -1,
-                -1
-        );
+        populateLayout(nameInitials, url, drawable, imageRes, color, ignored, -1, -1);
     }
 
     public void populateLayout(String nameInitials,
@@ -220,10 +211,7 @@ public class CircularProfileView extends AppCompatImageView {
                                float height) {
 
         if (color == 0) {
-            color = ContextCompat.getColor(
-                    getContext(),
-                    R.color.bgBlueSignup
-            );
+            color = ContextCompat.getColor(getContext(), R.color.bgBlueSignup);
         }
 
         this.profileColor = color;

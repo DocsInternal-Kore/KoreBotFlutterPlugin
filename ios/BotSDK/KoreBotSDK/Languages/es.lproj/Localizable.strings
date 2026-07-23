@@ -1,9 +1,8 @@
 /* 
   Localizable.strings
-  LanguageDemo
+ KoreBotSDK
 
-  Created by Rakesh Kumar on 01/04/19.
-  Copyright © 2019 Rakesh Kumar. All rights reserved.
+ Created by Pagidimarri Kartheek on 28/02/25.
 */
 
 "composeBarPlaceholder" = "Message...";
@@ -16,3 +15,4 @@
 "confirm" = "Confirm";
 "pleaseTryAgain" = "Please try again";
 "sessionExpiryMsg" = "Your session has expired. Please try again";
+"cancelBtnMsg" = "Cancel";

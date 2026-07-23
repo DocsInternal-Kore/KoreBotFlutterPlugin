@@ -11,7 +11,6 @@
 
 import UIKit
 #if SWIFT_PACKAGE
-import ObjcSupport
 #endif
 struct MiniHeader {
     var title: String = ""
@@ -167,7 +166,7 @@ class MiniTableBubbleView: BubbleView, UITableViewDelegate, UITableViewDataSourc
         
         let cardViews: [String: UIView] = ["senderImageView": senderImageView, "tileBgv": tileBgv, "cardView": cardView]
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[tileBgv]-15-[cardView]-2-|", options: [], metrics: nil, views: cardViews))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[senderImageView(28)]", options: [], metrics: nil, views: cardViews))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-5-[senderImageView(30)]", options: [], metrics: nil, views: cardViews))
         
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-15-[cardView]-15-|", options: [], metrics: nil, views: cardViews))
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[senderImageView(28)]-8-[tileBgv]", options: [], metrics: nil, views: cardViews))
@@ -222,23 +221,18 @@ class MiniTableBubbleView: BubbleView, UITableViewDelegate, UITableViewDataSourc
         setCornerRadiousToTitleView()
     }
     func setCornerRadiousToTitleView(){
-        let bubbleStyle = brandingShared.bubbleShape
-        var radius = 10.0
+        let bubbleStyle = brandingBodyDic.bubble_style
+        let radius = 10.0
         let borderWidth = 0.0
         let borderColor = UIColor.clear
         if #available(iOS 11.0, *) {
             if bubbleStyle == "balloon"{
                 self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "rounded" || bubbleStyle == "circle"{
-                radius = 15.0
+            }else if bubbleStyle == "rounded"{
                 self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "rectangle"{
-                radius = 8.0
-                self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "square"{
+                
+        }else if bubbleStyle == "rectangle"{
                 self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else{
-                self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: 20.0, borderColor: UIColor.lightGray, borderWidth: 0.0)
             }
         }
     }
@@ -314,7 +308,7 @@ class MiniTableBubbleView: BubbleView, UITableViewDelegate, UITableViewDataSourc
             cell.secondLbl.textAlignment = .right
             cell.secondLbl.font = UIFont(name: regularCustomFont, size: 15.0)
             cell.secondLbl.font = cell.headerLabel.font.withSize(15.0)
-            cell.secondLbl.backgroundColor = .clear
+            
             cell.secondLbl.textColor = UIColor(red: 138/255, green: 149/255, blue: 159/255, alpha: 1)
             
             let fullText = rows[indexPath.row*2+1]

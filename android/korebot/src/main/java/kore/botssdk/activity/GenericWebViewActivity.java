@@ -7,7 +7,6 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
@@ -43,7 +42,7 @@ import kore.botssdk.net.SDKConfig;
 import kore.botssdk.utils.BundleConstants;
 import kore.botssdk.utils.StringUtils;
 
-@SuppressLint({"SetJavaScriptEnabled", "UnKnownNullness"})
+@SuppressLint("SetJavaScriptEnabled")
 public class GenericWebViewActivity extends BotAppCompactActivity {
     private String actionbarTitle;
     private String url;
@@ -122,6 +121,7 @@ public class GenericWebViewActivity extends BotAppCompactActivity {
             webview.getSettings().setDomStorageEnabled(true);
             webview.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
             webview.setWebViewClient(new WebViewClient() {
+                @SuppressWarnings("deprecation")
                 @Override
                 public boolean shouldOverrideUrlLoading(WebView view, String url) {
                     return super.shouldOverrideUrlLoading(view, url);
@@ -154,6 +154,7 @@ public class GenericWebViewActivity extends BotAppCompactActivity {
                     super.onPageStarted(view, url, favicon);
                     mProgressBar.setVisibility(ProgressBar.VISIBLE);
                     tvPleaseWait.setVisibility(View.VISIBLE);
+//                    webview.setVisibility(View.INVISIBLE);
                 }
 
                 @Override
@@ -161,6 +162,7 @@ public class GenericWebViewActivity extends BotAppCompactActivity {
                     super.onPageFinished(view, url);
                     mProgressBar.setVisibility(ProgressBar.GONE);
                     tvPleaseWait.setVisibility(View.GONE);
+//                    webview.setVisibility(View.VISIBLE);
                 }
             });
             webview.setWebChromeClient(new WebChromeClient() {
@@ -179,7 +181,9 @@ public class GenericWebViewActivity extends BotAppCompactActivity {
 
             webview.loadUrl(url);
         }
-        webview.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> downloadFile(url, contentDisposition, mimeType, false));
+        webview.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
+            downloadFile(url, contentDisposition, mimeType, false);
+        });
     }
 
     private void downloadFile(String url, String contentDisposition, String mimeType, boolean isFromMenus) {
@@ -255,12 +259,6 @@ public class GenericWebViewActivity extends BotAppCompactActivity {
                 actionBar.setTitle("");
             }
         }
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        setUpActionBar();
     }
 }
 

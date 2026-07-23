@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import korebotplugin
 
 public class KAOptionsView: KREOptionsView {
     public var userIntent:((_ action: Any?) -> Void)?

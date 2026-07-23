@@ -1,18 +1,14 @@
 package kore.botssdk.view;
 
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.viewpager.widget.ViewPager;
-
-/**
- * Created by Shiva Krishna on 2/9/2018.
- */
 
 public class HeightAdjustableViewPager extends ViewPager {
 
@@ -25,6 +21,12 @@ public class HeightAdjustableViewPager extends ViewPager {
 
     public HeightAdjustableViewPager(Context context, AttributeSet attrs) {
         super(context, attrs);
+        setClipChildren(false);
+        setClipToPadding(false);
+        // to avoid fade effect at the end of the page
+        setOverScrollMode(2);
+        setOffscreenPageLimit(3);
+
     }
 
     @Override
@@ -58,7 +60,6 @@ public class HeightAdjustableViewPager extends ViewPager {
 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
-    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         return !swipeLocked && super.onTouchEvent(event);

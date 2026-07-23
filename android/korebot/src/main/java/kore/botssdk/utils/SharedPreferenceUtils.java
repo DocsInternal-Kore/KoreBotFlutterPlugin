@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import kore.botssdk.applicationcontrol.ACMModel;
 import kore.botssdk.models.limits.Announcement;
 import kore.botssdk.models.limits.Attachment;
 import kore.botssdk.models.limits.Knowledge;
@@ -21,14 +22,13 @@ import kore.botssdk.models.limits.Teams;
 import kore.botssdk.models.limits.UsageLimit;
 
 
+@SuppressWarnings("UnKnownNullness")
 public class SharedPreferenceUtils {
     private static SharedPreferenceUtils sharedPreferenceUtils;
-    private static Context context;
     private static SharedPreferences sharedPreferences;
     private final String IS_PERSONAL_ANNOUNCEMENT="IS_PERSONAL_ANNOUNCEMENT";
     public static final String SHARED_PREFERENCE_NAME = "kora_shared_preferences";
     public static final String APP_CONTROLS_EDITOR_KEY = "APP_CONTROLS_EDITOR_KEY";
-    public static final String KORA_APP_UPGRADE_SHARED_PREFERENCES = "com.kore.ai.koreassistant.upgrade.shared.preferences";
     public static final String ATTACHMENT_KEY = "at";
     public static final String KNOWLEDGE_KEY = "kn";
     public static final String ANNOUNCEMENT_KEY = "an";
@@ -45,7 +45,6 @@ public class SharedPreferenceUtils {
     }
 
     private SharedPreferenceUtils(Context context) {
-        context = context;
        sharedPreferences = context.getSharedPreferences(SHARED_PREFERENCE_NAME, MODE_PRIVATE);
     }
 
@@ -180,12 +179,12 @@ public class SharedPreferenceUtils {
         if(limit==null) {
             editor.putInt("l"+key,-1);
             editor.putInt("u"+key,-1);
-            editor.commit();
+            editor.apply();
             return;
         }
         editor.putInt("l"+key,limit.getLimit());
         editor.putInt("u"+key,limit.getUsed());
-        editor.commit();
+        editor.apply();
     }
 
     public static <T> void saveObjectToSharedPref(T object, String key){
@@ -195,14 +194,14 @@ public class SharedPreferenceUtils {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         if(object==null) {
             editor.putString(key,null);
-            editor.commit();
+            editor.apply();
             return;
         }
 
         Gson gson = new Gson();
         String json = gson.toJson(object);
         editor.putString(key,json);
-        editor.commit();
+        editor.apply();
     }
 
     public void putKeyValue(String Key, Integer defaultValue) {
@@ -210,6 +209,25 @@ public class SharedPreferenceUtils {
         editor.putInt(Key, defaultValue);
         editor.apply();
     }
+
+    public static void saveAppControlList(ACMModel list, String userId){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(list);
+        editor.putString(APP_CONTROLS_EDITOR_KEY+userId,json);
+        editor.apply();
+    }
+
+    public static ACMModel getAppControlList( String userId){
+        String jsonStr = sharedPreferences.getString(APP_CONTROLS_EDITOR_KEY+userId, null);
+        if(jsonStr != null){
+            Gson gson = new Gson();
+            return gson.fromJson(jsonStr,ACMModel.class);
+        }
+        return null;
+    }
+
+
 
     public void putAnnouncmentKey(boolean isPersonalAnnoucement)
     {

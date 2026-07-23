@@ -56,7 +56,6 @@
                     android:contentDescription="@string/app_name"
                     android:scaleType="centerCrop"
                     android:visibility="visible" />
-
             </RelativeLayout>
 
             <LinearLayout
@@ -137,12 +136,10 @@
             android:ellipsize="end"
             android:gravity="center"
             android:maxLines="1"
-            android:minHeight="@dimen/button_min_height"
+            android:minHeight="@dimen/dimen_40dp"
             android:text="@string/app_name"
             android:textColor="@color/white"
             android:textSize="@dimen/text_size_normal"
             android:visibility="gone" />
-
     </LinearLayout>
-
 </LinearLayout>

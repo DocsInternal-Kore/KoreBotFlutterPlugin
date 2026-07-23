@@ -1,7 +1,7 @@
 package kore.botssdk.adapter;
 
 import static android.content.Context.MODE_PRIVATE;
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -58,7 +58,7 @@ public class ButtonTemplateAdapter extends RecyclerView.Adapter<ButtonTemplateAd
         invertTextColor = activeTextColor;
 
         buttonBgColor = sharedPreferences.getString(BotResponse.BUBBLE_LEFT_BG_COLOR, buttonBgColor);
-        activeTextColor = sharedPreferences.getString(BotResponse.BUBBLE_LEFT_TEXT_COLOR, activeTextColor);
+        activeTextColor = sharedPreferences.getString(BotResponse.BUTTON_ACTIVE_TXT_COLOR, activeTextColor);
         invertBgColor = sharedPreferences.getString(BotResponse.BUBBLE_RIGHT_BG_COLOR, invertBgColor);
         invertTextColor = sharedPreferences.getString(BotResponse.BUBBLE_RIGHT_TEXT_COLOR, invertTextColor);
     }

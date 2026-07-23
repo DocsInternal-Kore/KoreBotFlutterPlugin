@@ -18,7 +18,6 @@ import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.formatter.LargeValueFormatter;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
@@ -124,6 +123,9 @@ public class BarChartTemplateHolder extends BaseViewHolder implements OnChartVal
         if (payloadInner == null) return;
         setResponseText(itemView.findViewById(R.id.layoutBubble), payloadInner.getText(), baseBotMessage.getTimeStamp());
         int barType = payloadInner.isStacked() ? BAR_STACKED : payloadInner.getDirection().equals(BAR_CHART_DIRECTION_VERTICAL) ? BAR_VERTICAL : BAR_HORIZONTAL;
+//        barChart.setVisibility(barType != BAR_HORIZONTAL ? View.VISIBLE : View.GONE);
+//        horizontalBarChart.setVisibility(barType == BAR_HORIZONTAL ? View.VISIBLE : View.GONE);
+//        BarChart mChart = barType == BAR_HORIZONTAL ? horizontalBarChart : barChart;
 
         if (payloadInner.getDirection().equals(BAR_CHART_DIRECTION_VERTICAL)) {
             barChart.setVisibility(View.VISIBLE);
@@ -144,7 +146,7 @@ public class BarChartTemplateHolder extends BaseViewHolder implements OnChartVal
         BarDataSet[] dataSet;
         List<IBarDataSet> barDataSets = new ArrayList<>();
 
-        if (payloadInner.getBarChartDataModels() != null && !payloadInner.getBarChartDataModels().isEmpty()) {
+        if (payloadInner.getBarChartDataModels() != null && payloadInner.getBarChartDataModels().size() > 0) {
             int size = payloadInner.getBarChartDataModels().size();
             String[] labels = new String[size];
             ArrayList<BotBarChartDataModel> dataList = new ArrayList<>(size);
@@ -154,15 +156,14 @@ public class BarChartTemplateHolder extends BaseViewHolder implements OnChartVal
                     dataList.add(payloadInner.getBarChartDataModels().get(in));
                     labels[in] = payloadInner.getBarChartDataModels().get(in).getTitle();
                 }
-
                 yValues[0] = new ArrayList<>();
-
                 for (int k = 0; k < dataList.get(0).getValues().size(); k++) {
                     float[] arr = new float[size];
                     for (int j = 0; j < size; j++) {
                         arr[j] = dataList.get(j).getValues().get(k);
                     }
-
+//                    yValues[0] = new ArrayList<>();
+//                    yValues[0].add(new BarEntry(k + 1, arr, ""));
                     yValues[0].add(new BarEntry(k, arr, ""));
                 }
             } else {
@@ -196,7 +197,9 @@ public class BarChartTemplateHolder extends BaseViewHolder implements OnChartVal
             xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
             xAxis.setTextSize(8f);
             xAxis.setDrawGridLines(false);
-
+            if (barType == BAR_STACKED) {
+                xAxis.setLabelCount(4);
+            }
             xAxis.setGranularity(barType == BAR_STACKED ? 1f : 0.5f); // only intervals of 1 day
             xAxis.setLabelCount(payloadInner.getxAxis().size());
             if (barType == BAR_HORIZONTAL) {

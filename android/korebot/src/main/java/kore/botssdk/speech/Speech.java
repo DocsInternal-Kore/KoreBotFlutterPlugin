@@ -32,10 +32,10 @@ public class Speech {
     private static Speech instance = null;
     protected static String GOOGLE_APP_PACKAGE = "com.google.android.googlequicksearchbox";
 
-    private final Context mContext;
+    private Context mContext;
 
-    private final TextToSpeechEngine textToSpeechEngine;
-    private final SpeechRecognitionEngine speechRecognitionEngine;
+    private TextToSpeechEngine textToSpeechEngine;
+    private SpeechRecognitionEngine speechRecognitionEngine;
 
     private Speech(final Context context, final String callingPackage, TextToSpeech.OnInitListener onInitListener, SpeechRecognitionEngine speechRecognitionEngine, TextToSpeechEngine textToSpeechEngine) {
         mContext = context;
@@ -117,10 +117,11 @@ public class Speech {
      * @return SpeechRecognition instance
      */
     public static Speech getInstance() {
-        if (instance != null) {
-            return instance;
-        } else return null;
+        if (instance == null) {
+            throw new IllegalStateException("Speech recognition has not been initialized! call init method first!");
+        }
 
+        return instance;
     }
 
     public void startListening(final SpeechDelegate delegate)
@@ -316,7 +317,7 @@ public class Speech {
     private boolean isGoogleAppInstalled() {
         PackageManager packageManager = mContext.getPackageManager();
 
-        for (PackageInfo packageInfo : packageManager.getInstalledPackages(0)) {
+        for (PackageInfo packageInfo: packageManager.getInstalledPackages(0)) {
             if (packageInfo.packageName.contains(GOOGLE_APP_PACKAGE)) {
                 return true;
             }
@@ -327,7 +328,6 @@ public class Speech {
 
     /**
      * Gets the list of the supported speech to text languages on this device
-     *
      * @param listener listner which will receive the results
      */
     public void getSupportedSpeechToTextLanguages(SupportedLanguagesListener listener) {
@@ -365,7 +365,6 @@ public class Speech {
 
     /**
      * Gets the list of the supported Text to Speech languages on this device
-     *
      * @return list of locales on android API 23 and newer and empty list on lower Android, because native
      * TTS engine does not support querying voices on API lower than 23. Officially it's declared that
      * query voices support started on API 21, but in reality it started from 23.
@@ -377,7 +376,6 @@ public class Speech {
 
     /**
      * Gets the locale used for speech recognition.
-     *
      * @return speech recognition locale
      */
     public Locale getSpeechToTextLanguage() {
@@ -386,7 +384,6 @@ public class Speech {
 
     /**
      * Gets the current voice used for text to speech.
-     *
      * @return current voice on android API 23 or newer and null on lower Android, because native
      * TTS engine does not support querying voices on API lower than 23. Officially it's declared that
      * query voices support started on API 21, but in reality it started from 23.

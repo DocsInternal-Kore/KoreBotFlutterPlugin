@@ -3,19 +3,18 @@
     <!--<color name="colorAccent">#2f91e5</color>--><!-- HSBC - #db0012, BMC Helix - #2f91e5 -->
     <color name="bgBlueSignup">#3F51B5</color>
     <color name="bgLightBlue">#9fa8da</color>
-    <color name="kora_grey">#202124</color>
-    <color name="gray_modern">#4B5565</color>
+    <color name="green">#00ff00</color>
+    <color name="grey">#808080</color>
+    <color name="ac">#124680</color>
+    <color name="red">#FF0000</color>
+    <color name="incoming_call_reject">#BB0000</color>
+    <color name="incoming_call_accept">#00BB00</color>
 
 <!--    General Theme-->
     <color name="colorPrimaryKa">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorPrimary">@color/colorPrimaryKa</color>
     <color name="colorAccent">#D81B60</color>
-    <color name="color_hint_composer">#dfe2e7</color>
-    <color name="bgBlueSignupAlpha">#503942f6</color>
-    <color name="color_c8c8c8">#c8c8c8</color>
-    <color name="color_blue_1_1">#0076FF</color>
-    <color name="background_tab_pressed">#efeffc</color>
 
 <!--    Associated Bank Theme-->
     <color name="colorPrimaryKa_associated">#0ea84d</color>
@@ -67,7 +66,7 @@
     <color name="readReceiptGrey">#c0cfd4</color>
     <color name="readReceiptLightGrey">#EBEBEB</color>
     <color name="readReceiptBorder">#FFFFFF</color>
-    <color name="sendfailed">#EE3340</color>
+    <color name="send_failed">#EE3340</color>
     <color name="bubbleFileName">#474747</color>
     <color name="bubbleFileBackground">#f8f8f8</color>
     <color name="colorUnselected">#F4F4F4</color>
@@ -119,6 +118,8 @@
     <color name="color_edf1fe">#edf1fe</color>
     <color name="color_fc4a61">#fc4a61</color>
     <color name="color_23d473">#23d473</color>
+    <color name="color_0076FF">#0076FF</color>
+    <color name="color_98A2B3">#98A2B3</color>
     <!--<color name="color_4741fa">#4741fa</color>-->
     <color name="color_f7f7fd">#f7f7fd</color>
     <string-array name="color_set">
@@ -206,4 +207,15 @@
     <color name="color_3E3E51">#3e3e51</color>
     <color name="listview_cost">#008000</color>
     <color name="txtFontBlack">#000000</color>
+    <color name="kora_grey">#202124</color>
+    <color name="gray_modern">#4B5565</color>
+    <color name="neutral">#404040</color>
+    <color name="default_button_color">#eaf1fc</color>
+    <!-- Shared chat resources that SDK V3 otherwise resolves from its demo/widget app. -->
+    <color name="color_hint_composer">#dfe2e7</color>
+    <color name="background_tab_pressed">#efeffc</color>
+    <color name="bgBlueSignupAlpha">#503942f6</color>
+    <color name="color_c8c8c8">#c8c8c8</color>
+    <color name="color_grey_e8">#e8e8e8</color>
+    <color name="color_blue_1_1">#0076FF</color>
 </resources>

@@ -18,13 +18,14 @@ import kore.botssdk.net.SDKConfiguration;
 public class TableRowAdapter extends RecyclerView.Adapter<TableRowAdapter.ViewHolder> {
     private final List<List<String>> rowItems;
     private final List<List<String>> headers;
+    private final boolean isEnabled;
     private final LayoutInflater layoutInflater;
 
-
-    public TableRowAdapter(Context context, List<List<String>> rowItems, List<List<String>> headers) {
+    public TableRowAdapter(Context context, List<List<String>> rowItems, List<List<String>> headers, boolean isEnabled) {
         layoutInflater = LayoutInflater.from(context);
         this.rowItems = rowItems;
         this.headers = headers;
+        this.isEnabled = isEnabled;
     }
 
     @NonNull

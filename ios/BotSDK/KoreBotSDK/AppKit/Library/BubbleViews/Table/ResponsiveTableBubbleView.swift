@@ -10,9 +10,7 @@
 
 import UIKit
 #if SWIFT_PACKAGE
-import ObjcSupport
 #endif
-
 class ResponsiveTableBubbleView: BubbleView, UITableViewDelegate, UITableViewDataSource {
     var tableView: UITableView!
     var showMoreButton: UIButton!
@@ -77,7 +75,7 @@ class ResponsiveTableBubbleView: BubbleView, UITableViewDelegate, UITableViewDat
         
         let cardViews: [String: UIView] = ["senderImageView": senderImageView, "tileBgv": tileBgv, "cardView": cardView]
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[tileBgv]-15-[cardView]-2-|", options: [], metrics: nil, views: cardViews))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[senderImageView(28)]", options: [], metrics: nil, views: cardViews))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-5-[senderImageView(30)]", options: [], metrics: nil, views: cardViews))
         
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-15-[cardView]-15-|", options: [], metrics: nil, views: cardViews))
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[senderImageView(28)]-8-[tileBgv]", options: [], metrics: nil, views: cardViews))
@@ -107,23 +105,18 @@ class ResponsiveTableBubbleView: BubbleView, UITableViewDelegate, UITableViewDat
         setCornerRadiousToTitleView()
     }
     func setCornerRadiousToTitleView(){
-        let bubbleStyle = brandingShared.bubbleShape
-        var radius = 10.0
+        let bubbleStyle = brandingBodyDic.bubble_style
+        let radius = 10.0
         let borderWidth = 0.0
         let borderColor = UIColor.clear
         if #available(iOS 11.0, *) {
             if bubbleStyle == "balloon"{
                 self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "rounded" || bubbleStyle == "circle"{
-                radius = 15.0
+            }else if bubbleStyle == "rounded"{
                 self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "rectangle"{
-                radius = 8.0
-                self.tileBgv.roundCorners([.layerMaxXMinYCorner, .layerMinXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else if bubbleStyle == "square"{
+                
+        }else if bubbleStyle == "rectangle"{
                 self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: radius, borderColor: borderColor, borderWidth: borderWidth)
-            }else{
-                self.tileBgv.roundCorners([ .layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner], radius: 20.0, borderColor: UIColor.lightGray, borderWidth: 0.0)
             }
         }
     }
@@ -228,6 +221,8 @@ class ResponsiveTableBubbleView: BubbleView, UITableViewDelegate, UITableViewDat
                 if(row.count > indexPath.row*2+1){
                     cell.secondLbl.text = row[indexPath.row*2+1]
                 }
+                cell.headerLabel.textColor = BubbleViewBotChatTextColor
+                cell.secondLbl.textColor = BubbleViewBotChatTextColor
                 cell.accessoryView = UIImageView(image:  UIImage(named: "arrowUnselected", in: bundle, compatibleWith: nil))
                 cell.separatorInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 22)
                 if indexPath.section % 2 == 0{
@@ -248,6 +243,8 @@ class ResponsiveTableBubbleView: BubbleView, UITableViewDelegate, UITableViewDat
             if(row.count > indexPath.row*2+1){
                 cell.secondLbl.text = row[indexPath.row*2+1]
             }
+            cell.headerLabel.textColor = BubbleViewBotChatTextColor
+            cell.secondLbl.textColor = BubbleViewBotChatTextColor
             cell.accessoryView = UIImageView(image:  UIImage(named: "arrowUnselected", in: bundle, compatibleWith: nil))
             cell.separatorInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 22)
 

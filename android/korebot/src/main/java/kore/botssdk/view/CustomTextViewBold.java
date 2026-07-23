@@ -22,17 +22,13 @@ public class CustomTextViewBold extends AppCompatTextView {
     public CustomTextViewBold(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         style(context, attrs);
-
     }
 
     private void style(Context context, AttributeSet attrs) {
-
-        if(SDKConfiguration.getBold() != null)
-        {
+        if (SDKConfiguration.getBold() != null) {
             setTypeface(SDKConfiguration.getBold());
             return;
         }
-
         Typeface tfRegular = ResourcesCompat.getFont(context, R.font.latobold);
         setTypeface(tfRegular);
     }

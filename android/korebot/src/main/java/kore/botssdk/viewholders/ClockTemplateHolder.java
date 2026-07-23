@@ -1,7 +1,12 @@
 package kore.botssdk.viewholders;
 
-import static kore.botssdk.viewUtils.DimensionUtil.dp1;
+import static android.content.Context.MODE_PRIVATE;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_BG_COLOR;
+import static kore.botssdk.models.BotResponse.BUBBLE_RIGHT_TEXT_COLOR;
+import static kore.botssdk.models.BotResponse.THEME_NAME;
+import static kore.botssdk.view.viewUtils.DimensionUtil.dp1;
 
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.view.View;
@@ -33,6 +38,7 @@ public class ClockTemplateHolder extends BaseViewHolder {
     private final TextView amPm;
     private final TextView confirm;
     private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("hh:mm:a", Locale.ENGLISH);
+    private SharedPreferences pref;
 
     private String msgId;
 
@@ -48,6 +54,7 @@ public class ClockTemplateHolder extends BaseViewHolder {
         minutesText = itemView.findViewById(R.id.minutes_text);
         amPm = itemView.findViewById(R.id.am_pm);
         confirm = itemView.findViewById(R.id.confirm);
+        pref = itemView.getContext().getSharedPreferences(THEME_NAME, MODE_PRIVATE);
     }
 
     @Override
@@ -79,8 +86,8 @@ public class ClockTemplateHolder extends BaseViewHolder {
             seekbarHours.setProgress(progress);
             seekbarMinutes.setProgress(Integer.parseInt(currentTime[1]));
         }
-        confirm.setBackgroundColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor));
-        confirm.setTextColor(Color.parseColor(SDKConfiguration.BubbleColors.quickReplyTextColor));
+        confirm.setBackgroundColor(Color.parseColor(pref.getString(BUBBLE_RIGHT_BG_COLOR, "#3F51B5")));
+        confirm.setTextColor(Color.parseColor(pref.getString(BUBBLE_RIGHT_TEXT_COLOR, "#ffffff")));
         setRoundedCorner(confirm, 4 * dp1);
         confirm.setOnClickListener(view -> {
             String msg = hoursText.getText() + ":" + minutesText.getText() + " " + amPm.getText();
@@ -134,7 +141,7 @@ public class ClockTemplateHolder extends BaseViewHolder {
     }
 
     private ColorStateList getThumbTint() {
-        int defaultColor = Color.parseColor(SDKConfiguration.BubbleColors.quickReplyColor);
+        int defaultColor = Color.parseColor(context.getSharedPreferences(THEME_NAME, MODE_PRIVATE).getString(BUBBLE_RIGHT_BG_COLOR, "#ffffff"));
         int pressedColor = ContextCompat.getColor(context, R.color.color_a7b0be);
         int disableColor = ContextCompat.getColor(context, R.color.color_efefef);
 
