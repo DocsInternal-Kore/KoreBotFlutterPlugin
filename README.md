@@ -82,7 +82,7 @@ Required keys:
 | `botId` | Bot id from Kore Bot Builder. |
 | `chatBotName` | Fallback bot title until branding is loaded. |
 | `identity` | Unique user identity. |
-| `jwt_server_url` | STS/JWT endpoint used by the SDK. |
+| `jwt_server_url` | Complete STS/JWT endpoint used as-is by the SDK (for example, `https://example.com/dev/users/sts`). |
 | `server_url` | Kore platform server URL. |
 
 Optional keys:

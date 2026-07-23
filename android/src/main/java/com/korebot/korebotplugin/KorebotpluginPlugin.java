@@ -206,7 +206,8 @@ public class KorebotpluginPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     private void makeStsJwtCallWithConfig() {
-        retrofit2.Call<JWTTokenResponse> getBankingConfigService = BotJWTRestBuilder.getBotJWTRestAPI().getJWTToken(getRequestObject());
+        retrofit2.Call<JWTTokenResponse> getBankingConfigService = BotJWTRestBuilder.getBotJWTRestAPI()
+                .getJWTToken(SDKConfiguration.JWTServer.getJwtServerUrl(), getRequestObject());
         getBankingConfigService.enqueue(new Callback<JWTTokenResponse>() {
             @Override
             public void onResponse(@NonNull retrofit2.Call<JWTTokenResponse> call, @NonNull Response<JWTTokenResponse> response) {

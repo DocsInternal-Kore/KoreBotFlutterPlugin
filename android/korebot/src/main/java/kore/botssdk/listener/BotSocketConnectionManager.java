@@ -171,7 +171,8 @@ public class BotSocketConnectionManager extends BaseSocketConnectionManager {
     }
 
     private void makeStsJwtCallWithConfig(final boolean isRefresh) {
-        Call<JWTTokenResponse> getBankingConfigService = BotJWTRestBuilder.getBotJWTRestAPI().getJWTToken(getRequestObject());
+        Call<JWTTokenResponse> getBankingConfigService = BotJWTRestBuilder.getBotJWTRestAPI()
+                .getJWTToken(SDKConfiguration.JWTServer.getJwtServerUrl(), getRequestObject());
         getBankingConfigService.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<JWTTokenResponse> call, @NonNull Response<JWTTokenResponse> response) {

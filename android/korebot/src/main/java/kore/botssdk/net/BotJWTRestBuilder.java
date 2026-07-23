@@ -22,6 +22,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class BotJWTRestBuilder {
 
+    private static final String RETROFIT_BASE_URL = "https://localhost/";
     private static BotJWTRestAPI botJWTRestAPI;
 
     private BotJWTRestBuilder(){}
@@ -29,7 +30,9 @@ public class BotJWTRestBuilder {
     public static BotJWTRestAPI getBotJWTRestAPI(){
         if(botJWTRestAPI == null) {
             botJWTRestAPI = new Retrofit.Builder()
-                    .baseUrl(SDKConfiguration.JWTServer.JWT_SERVER_URL)
+                    // Retrofit requires a base URL, but BotJWTRestAPI supplies the
+                    // complete configured JWT endpoint through @Url.
+                    .baseUrl(RETROFIT_BASE_URL)
                     .addConverterFactory(createConverter())
                     .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .client(getClient())
