@@ -530,6 +530,22 @@ class BotChatController {
     }
   }
 
+  /// SPM `checkConnectionAndRetry` — call when the app returns to foreground.
+  ///
+  /// After background/lock the WebSocket is often closed by the OS; without
+  /// this the compose footer stays disabled (`!isConnected`).
+  Future<bool> checkConnectionAndRetry() async {
+    if (_disposed) return false;
+    if (_session == null) return false;
+    if (_socket.isConnected) {
+      if (_state != BotConnectionState.connected) {
+        _setState(BotConnectionState.connected);
+      }
+      return true;
+    }
+    return _ensureConnectedForSend();
+  }
+
   Future<void> sendAttachment({
     required String fileName,
     required Uint8List bytes,

@@ -21,6 +21,12 @@ class NetworkConnectivityMonitor {
     _subscription = _connectivity.onConnectivityChanged.listen(_applyResults);
   }
 
+  /// Re-check reachability (e.g. after returning from background).
+  Future<void> refresh() async {
+    final results = await _connectivity.checkConnectivity();
+    _applyResults(results);
+  }
+
   void _applyResults(
     List<ConnectivityResult> results, {
     bool notify = true,

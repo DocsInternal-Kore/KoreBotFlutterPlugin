@@ -34,6 +34,7 @@ class DefaultChatHeader extends StatelessWidget {
             ),
             middle: Text(
               title,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: theme.headerTextColor,
                 fontWeight: FontWeight.w600,
@@ -43,7 +44,7 @@ class DefaultChatHeader extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            centerMiddle: false,
+            centerMiddle: true,
           ),
         ),
       ),

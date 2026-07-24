@@ -50,7 +50,8 @@ class BotChatScreen extends StatefulWidget {
   State<BotChatScreen> createState() => _BotChatScreenState();
 }
 
-class _BotChatScreenState extends State<BotChatScreen> {
+class _BotChatScreenState extends State<BotChatScreen>
+    with WidgetsBindingObserver {
   late final BotChatController _controller;
   late final bool _ownsController;
   final _scrollController = ScrollController();
@@ -79,6 +80,7 @@ class _BotChatScreenState extends State<BotChatScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _theme = widget.theme.applyFonts(widget.fonts).copyWith(
       botName: widget.config.chatBotName,
       botIconUrl: widget.config.botIconUrl,
@@ -147,6 +149,32 @@ class _BotChatScreenState extends State<BotChatScreen> {
     if (!mounted) return;
     if (_hasInternet != _connectivityMonitor.hasInternet) {
       setState(() => _hasInternet = _connectivityMonitor.hasInternet);
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_onAppResumed());
+    }
+  }
+
+  /// After background/lock the OS often closes the RTM socket and connectivity
+  /// events may be missed — refresh both so the footer becomes usable again.
+  Future<void> _onAppResumed() async {
+    if (!mounted || _isClosing) return;
+
+    await _connectivityMonitor.refresh();
+    if (!mounted) return;
+    if (_hasInternet != _connectivityMonitor.hasInternet) {
+      setState(() => _hasInternet = _connectivityMonitor.hasInternet);
+    }
+    if (!_hasInternet) return;
+
+    try {
+      await _controller.checkConnectionAndRetry();
+    } catch (error) {
+      debugPrint('[KoreBot] resume reconnect failed: $error');
     }
   }
 
@@ -430,6 +458,7 @@ class _BotChatScreenState extends State<BotChatScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     for (final sub in _subscriptions) {
       sub.cancel();
     }
@@ -466,7 +495,9 @@ class _BotChatScreenState extends State<BotChatScreen> {
               if (widget.headerBuilder != null || config.showHeader)
                 _buildHeader(title, theme),
               NoInternetBanner(visible: !_hasInternet),
-              if (_state == BotConnectionState.connecting || _uploading)
+              if (_state == BotConnectionState.connecting ||
+                  _state == BotConnectionState.reconnecting ||
+                  _uploading)
                 LinearProgressIndicator(
                   minHeight: 2,
                   color: theme.headerColor,
