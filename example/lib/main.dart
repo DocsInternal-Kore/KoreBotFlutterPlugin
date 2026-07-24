@@ -57,8 +57,9 @@ class HomePage extends StatelessWidget {
     'showMicrophone': true,
     'showTextToSpeech': true,
     'showIcon': true,
+    // Passed on jwtgrant / rtm and every outbound message (message.customData + botInfo).
+    'customData': {'userId': 'ka@ka.com', 'firstName': 'Example', 'lastName': 'User', 'email': 'ka@ka.com'},
     // Optional: 'botIconUrl': 'https://...',
-    // Optional: 'branding_url': 'https://platform.kore.ai',
   };
 
   Future<void> _openBot(BuildContext context) async {
