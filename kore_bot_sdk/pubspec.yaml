@@ -1,0 +1,35 @@
+name: kore_bot_sdk
+description: Pure Flutter Kore Bot SDK — chat UI and RTM networking with no native Android/iOS UI.
+version: 1.0.0
+homepage: https://kore.ai
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.16.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.2
+  web_socket_channel: ^3.0.1
+  url_launcher: ^6.3.1
+  fl_chart: ^0.70.2
+  speech_to_text: ^7.0.0
+  flutter_tts: ^4.2.0
+  file_picker: ^8.1.7
+  image_picker: ^1.1.2
+  path: ^1.9.0
+  http_parser: ^4.0.2
+  intl: ^0.19.0
+  flutter_markdown_plus: ^1.0.12
+  video_player: ^2.13.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/button_link_bg.png

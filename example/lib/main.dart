@@ -1,98 +1,79 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-import 'package:flutter/services.dart';
+import 'package:kore_bot_sdk/kore_bot_sdk.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Kore Bot SDK Example',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3F51B5)),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+  /// Same config keys as Flutter Public New MethodChannel `getChatWindow`.
+  static final Map<String, dynamic> botConfig = {
+    'clientId': 'cs-59c81eb8-fc6b-5413-9411-6249e2db25b2',
+    'clientSecret': 'UuJ+N7EOFEPzlH+IlWWPHJPAQVZ06Smevy0kZTlRUIk=',
+    'botId': 'st-c2a341ba-5612-5ab2-a5b3-d4a81f6a42ea',
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+    // 'clientId': 'cs-1e845b00-81ad-5757-a1e7-d0f6fea227e9',
+    // 'clientSecret': '5OcBSQtH/k6Q/S6A3bseYfOee02YjjLLTNoT1qZDBso=',
+    // 'botId': 'st-b9889c46-218c-58f7-838f-73ae9203488c',
 
-  final String title;
+    // 'clientId': 'cs-1b1ed162-2c62-543f-9bdd-d56cc7a89b4a', /all templates
+    // 'clientSecret': 'd/DK0fQrA7Ab/6jGIgGB6sVZxjGWJKC17QNRmtFq0go=',
+    // 'botId': 'st-0c3be6e0-3f7c-5134-97f9-2d14d7ca922c',
 
-  @override
-  State<MyHomePage> createState() {
-    return _MyHomePageState();
-  }
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  static const platform = MethodChannel('kore.botsdk/chatbot');
-
-  var botConfig = {
-    "clientId": "PLEASE_ENTER_CLIENT_ID",
-    "clientSecret": "PLEASE_ENTER_CLIENT_SECRET",
-    "botId": "PLEASE_ENTER_BOT_ID",
-    "chatBotName": "PLEASE_ENTER_BOT_NAME",
-    "identity": "PLEASE_ENTER_IDENTITY",
-    "jwt_server_url": "PLEASE_ENTER_JWT_SERVER_URL",
-    "server_url": "PLEASE_ENTER_SERVER_URL",
-    "preferredLanguage": "en"
+    // 'clientId': 'cs-8dbe60f4-bc93-5559-a617-2ef173d5e827',
+    // 'clientSecret': '+gyZIjtPUyQukO4bkfooQ52c/HNSekY8iULhfcJy4kw=',
+    // 'botId': 'st-6b9d6fb9-e7ea-571c-b2cd-a6184e10af2a',
+    'chatBotName': 'SDK Demo',
+    'identity': 'ka@ka.com',
+    'jwt_server_url': 'https://mk2r2rmj21.execute-api.us-east-1.amazonaws.com/dev/',
+    'server_url': 'https://platform.kore.ai',
+    // Simulator / proxy TLS workaround for CERTIFICATE_VERIFY_FAILED.
+    'allowBadCertificates': true,
+    'callHistory': false,
+    'showAttachment': true,
+    'showMicrophone': true,
+    'showTextToSpeech': true,
+    'showIcon': true,
+    // Optional: 'botIconUrl': 'https://...',
+    // Optional: 'branding_url': 'https://platform.kore.ai',
   };
 
-  Future<void> _callNativemethod() async {
-    platform.setMethodCallHandler((handler) async {
-      if (handler.method == 'Callbacks') {
-        // Do your logic here.
-        debugPrint("Event from native ${handler.arguments}");
-      }
-    });
-
-    try {
-      await platform.invokeMethod('getChatWindow', botConfig);
-    } on PlatformException catch (_) {}
+  Future<void> _openBot(BuildContext context) async {
+    await KoreBotChat.open(
+      context,
+      botConfig: botConfig,
+      onEvent: (code, message) {
+        debugPrint('Bot event: $code — $message');
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: ElevatedButton(
-                onPressed: _callNativemethod,
-                child: const Text('Bot Connect'),
-              ),
-            ),
-          ],
+    return Scaffold(
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () => _openBot(context),
+          child: const Text('Bot Connect'),
         ),
       ),
     );
