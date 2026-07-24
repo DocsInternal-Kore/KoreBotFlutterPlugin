@@ -3,7 +3,7 @@ import 'package:kore_bot_sdk/kore_bot_sdk.dart';
 
 // import 'custom_chat_footer.dart';
 // import 'custom_chat_header.dart';
-//import 'custom_templates.dart';
+// import 'custom_templates.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,7 +58,7 @@ class HomePage extends StatelessWidget {
     'showTextToSpeech': true,
     'showIcon': true,
     // Passed on jwtgrant / rtm and every outbound message (message.customData + botInfo).
-    'customData': {'userId': 'ka@ka.com', 'firstName': 'Example', 'lastName': 'User', 'email': 'ka@ka.com'},
+    //'customData': {'userId': 'ka@ka.com', 'firstName': 'Example', 'lastName': 'User', 'email': 'ka@ka.com'},
     // Optional: 'botIconUrl': 'https://...',
   };
 
@@ -66,9 +66,14 @@ class HomePage extends StatelessWidget {
     await KoreBotChat.open(
       context,
       botConfig: botConfig,
+      // Register family in example/pubspec.yaml first, then inject:
+      // fonts: const BotChatFonts(
+      //   family: '29LTBukra',
+      //   // monospaceFamily: 'JetBrainsMono', // optional, for code blocks
+      // ),
       // headerBuilder: buildCustomChatHeader(),
       // footerBuilder: buildCustomChatFooter(),
-      //templateRegistry: buildCustomTemplateRegistry(),
+      // templateRegistry: buildCustomTemplateRegistry(),
       onEvent: (code, message) {
         debugPrint('Bot event: $code — $message');
       },

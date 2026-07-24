@@ -14,6 +14,7 @@ import '../services/speech_services.dart';
 import '../session/bot_chat_session_state.dart';
 import 'templates/message_bubble.dart';
 import 'templates/bot_template_registry.dart';
+import 'theme/bot_chat_fonts.dart';
 import 'theme/bot_chat_theme.dart';
 import 'chat_footer_builder.dart';
 import 'chat_header_builder.dart';
@@ -31,6 +32,7 @@ class BotChatScreen extends StatefulWidget {
     this.headerBuilder,
     this.footerBuilder,
     this.templateRegistry,
+    this.fonts,
   });
 
   final BotConfig config;
@@ -40,6 +42,7 @@ class BotChatScreen extends StatefulWidget {
   final BotChatHeaderBuilder? headerBuilder;
   final BotChatFooterBuilder? footerBuilder;
   final BotTemplateRegistry? templateRegistry;
+  final BotChatFonts? fonts;
 
   @override
   State<BotChatScreen> createState() => _BotChatScreenState();
@@ -72,7 +75,7 @@ class _BotChatScreenState extends State<BotChatScreen> {
   @override
   void initState() {
     super.initState();
-    _theme = widget.theme.copyWith(
+    _theme = widget.theme.applyFonts(widget.fonts).copyWith(
       botName: widget.config.chatBotName,
       botIconUrl: widget.config.botIconUrl,
       footerHintText: widget.config.footerHintText,

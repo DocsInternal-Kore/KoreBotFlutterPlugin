@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../theme/bot_chat_fonts.dart';
 import 'kore_markdown.dart';
 
 class TextBubble extends StatelessWidget {
@@ -24,8 +25,16 @@ class TextBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     if (text.trim().isEmpty) return const SizedBox.shrink();
     final radius = square ? 4.0 : 16.0;
-    final baseStyle = TextStyle(color: textColor, fontSize: 15, height: 1.35);
+    final family = Theme.of(context).textTheme.bodyMedium?.fontFamily ??
+        Theme.of(context).textTheme.bodyLarge?.fontFamily;
+    final baseStyle = TextStyle(
+      color: textColor,
+      fontSize: 15,
+      height: 1.35,
+      fontFamily: family,
+    );
     final markdown = normalizeKoreMarkdown(text);
+    final mono = BotChatFontsExtension.monospaceOf(context);
 
     // Size to text content (not full row width), with a bounded max width so
     // MarkdownBody can lay out wrapped lines correctly.
@@ -87,7 +96,7 @@ class TextBubble extends StatelessWidget {
                     decoration: TextDecoration.underline,
                   ),
                   code: baseStyle.copyWith(
-                    fontFamily: 'monospace',
+                    fontFamily: mono,
                     backgroundColor: Colors.black.withValues(alpha: 0.08),
                     fontSize: 13,
                   ),

@@ -18,4 +18,5 @@ export 'src/ui/chat_header_builder.dart';
 export 'src/ui/chat_footer_builder.dart';
 export 'src/ui/templates/bot_template_registry.dart';
 export 'src/ui/theme/bot_chat_theme.dart';
+export 'src/ui/theme/bot_chat_fonts.dart';
 export 'src/services/speech_services.dart';

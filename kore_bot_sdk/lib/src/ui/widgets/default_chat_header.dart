@@ -38,6 +38,7 @@ class DefaultChatHeader extends StatelessWidget {
                 color: theme.headerTextColor,
                 fontWeight: FontWeight.w600,
                 fontSize: 18,
+                fontFamily: theme.fontFamily,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

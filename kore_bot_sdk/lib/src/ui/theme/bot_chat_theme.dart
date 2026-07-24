@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'bot_chat_fonts.dart';
+
 /// Visual tokens matching classic Android Kore bot chat + branding API.
 class BotChatTheme {
   const BotChatTheme({
@@ -26,6 +28,9 @@ class BotChatTheme {
     this.showTextToSpeech = false,
     this.showIcon = true,
     this.allowBadCertificates = false,
+    this.fontFamily,
+    this.monospaceFontFamily,
+    this.textTheme,
   });
 
   final Color headerColor;
@@ -52,10 +57,30 @@ class BotChatTheme {
   final bool showIcon;
   final bool allowBadCertificates;
 
+  /// Host-injected primary font family (via [BotChatFonts]).
+  final String? fontFamily;
+
+  /// Host-injected monospace font for code / markdown.
+  final String? monospaceFontFamily;
+
+  /// Optional host [TextTheme] merged into [toThemeData].
+  final TextTheme? textTheme;
+
   bool get isSquareBubble => bubbleStyle.toLowerCase() == 'square';
 
-  /// Flutter [ThemeData] derived from branding colors.
+  /// Applies host [BotChatFonts] (highest priority for typography).
+  BotChatTheme applyFonts(BotChatFonts? fonts) {
+    if (fonts == null || fonts.isEmpty) return this;
+    return copyWith(
+      fontFamily: fonts.family ?? fontFamily,
+      monospaceFontFamily: fonts.monospaceFamily ?? monospaceFontFamily,
+      textTheme: fonts.textTheme ?? textTheme,
+    );
+  }
+
+  /// Flutter [ThemeData] derived from branding colors + fonts.
   ThemeData toThemeData({Brightness brightness = Brightness.light}) {
+    final family = BotChatFonts.resolveFontFamily(fontFamily);
     final scheme = ColorScheme.fromSeed(
       seedColor: headerColor,
       brightness: brightness,
@@ -66,37 +91,55 @@ class BotChatTheme {
       onSecondary: buttonTextColor,
       onSurface: botTextColor,
     );
-    return ThemeData(
+
+    final base = ThemeData(
       useMaterial3: true,
+      fontFamily: family,
       colorScheme: scheme,
       scaffoldBackgroundColor: backgroundColor,
       appBarTheme: AppBarTheme(
         backgroundColor: headerColor,
         foregroundColor: headerTextColor,
         elevation: 0,
+        titleTextStyle: TextStyle(
+          fontFamily: family,
+          color: headerTextColor,
+          fontWeight: FontWeight.w600,
+          fontSize: 18,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: buttonColor,
           foregroundColor: buttonTextColor,
+          textStyle: TextStyle(fontFamily: family),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: buttonColor,
           side: BorderSide(color: buttonBorderColor),
+          textStyle: TextStyle(fontFamily: family),
         ),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: Colors.white,
         selectedColor: buttonColor.withValues(alpha: 0.15),
         side: BorderSide(color: buttonBorderColor),
-        labelStyle: TextStyle(color: buttonColor),
+        labelStyle: TextStyle(color: buttonColor, fontFamily: family),
       ),
       inputDecorationTheme: InputDecorationTheme(
-        hintStyle: TextStyle(color: footerHintColor),
+        hintStyle: TextStyle(color: footerHintColor, fontFamily: family),
       ),
+      extensions: <ThemeExtension<dynamic>>[
+        BotChatFontsExtension(
+          monospaceFamily: BotChatFonts.resolveFontFamily(monospaceFontFamily),
+        ),
+      ],
     );
+
+    if (textTheme == null) return base;
+    return base.copyWith(textTheme: base.textTheme.merge(textTheme));
   }
 
   BotChatTheme copyWith({
@@ -123,6 +166,9 @@ class BotChatTheme {
     bool? showTextToSpeech,
     bool? showIcon,
     bool? allowBadCertificates,
+    String? fontFamily,
+    String? monospaceFontFamily,
+    TextTheme? textTheme,
   }) {
     return BotChatTheme(
       headerColor: headerColor ?? this.headerColor,
@@ -149,6 +195,9 @@ class BotChatTheme {
       showIcon: showIcon ?? this.showIcon,
       allowBadCertificates:
           allowBadCertificates ?? this.allowBadCertificates,
+      fontFamily: fontFamily ?? this.fontFamily,
+      monospaceFontFamily: monospaceFontFamily ?? this.monospaceFontFamily,
+      textTheme: textTheme ?? this.textTheme,
     );
   }
 

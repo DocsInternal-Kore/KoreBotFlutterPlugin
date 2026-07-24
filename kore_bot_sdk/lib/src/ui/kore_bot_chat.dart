@@ -6,6 +6,7 @@ import 'bot_chat_screen.dart';
 import 'chat_footer_builder.dart';
 import 'chat_header_builder.dart';
 import 'templates/bot_template_registry.dart';
+import 'theme/bot_chat_fonts.dart';
 import 'theme/bot_chat_theme.dart';
 
 /// One-line launcher that replaces MethodChannel `getChatWindow`.
@@ -22,6 +23,8 @@ class KoreBotChat {
   /// them to use the built-in header and compose footer.
   ///
   /// Pass [templateRegistry] to add new template types or override built-ins.
+  ///
+  /// Pass [fonts] after registering the family in the host `pubspec.yaml`.
   static Future<T?> open<T>(
     BuildContext context, {
     required Map<String, dynamic> botConfig,
@@ -30,6 +33,7 @@ class KoreBotChat {
     BotChatHeaderBuilder? headerBuilder,
     BotChatFooterBuilder? footerBuilder,
     BotTemplateRegistry? templateRegistry,
+    BotChatFonts? fonts,
     bool fullscreenDialog = false,
   }) {
     final config = BotConfig.fromMap(botConfig);
@@ -38,11 +42,12 @@ class KoreBotChat {
         fullscreenDialog: fullscreenDialog,
         builder: (_) => BotChatScreen(
           config: config,
-          theme: theme,
+          theme: theme.applyFonts(fonts),
           onEvent: onEvent,
           headerBuilder: headerBuilder,
           footerBuilder: footerBuilder,
           templateRegistry: templateRegistry,
+          fonts: fonts,
         ),
       ),
     );
@@ -57,6 +62,7 @@ class KoreBotChat {
     BotChatHeaderBuilder? headerBuilder,
     BotChatFooterBuilder? footerBuilder,
     BotTemplateRegistry? templateRegistry,
+    BotChatFonts? fonts,
     bool fullscreenDialog = false,
   }) {
     return Navigator.of(context).push<T>(
@@ -64,11 +70,12 @@ class KoreBotChat {
         fullscreenDialog: fullscreenDialog,
         builder: (_) => BotChatScreen(
           config: config,
-          theme: theme,
+          theme: theme.applyFonts(fonts),
           onEvent: onEvent,
           headerBuilder: headerBuilder,
           footerBuilder: footerBuilder,
           templateRegistry: templateRegistry,
+          fonts: fonts,
         ),
       ),
     );

@@ -78,7 +78,11 @@ class ComposeFooter extends StatelessWidget {
                 enabled: enabled,
                 minLines: 1,
                 maxLines: 4,
-                style: const TextStyle(fontSize: 14, height: 1.2),
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.2,
+                  fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                ),
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) {
                   if (!enabled) return;
