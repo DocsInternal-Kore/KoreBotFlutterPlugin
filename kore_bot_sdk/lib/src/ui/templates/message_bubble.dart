@@ -25,6 +25,7 @@ import 'table_templates.dart';
 import 'template_helpers.dart';
 import 'text_bubble.dart';
 import 'audio_template.dart';
+import 'bot_template_registry.dart';
 import 'video_template.dart';
 
 class MessageBubble extends StatefulWidget {
@@ -33,11 +34,13 @@ class MessageBubble extends StatefulWidget {
     required this.message,
     required this.theme,
     required this.controller,
+    this.templateRegistry,
   });
 
   final ChatMessage message;
   final BotChatTheme theme;
   final BotChatController controller;
+  final BotTemplateRegistry? templateRegistry;
 
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
@@ -241,6 +244,20 @@ class _MessageBubbleState extends State<MessageBubble>
         debugPrint('[KoreBot] template submit failed: $error\n$stack');
       }
     }
+
+    // Host registry: new types + overrides of built-in types.
+    final custom = widget.templateRegistry?.build(
+      context,
+      BotTemplateContext(
+        template: template,
+        message: message,
+        theme: theme,
+        controller: controller,
+        onButton: onButton,
+        onSubmit: onSubmit,
+      ),
+    );
+    if (custom != null) return custom;
 
     if (template.isButton) {
       return ButtonTemplate(template: template, theme: theme, onButton: onButton);

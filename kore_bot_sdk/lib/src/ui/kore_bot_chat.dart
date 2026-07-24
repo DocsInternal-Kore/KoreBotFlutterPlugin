@@ -5,6 +5,7 @@ import '../controller/bot_chat_controller.dart';
 import 'bot_chat_screen.dart';
 import 'chat_footer_builder.dart';
 import 'chat_header_builder.dart';
+import 'templates/bot_template_registry.dart';
 import 'theme/bot_chat_theme.dart';
 
 /// One-line launcher that replaces MethodChannel `getChatWindow`.
@@ -19,6 +20,8 @@ class KoreBotChat {
   ///
   /// Pass [headerBuilder] / [footerBuilder] to inject custom chrome, or omit
   /// them to use the built-in header and compose footer.
+  ///
+  /// Pass [templateRegistry] to add new template types or override built-ins.
   static Future<T?> open<T>(
     BuildContext context, {
     required Map<String, dynamic> botConfig,
@@ -26,6 +29,7 @@ class KoreBotChat {
     BotEventCallback? onEvent,
     BotChatHeaderBuilder? headerBuilder,
     BotChatFooterBuilder? footerBuilder,
+    BotTemplateRegistry? templateRegistry,
     bool fullscreenDialog = false,
   }) {
     final config = BotConfig.fromMap(botConfig);
@@ -38,6 +42,7 @@ class KoreBotChat {
           onEvent: onEvent,
           headerBuilder: headerBuilder,
           footerBuilder: footerBuilder,
+          templateRegistry: templateRegistry,
         ),
       ),
     );
@@ -51,6 +56,7 @@ class KoreBotChat {
     BotEventCallback? onEvent,
     BotChatHeaderBuilder? headerBuilder,
     BotChatFooterBuilder? footerBuilder,
+    BotTemplateRegistry? templateRegistry,
     bool fullscreenDialog = false,
   }) {
     return Navigator.of(context).push<T>(
@@ -62,6 +68,7 @@ class KoreBotChat {
           onEvent: onEvent,
           headerBuilder: headerBuilder,
           footerBuilder: footerBuilder,
+          templateRegistry: templateRegistry,
         ),
       ),
     );

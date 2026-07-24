@@ -13,6 +13,7 @@ import '../net/bot_connection_state.dart';
 import '../services/speech_services.dart';
 import '../session/bot_chat_session_state.dart';
 import 'templates/message_bubble.dart';
+import 'templates/bot_template_registry.dart';
 import 'theme/bot_chat_theme.dart';
 import 'chat_footer_builder.dart';
 import 'chat_header_builder.dart';
@@ -29,6 +30,7 @@ class BotChatScreen extends StatefulWidget {
     this.controller,
     this.headerBuilder,
     this.footerBuilder,
+    this.templateRegistry,
   });
 
   final BotConfig config;
@@ -37,6 +39,7 @@ class BotChatScreen extends StatefulWidget {
   final BotChatController? controller;
   final BotChatHeaderBuilder? headerBuilder;
   final BotChatFooterBuilder? footerBuilder;
+  final BotTemplateRegistry? templateRegistry;
 
   @override
   State<BotChatScreen> createState() => _BotChatScreenState();
@@ -480,6 +483,7 @@ class _BotChatScreenState extends State<BotChatScreen> {
                         message: message,
                         theme: theme,
                         controller: _controller,
+                        templateRegistry: widget.templateRegistry,
                       );
                     },
                   ),
