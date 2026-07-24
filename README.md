@@ -3,17 +3,22 @@
 Pure Flutter replacement for the native Android/iOS chat UI previously opened
 through MethodChannel `kore.botsdk/chatbot` in **Flutter Public New**.
 
+**Design docs:** [HLD.md](./HLD.md) · [LLD.md](./LLD.md)
+
 ## Features
 
 - Pure Flutter chat UI (Android + iOS)
 - Classic Kore auth: STS → jwtgrant → RTM WebSocket
 - Branding theme (`GET /api/websdkthemes/{botId}/activetheme`) → Flutter `ThemeData`
-- Bot icon in header + message bubbles (`botIconUrl` / branding / message `icon`)
+- Bot icon in message bubbles (`botIconUrl` / branding / message `icon`)
 - Attachments: camera / gallery / documents → Kore file upload → WebSocket `fileId`
-- Speech-to-text (device ASR, auto-send final result)
-- Text-to-speech (device TTS speaker toggle)
+- Speech-to-text (device ASR) and text-to-speech (speaker toggle)
 - Full template set (buttons, lists, carousels, charts, tables, forms, …)
-
+- Host injection: custom **header**, **footer**, **fonts**, **templates** (new + override)
+- `customData` on connect and every outbound message
+- No-internet banner under header (`connectivity_plus`)
+- Resume reconnect after background / lock (`checkConnectionAndRetry`)
+- Minimize / Close session behavior aligned with native SPM
 
 ---
 
@@ -22,7 +27,10 @@ through MethodChannel `kore.botsdk/chatbot` in **Flutter Public New**.
 ```
 Flutter_Code_Bot_SDK/
 ├── kore_bot_sdk/     # Flutter package (UI + networking)
-└── example/          # Demo host app (“Bot Connect”)
+├── example/          # Demo host app (“Bot Connect”)
+├── HLD.md            # High-level design
+├── LLD.md            # Low-level design
+└── README.md
 ```
 
 ---
@@ -53,6 +61,8 @@ await KoreBotChat.open(
     'jwt_server_url': '<JWT_SERVER_URL>',
     'server_url': 'https://platform.kore.ai',
     'callHistory': false,
+    // Optional:
+    // 'customData': {'userId': '…', 'email': '…'},
   },
   onEvent: (code, message) {
     debugPrint('$code: $message');
@@ -60,7 +70,23 @@ await KoreBotChat.open(
 );
 ```
 
-### 3. Run the example
+### 3. Optional host injection
+
+```dart
+await KoreBotChat.open(
+  context,
+  botConfig: botConfig,
+  fonts: const BotChatFonts(family: 'BrandSans'), // register in host pubspec
+  headerBuilder: buildCustomChatHeader(),
+  footerBuilder: buildCustomChatFooter(),
+  templateRegistry: buildCustomTemplateRegistry(), // new + override types
+  onEvent: (code, message) => debugPrint('$code: $message'),
+);
+```
+
+See `example/lib/custom_*.dart` for working samples.
+
+### 4. Run the example
 
 ```sh
 cd example
@@ -80,6 +106,7 @@ flutter run
 | Android `NewBotChatActivity` | `BotChatScreen` |
 | iOS `ChatMessagesViewController` | same Flutter UI |
 | Native `Callbacks` | `onEvent` callback |
+| Custom header/footer fragments | `headerBuilder` / `footerBuilder` |
 
 You can remove the `android/korebot`, `android/korebotsdklib`, and
 `ios/BotSDK` modules from host apps once you switch to this package.
@@ -110,24 +137,33 @@ Parity with Flutter Public New Android ViewHolders:
 | beneficiaryTemplate | Supported |
 | Notification (agent transfer) | Supported |
 
+Host apps can **override** any of the above or **register new** `template_type` values via `BotTemplateRegistry`.
+
 ---
 
 ## Architecture
 
 ```
 Host App
-   │
+   │  KoreBotChat.open (+ optional fonts / builders / registry)
    ▼
-KoreBotChat.open / BotChatScreen
+BotChatScreen
+   ├── NetworkConnectivityMonitor → NoInternetBanner
+   ├── Header / Footer (injected or default)
+   └── MessageBubble → BotTemplateRegistry → built-in templates
    │
    ▼
 BotChatController
    ├── BotRestClient   (STS, jwtgrant, rtm/start, history)
-   └── BotSocketClient (WebSocket messaging)
+   ├── BotSocketClient (WebSocket messaging)
+   ├── BrandingService / FileUploadService
+   └── checkConnectionAndRetry() on app resume
    │
    ▼
 Kore Platform (HTTPS + WSS)
 ```
+
+For diagrams, sequences, and API tables see [HLD.md](./HLD.md) and [LLD.md](./LLD.md).
 
 ---
 
