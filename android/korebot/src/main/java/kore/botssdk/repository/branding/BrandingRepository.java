@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Locale;
 
 import io.reactivex.annotations.NonNull;
 import kore.botssdk.R;
@@ -39,7 +40,9 @@ public class BrandingRepository {
     }
 
     public void getBrandingDetails(String botId, String botToken) {
-        Call<BotActiveThemeModel> getBankingConfigService = BrandingRestBuilder.getRestAPI().getBrandingNewDetails(botId, "bearer " + botToken, "published", "1", "en_US", botId);
+        Locale preferredLocale = SDKConfiguration.getDeviceLocale();
+        String preferredLanguage = preferredLocale != null ? preferredLocale.toLanguageTag() : "en-US";
+        Call<BotActiveThemeModel> getBankingConfigService = BrandingRestBuilder.getRestAPI().getBrandingNewDetails(botId, "bearer " + botToken, "published", "1", preferredLanguage, botId);
         getBankingConfigService.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<BotActiveThemeModel> call, @NonNull Response<BotActiveThemeModel> response) {

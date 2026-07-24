@@ -53,7 +53,7 @@ open class KREQuickSelectView: UIView {
         collectionView.dataSource = self
         collectionView.delegate = self
         addSubview(collectionView)
-        collectionView.semanticContentAttribute = .forceLeftToRight
+        collectionView.semanticContentAttribute = isKoreSDKRTL ? .forceRightToLeft : .forceLeftToRight
         
         layout.minimumInteritemSpacing = 1.0
         layout.minimumLineSpacing = 10
@@ -219,12 +219,21 @@ extension KREQuickSelectView{
             attributes.append(attribute)
         }
 
-        func tagLayout(collectionViewWidth: CGFloat) {
+        func tagLayout(collectionViewWidth: CGFloat, isRTL: Bool) {
             let padding = 2
-            var offset = padding
-            for attribute in attributes {
-                attribute.frame.origin.x = CGFloat(offset)
-                offset += Int(attribute.frame.width + spacing)
+            if isRTL {
+                var offset = Int(collectionViewWidth) - padding
+                for attribute in attributes {
+                    offset -= Int(attribute.frame.width)
+                    attribute.frame.origin.x = CGFloat(offset)
+                    offset -= Int(spacing)
+                }
+            } else {
+                var offset = padding
+                for attribute in attributes {
+                    attribute.frame.origin.x = CGFloat(offset)
+                    offset += Int(attribute.frame.width + spacing)
+                }
             }
         }
     }
@@ -246,7 +255,12 @@ extension KREQuickSelectView{
                 rows.last?.add(attribute: attribute)
             }
 
-            rows.forEach { $0.tagLayout(collectionViewWidth: collectionView?.frame.width ?? 0) }
+            rows.forEach {
+                $0.tagLayout(
+                    collectionViewWidth: collectionView?.frame.width ?? 0,
+                    isRTL: isKoreSDKRTL
+                )
+            }
             return rows.flatMap { $0.attributes }
         }
     }

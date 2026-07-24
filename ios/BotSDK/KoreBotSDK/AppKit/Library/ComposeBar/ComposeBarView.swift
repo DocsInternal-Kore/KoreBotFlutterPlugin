@@ -29,6 +29,8 @@ class ComposeBarView: UIView {
     fileprivate var attachmentButton: UIButton!
     fileprivate var speechToTextButton: UIButton!
     fileprivate var textViewTrailingConstraint: NSLayoutConstraint!
+    fileprivate var growingTextViewHeightConstraint: NSLayoutConstraint!
+    fileprivate var composeBarHeightConstraint: NSLayoutConstraint!
     fileprivate(set) public var isKeyboardEnabled: Bool = false
     var isHideSpeeachToTextBtn = false
     var footerDic = FooterModel()
@@ -49,8 +51,19 @@ class ComposeBarView: UIView {
         super.init(coder: aDecoder)
         self.setupViews()
     }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        if sendButton != nil {
+            var sendFrame = sendButton.frame
+            sendFrame.size.height = 35.0
+            sendFrame.origin.y = (bounds.height - sendFrame.height) / 2.0
+            sendButton.frame = sendFrame
+        }
+    }
     
     fileprivate func setupViews() {
+        semanticContentAttribute = isKoreSDKRTL ? .forceRightToLeft : .forceLeftToRight
         
         if let footerDic = brandingValues.footer{
             self.footerDic = footerDic
@@ -69,13 +82,27 @@ class ComposeBarView: UIView {
         self.growingTextView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(self.growingTextView)
         self.growingTextView.setContentCompressionResistancePriority(UILayoutPriority.defaultLow, for: .horizontal)
+        self.growingTextView.minimumHeight = 40.0
+        self.growingTextViewHeightConstraint = self.growingTextView.heightAnchor.constraint(equalToConstant: 40.0)
+        self.growingTextViewHeightConstraint.isActive = true
+        self.composeBarHeightConstraint = self.heightAnchor.constraint(equalToConstant: 60.0)
+        self.composeBarHeightConstraint.isActive = true
         
         self.growingTextView.textView.tintColor = .black
         self.growingTextView.textView.textColor = .black
-        self.growingTextView.textView.textAlignment = .right
+        self.growingTextView.semanticContentAttribute = semanticContentAttribute
+        self.growingTextView.textView.semanticContentAttribute = semanticContentAttribute
+        self.growingTextView.textView.textAlignment = isKoreSDKRTL ? .right : .left
+        self.growingTextView.placeholderLabel.textAlignment = isKoreSDKRTL ? .right : .left
         self.growingTextView.maxNumberOfLines = 10
         self.growingTextView.font = UIFont(name: regularCustomFont, size: 14.0) ?? UIFont.systemFont(ofSize: 14.0)
-        self.growingTextView.textContainerInset = UIEdgeInsets(top: 7, left: 0, bottom: 7, right: 0)
+        let inputVerticalInset = max(0.0, (40.0 - self.growingTextView.font.lineHeight) / 2.0)
+        self.growingTextView.textContainerInset = UIEdgeInsets(
+            top: inputVerticalInset,
+            left: 0,
+            bottom: inputVerticalInset,
+            right: 0
+        )
         self.growingTextView.animateHeightChange = true
         self.growingTextView.backgroundColor = UIColor.init(hexString: txtViewBgColor ?? "#ffffff")
         self.growingTextView.layer.borderWidth = 1.0
@@ -107,6 +134,7 @@ class ComposeBarView: UIView {
         //self.sendButton.setTitle("Send", for: .normal)
         self.sendButton.setImage(UIImage(named: "SendW", in: bundle, compatibleWith: nil), for: .normal)
         self.sendButton.translatesAutoresizingMaskIntoConstraints = false
+        self.sendButton.heightAnchor.constraint(equalToConstant: 35.0).isActive = true
         self.sendButton.backgroundColor = themeColor
         self.sendButton.layer.cornerRadius = 5
         self.sendButton.setTitleColor(Common.UIColorRGB(0xFFFFFF), for: .normal)
@@ -163,20 +191,37 @@ class ComposeBarView: UIView {
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[bottomLineView(0.5)]|", options:[], metrics:nil, views:views))
         
 
-         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[menuButton(\(menuBtnWidth))]-2-[attachmentButton(\(attachmentBtnWidth))]-5-[growingTextView]-8-[sendButton(35)]-8-|", options:[], metrics:nil, views:views))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[attachmentButton]-5-[growingTextView]-8-[speechToTextButton(\(speeachToTextBtnWidth))]-13-|", options:[], metrics:nil, views:views))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-7-[growingTextView]-7-|", options:[], metrics:nil, views:views))
+        let composerFormat: String
+        let speechFormat: String
+        if isKoreSDKRTL {
+            composerFormat = "H:|-8-[sendButton(35)]-8-[growingTextView]-5-[attachmentButton(\(attachmentBtnWidth))]-2-[menuButton(\(menuBtnWidth))]-10-|"
+            speechFormat = "H:|-13-[speechToTextButton(\(speeachToTextBtnWidth))]-8-[growingTextView]-5-[attachmentButton]"
+        } else {
+            composerFormat = "H:|-10-[menuButton(\(menuBtnWidth))]-2-[attachmentButton(\(attachmentBtnWidth))]-5-[growingTextView]-8-[sendButton(35)]-8-|"
+            speechFormat = "H:[attachmentButton]-5-[growingTextView]-8-[speechToTextButton(\(speeachToTextBtnWidth))]-13-|"
+        }
+        // These formats describe physical left-to-right placement. Prevent UIKit
+        // from mirroring the already mirrored RTL format a second time.
+        let horizontalOptions: NSLayoutConstraint.FormatOptions = isKoreSDKRTL ? [.directionLeftToRight] : []
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: composerFormat, options:horizontalOptions, metrics:nil, views:views))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: speechFormat, options:horizontalOptions, metrics:nil, views:views))
+        self.addConstraint(NSLayoutConstraint(item: self.growingTextView as Any, attribute: .centerY, relatedBy: .equal, toItem: self, attribute: .centerY, multiplier: 1.0, constant: 0.0))
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|->=6-[sendButton]-6-|", options:[], metrics:nil, views:views))
          self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|->=6-[menuButton]-6-|", options:[], metrics:nil, views:views))
          self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|->=6-[attachmentButton(25)]-10-|", options:[], metrics:nil, views:views))
         self.addConstraint(NSLayoutConstraint.init(item: self.sendButton as Any, attribute: .centerY, relatedBy: .equal, toItem: self.speechToTextButton as Any, attribute: .centerY, multiplier: 1.0, constant: 0.0))
+        self.addConstraint(NSLayoutConstraint.init(item: self.sendButton as Any, attribute: .centerY, relatedBy: .equal, toItem: self, attribute: .centerY, multiplier: 1.0, constant: 0.0))
         self.addConstraint(NSLayoutConstraint.init(item: self.sendButton as Any, attribute: .height, relatedBy: .equal, toItem: self.speechToTextButton as Any, attribute: .height, multiplier: 1.0, constant: 0.0))
         self.speechToTextButton.setContentHuggingPriority(UILayoutPriority.defaultLow, for: .horizontal)
         self.speechToTextButton.setContentHuggingPriority(UILayoutPriority.defaultLow, for: .vertical)
         self.speechToTextButton.setContentCompressionResistancePriority(UILayoutPriority.defaultLow, for: .horizontal)
         self.speechToTextButton.setContentCompressionResistancePriority(UILayoutPriority.defaultLow, for: .vertical)
         
-        self.textViewTrailingConstraint = NSLayoutConstraint.init(item: self, attribute: .trailing, relatedBy: .equal, toItem: self.growingTextView, attribute: .trailing, multiplier: 1.0, constant: 15.0)
+        if isKoreSDKRTL {
+            self.textViewTrailingConstraint = NSLayoutConstraint.init(item: self, attribute: .leading, relatedBy: .equal, toItem: self.growingTextView, attribute: .leading, multiplier: 1.0, constant: -15.0)
+        } else {
+            self.textViewTrailingConstraint = NSLayoutConstraint.init(item: self, attribute: .trailing, relatedBy: .equal, toItem: self.growingTextView, attribute: .trailing, multiplier: 1.0, constant: 15.0)
+        }
         self.addConstraint(self.textViewTrailingConstraint)
         
         self.setButtonIconColor()
@@ -225,7 +270,8 @@ class ComposeBarView: UIView {
     public func configureViewForKeyboard(_ enable: Bool) {
         self.textViewTrailingConstraint.isActive = !enable
         self.isKeyboardEnabled = enable
-        self.growingTextView.textView.textAlignment = enable ? .left : .right
+        self.growingTextView.textView.textAlignment = enable ? (isKoreSDKRTL ? .right : .left) : .right
+        self.growingTextView.placeholderLabel.textAlignment = isKoreSDKRTL ? .right : .left
         self.growingTextView.isUserInteractionEnabled = enable
         self.valueChanged()
     }
@@ -234,7 +280,7 @@ class ComposeBarView: UIView {
         self.growingTextView.textView.text = text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         self.textDidChangeNotification(Notification(name: UITextView.textDidChangeNotification))
     }
-    
+
     //MARK: Private methods
     
     @objc fileprivate func clearButtonAction(_ sender: AnyObject!) {

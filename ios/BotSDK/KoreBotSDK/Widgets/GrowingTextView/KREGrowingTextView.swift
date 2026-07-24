@@ -25,6 +25,13 @@ open class KREGrowingTextView: UIScrollView {
     private var _maxHeight: CGFloat = 0
     private var _minHeight: CGFloat = 0
     private var _previousFrame: CGRect = CGRect.zero
+
+    open var minimumHeight: CGFloat = 0 {
+        didSet {
+            updateMinimumAndMaximumHeight()
+            invalidateIntrinsicContentSize()
+        }
+    }
     
     open weak var viewDelegate: KREGrowingTextViewDelegate?
     
@@ -179,15 +186,16 @@ open class KREGrowingTextView: UIScrollView {
     
     private func resetPlaceholderLabelFrame() {
         let placeholderSize = _placeholderLabel.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude))
-        _placeholderLabel.frame = CGRect(origin: CGPoint(x: _textView.textContainerInset.left + 5, y: _textView.textContainerInset.top), size: placeholderSize)
+        let isRTL = effectiveUserInterfaceLayoutDirection == .rightToLeft
+        let xPosition = isRTL
+            ? bounds.width - _textView.textContainerInset.right - 5 - placeholderSize.width
+            : _textView.textContainerInset.left + 5
+        _placeholderLabel.frame = CGRect(origin: CGPoint(x: xPosition, y: _textView.textContainerInset.top), size: placeholderSize)
     }
     
     private func measureTextViewSize() -> CGSize {
         var rect = self.bounds
         let size = _textView.sizeThatFits(CGSize(width: rect.size.width, height: CGFloat.greatestFiniteMagnitude))
-        if size.height < _minHeight {
-            _minHeight = size.height
-        }
         return size
     }
     
@@ -228,10 +236,10 @@ open class KREGrowingTextView: UIScrollView {
         if newScrollViewFrame.equalTo(oldScrollViewFrame) {
             return
         }
-        self.viewDelegate?.growingTextView(self, didChangeHeight: self.frame.height)
+        self.viewDelegate?.growingTextView(self, didChangeHeight: newScrollViewFrame.height)
     }
     private func updateMinimumAndMaximumHeight() {
-        _minHeight = simulateHeight(1)
+        _minHeight = max(simulateHeight(1), minimumHeight)
         _maxHeight = simulateHeight(maxNumberOfLines)
         fitToScrollView()
     }

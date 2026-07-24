@@ -13,8 +13,13 @@ import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
+import kore.botssdk.ssl.SSLHelper;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+
+/**
+ * Created by Ramachandra Pradeep on 15-Oct-18.
+ */
 
 public class BotRestBuilder {
     private static RestAPI serviceBot;
@@ -37,7 +42,7 @@ public class BotRestBuilder {
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-        OkHttpClient client = new OkHttpClient.Builder()
+        OkHttpClient client = SSLHelper.getUnsafeOkHttpClientBuilder()
                 .connectTimeout(60, TimeUnit.SECONDS)
                 .readTimeout(60, TimeUnit.SECONDS)
                 .addInterceptor(interceptor)

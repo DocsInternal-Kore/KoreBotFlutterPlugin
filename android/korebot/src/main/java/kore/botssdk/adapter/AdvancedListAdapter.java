@@ -294,7 +294,7 @@ public class AdvancedListAdapter extends BaseAdapter implements AdvanceButtonCli
         if (!StringUtils.isNullOrEmpty(botListModel.getView()) && botListModel.getView().equalsIgnoreCase(BundleConstants.DEFAULT)) {
             if (botListModel.getTextInformation() != null && !botListModel.getTextInformation().isEmpty()) {
                 holder.lvDetails.setVisibility(View.VISIBLE);
-                holder.lvDetails.setAdapter(new AdvanceListdetailsAdapter(context, botListModel.getTextInformation()));
+                holder.lvDetails.setAdapter(new AdvanceListDetailsAdapter(context, botListModel.getTextInformation()));
             }
 
             if (botListModel.getButtons() != null && !botListModel.getButtons().isEmpty()) {

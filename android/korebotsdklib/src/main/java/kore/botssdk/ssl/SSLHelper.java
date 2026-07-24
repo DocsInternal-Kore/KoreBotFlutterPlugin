@@ -1,139 +1,62 @@
 package kore.botssdk.ssl;
 
-import android.content.Context;
-
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.GeneralSecurityException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.util.Arrays;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-import kore.botssdk.net.SDKConfiguration;
+import okhttp3.OkHttpClient;
 
 public class SSLHelper {
 
-    public static String certificateType = "X.509";
-
-    public static Certificate getCertificate(Context mContext, String serverUrl){
-        Certificate ca = null;
+    public static OkHttpClient.Builder getUnsafeOkHttpClientBuilder() {
         try {
-            CertificateFactory cf;
-            cf = CertificateFactory.getInstance(certificateType);
+            final X509TrustManager trustManager = getUnsafeTrustManager();
+            final SSLSocketFactory sslSocketFactory = getUnsafeSSLSocketFactory(trustManager);
 
-            InputStream caInput;
-            caInput = new BufferedInputStream(mContext.getAssets().open(getCertificatePath(serverUrl)));
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            builder.sslSocketFactory(sslSocketFactory, trustManager);
+            builder.hostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            });
 
-            ca = cf.generateCertificate(caInput);
-        } catch (SecurityException e){
-            e.printStackTrace();
-        } catch (CertificateException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            return builder;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        return ca;
     }
 
-    public static KeyStore getKeyStoreWithCertificate(Context mContext, String serverUrl){
-        KeyStore keyStore = null;
-        try {
-            Certificate ca = getCertificate(mContext, serverUrl);
-
-            String keyStoreType = KeyStore.getDefaultType();
-            keyStore = KeyStore.getInstance(keyStoreType);
-            keyStore.load(null, null);
-            keyStore.setCertificateEntry("ca", ca);
-        } catch (KeyStoreException e){
-            e.printStackTrace();
-        } catch (CertificateException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return keyStore;
-    }
-
-    public static TrustManagerFactory getTrustManagerFactoryWithCertificate(Context mContext, String serverUrl){
-        TrustManagerFactory tmf = null;
-        try {
-            KeyStore keyStore = getKeyStoreWithCertificate(mContext, serverUrl);
-            String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
-            tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
-            tmf.init(keyStore);
-        } catch (KeyStoreException e){
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        return tmf;
-    }
-
-    public static SSLContext getSSLContextWithCertificate(Context mContext, String serverUrl){
-        SSLContext context = null;
-        try {
-//            TrustManagerFactory tmf = getTrustManagerFactoryWithCertificate(mContext, serverUrl);
-
-            TrustManager[] trustAllCerts = new TrustManager[]{
-                    new X509TrustManager() {
-                        public X509Certificate[] getAcceptedIssuers() {
-                            X509Certificate[] myTrustedAnchors = new X509Certificate[0];
-                            return myTrustedAnchors;
-                        }
-
-                        @Override
-                        public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                        }
-
-                        @Override
-                        public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                        }
-                    }
-            };
-
-            context = SSLContext.getInstance("TLS");
-            context.init(null, trustAllCerts, null);
-        } catch (NoSuchAlgorithmException e){
-            e.printStackTrace();
-        } catch (KeyManagementException e) {
-            e.printStackTrace();
-        }
-        return context;
-    }
-
-    public static X509TrustManager systemDefaultTrustManager() {
-
-        try
-        {
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            trustManagerFactory.init((KeyStore) null);
-            TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
-            if (trustManagers.length != 1 || !(trustManagers[0] instanceof X509TrustManager)) {
-                throw new IllegalStateException("Unexpected default trust managers:" + Arrays.toString(trustManagers));
+    public static X509TrustManager getUnsafeTrustManager() {
+        return new X509TrustManager() {
+            @Override
+            public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
             }
-            return (X509TrustManager) trustManagers[0];
-        } catch (GeneralSecurityException e) {
-            throw new AssertionError(); // The system has no TLS. Just give up.
-        }
 
+            @Override
+            public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+            }
+
+            @Override
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return new java.security.cert.X509Certificate[]{};
+            }
+        };
     }
 
-    public static String getCertificatePath(String serverURL)
-    {
-        return "certificates/"+ SDKConfiguration.Client.identity;
+    public static SSLSocketFactory getUnsafeSSLSocketFactory(TrustManager trustManager) {
+        try {
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, new TrustManager[]{trustManager}, new java.security.SecureRandom());
+            return sslContext.getSocketFactory();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

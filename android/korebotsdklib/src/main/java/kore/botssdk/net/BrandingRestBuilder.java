@@ -1,5 +1,7 @@
 package kore.botssdk.net;
 
+import android.content.Context;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
@@ -17,6 +19,7 @@ import okhttp3.Dispatcher;
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
+import kore.botssdk.ssl.SSLHelper;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -25,8 +28,11 @@ public class BrandingRestBuilder {
 
     private static RestAPI restAPI;
 
-    public static RestAPI getRestAPI() {
-        if (restAPI == null) {
+    private BrandingRestBuilder(){}
+
+
+    public static RestAPI getRestAPI(){
+        if(restAPI == null) {
             restAPI = new Retrofit.Builder()
                     .baseUrl(SDKConfiguration.Server.Branding_SERVER_URL)
                     .addConverterFactory(new RestBuilder.NullOnEmptyConverterFactory())
@@ -38,7 +44,8 @@ public class BrandingRestBuilder {
         return restAPI;
     }
 
-    public static RestAPI getPDfAPI() {
+    public static RestAPI getPDfAPI(){
+//        if(restAPI == null) {
         restAPI = new Retrofit.Builder()
                 .baseUrl("https://app.qa-opt.idfcfirstbank.com/")
                 .addConverterFactory(new RestBuilder.NullOnEmptyConverterFactory())
@@ -46,31 +53,23 @@ public class BrandingRestBuilder {
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .client(getClient())
                 .build().create(RestAPI.class);
+//        }
         return restAPI;
     }
 
-    private static OkHttpClient getClient() {
+    public static void setContext(Context context)
+    {
+    }
+
+
+    private static OkHttpClient getClient(){
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
         Dispatcher dispatcher = new Dispatcher();
         dispatcher.setMaxRequests(1);
 
-//        if(SDKConfiguration.SSLConfig.isSSLEnable)
-//        {
-//            return new OkHttpClient.Builder()
-//                    .connectTimeout(60, TimeUnit.SECONDS)
-//                    .readTimeout(60, TimeUnit.SECONDS)
-//                    .addInterceptor(interceptor)
-//                    .dispatcher(dispatcher)
-//                    .sslSocketFactory(SSLHelper.getSSLContextWithCertificate(mContext, SDKConfiguration.Server.Branding_SERVER_URL).getSocketFactory(), SSLHelper.systemDefaultTrustManager())
-//                    //.interceptors(KoreRequestInterceptor.getInstance(getApplicationContext()))
-//                    //.authenticator(new KoraRequestAuthenticator(KORestBuilder.mContext))
-//                    .build();
-//        }
-//        else
-//        {
-        return new OkHttpClient.Builder()
+        return SSLHelper.getUnsafeOkHttpClientBuilder()
                 .connectTimeout(60, TimeUnit.SECONDS)
                 .readTimeout(60, TimeUnit.SECONDS)
                 .addInterceptor(interceptor)
@@ -78,7 +77,6 @@ public class BrandingRestBuilder {
                 //.interceptors(KoreRequestInterceptor.getInstance(getApplicationContext()))
                 //.authenticator(new KoraRequestAuthenticator(KORestBuilder.mContext))
                 .build();
-//        }
     }
 
     private static GsonConverterFactory createConverter() {
@@ -112,8 +110,7 @@ public class BrandingRestBuilder {
                 @Override
                 public Object convert(ResponseBody body) throws IOException {
                     if (body.contentLength() == 0) return null;
-                    return delegate.convert(body);
-                }
+                    return delegate.convert(body);                }
             };
         }
     }

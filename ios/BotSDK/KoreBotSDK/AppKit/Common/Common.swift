@@ -75,6 +75,7 @@ var genaralPrimary_textColor = "#C1EDB9"
 var genaralSecondary_textColor = "#000000"
 var useColorPaletteOnly = false
 var headerTxt = SDKConfiguration.botConfig.chatBotName
+var isKoreSDKRTL = false
 
 var arrayOfViews = [BubbleView.Type]()
 var arrayOfTemplateTypes = [String]()

@@ -8,6 +8,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
@@ -88,6 +89,14 @@ public class KorebotpluginPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     private void applyOptionalSdkConfig(@NonNull MethodCall call) {
+        String preferredLanguage = firstStringArg(call, "preferredLanguage", "preferred_language");
+        if (StringUtils.isNotEmpty(preferredLanguage)) {
+            Locale preferredLocale = Locale.forLanguageTag(preferredLanguage.replace('_', '-'));
+            if (StringUtils.isNotEmpty(preferredLocale.getLanguage())) {
+                SDKConfiguration.setDeviceLocale(preferredLocale);
+            }
+        }
+
         SDKConfiguration.OverrideKoreConfig.history_initial_call = boolArg(call, "callHistory", false);
         SDKConfiguration.OverrideKoreConfig.showTextToSpeech = boolArg(call, "showTextToSpeech", false);
         SDKConfig.setIsShowIcon(boolArg(call, "showIcon", true));

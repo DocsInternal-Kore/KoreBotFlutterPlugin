@@ -53,22 +53,45 @@ class MessageBubbleCell : UITableViewCell {
             return self.bubbleView.tailPosition
         }
         set {
-            if (tailPosition == .left) {
-                self.bubbleLeadingConstraint.priority = UILayoutPriority.defaultHigh
-                self.bubbleTrailingConstraint.priority = UILayoutPriority.defaultLow
-                self.senderImageView.isHidden = false
-                self.userImageView.isHidden = true
-
-            } else {
-                self.bubbleLeadingConstraint.priority = UILayoutPriority.defaultLow
-                self.bubbleTrailingConstraint.priority = UILayoutPriority.defaultHigh
-                self.senderImageView.isHidden = true
-                self.userImageView.isHidden = false
-            }
-            
-            self.bubbleView.tailPosition = tailPosition
+            self.applyHorizontalAlignment(for: newValue)
+            self.bubbleView.tailPosition = newValue
             self.setNeedsUpdateConstraints()
         }
+    }
+
+    func physicalTailPosition(for logicalTailPosition: BubbleMaskTailPosition) -> BubbleMaskTailPosition {
+        guard isKoreSDKRTL else {
+            return logicalTailPosition
+        }
+        return logicalTailPosition == .left ? .right : .left
+    }
+
+    func applyHorizontalAlignment(for logicalTailPosition: BubbleMaskTailPosition) {
+        let physicalTailPosition = self.physicalTailPosition(for: logicalTailPosition)
+        let alignsLeft = physicalTailPosition == .left
+
+        // In RTL the user occupies the physical left side and the bot occupies
+        // the physical right side, so their icon clearances must swap as well.
+        if isKoreSDKRTL {
+            self.bubbleLeadingConstraint.constant = bubbleTrailingConstant
+            self.bubbleTrailingConstraint.constant = bubbleLeadingConstant
+            self.dateLabelLeadingConstraint.constant = bubbleTrailingConstant + 3.0
+            self.dateLabelTrailingConstraint.constant = bubbleLeadingConstant + 3.0
+        } else {
+            self.bubbleLeadingConstraint.constant = bubbleLeadingConstant
+            self.bubbleTrailingConstraint.constant = bubbleTrailingConstant
+            self.dateLabelLeadingConstraint.constant = bubbleLeadingConstant + 3.0
+            self.dateLabelTrailingConstraint.constant = bubbleTrailingConstant + 3.0
+        }
+
+        self.bubbleLeadingConstraint.priority = alignsLeft ? UILayoutPriority.defaultHigh : UILayoutPriority.defaultLow
+        self.bubbleTrailingConstraint.priority = alignsLeft ? UILayoutPriority.defaultLow : UILayoutPriority.defaultHigh
+        self.dateLabelLeadingConstraint.priority = alignsLeft ? UILayoutPriority.defaultHigh : UILayoutPriority.defaultLow
+        self.dateLabelTrailingConstraint.priority = alignsLeft ? UILayoutPriority.defaultLow : UILayoutPriority.defaultHigh
+
+        // Visibility and colors follow message ownership, not physical direction.
+        self.senderImageView.isHidden = logicalTailPosition != .left
+        self.userImageView.isHidden = logicalTailPosition == .left
     }
     
     override func prepareForReuse() {
@@ -137,8 +160,14 @@ class MessageBubbleCell : UITableViewCell {
         }
         
         //self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-\(bubbleLeadingConstant + 3.0)-[dateLabel]-\(bubbleTrailingConstant + 3.0)-|", options:[], metrics:nil, views:views))
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-8-[senderImageView(\(senderImageViewWidth))]", options:[], metrics:nil, views:views))
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[userImageView(\(userImageViewWidth))]-8-|", options:[], metrics:nil, views:views))
+        let senderIconFormat = isKoreSDKRTL
+            ? "H:[senderImageView(\(senderImageViewWidth))]-8-|"
+            : "H:|-8-[senderImageView(\(senderImageViewWidth))]"
+        let userIconFormat = isKoreSDKRTL
+            ? "H:|-8-[userImageView(\(userImageViewWidth))]"
+            : "H:[userImageView(\(userImageViewWidth))]-8-|"
+        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: senderIconFormat, options:[.directionLeftToRight], metrics:nil, views:views))
+        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: userIconFormat, options:[.directionLeftToRight], metrics:nil, views:views))
         
         var senderOrUserimageViewBottomVal = 4.0
         var dateLblHeight = 21.0
@@ -175,17 +204,17 @@ class MessageBubbleCell : UITableViewCell {
 
         self.bubbleBottomConstraint = NSLayoutConstraint(item:self.contentView, attribute:.bottom, relatedBy:.equal, toItem:self.bubbleContainerView, attribute:.bottom, multiplier:1.0, constant:4.0)
         self.bubbleBottomConstraint.priority = UILayoutPriority.defaultHigh
-        self.bubbleLeadingConstraint = NSLayoutConstraint(item:self.bubbleContainerView as Any, attribute:.leading, relatedBy:.equal, toItem:self.contentView, attribute:.leading, multiplier:1.0, constant:bubbleLeadingConstant)
+        self.bubbleLeadingConstraint = NSLayoutConstraint(item:self.bubbleContainerView as Any, attribute:.left, relatedBy:.equal, toItem:self.contentView, attribute:.left, multiplier:1.0, constant:bubbleLeadingConstant)
         self.bubbleLeadingConstraint.priority = UILayoutPriority.defaultHigh
         
-        self.bubbleTrailingConstraint = NSLayoutConstraint(item:self.contentView, attribute:.trailing, relatedBy:.equal, toItem:self.bubbleContainerView, attribute:.trailing, multiplier:1.0, constant:16.0)
+        self.bubbleTrailingConstraint = NSLayoutConstraint(item:self.contentView, attribute:.right, relatedBy:.equal, toItem:self.bubbleContainerView, attribute:.right, multiplier:1.0, constant:16.0)
         self.bubbleTrailingConstraint.priority = UILayoutPriority.defaultLow
         
-        self.dateLabelLeadingConstraint = NSLayoutConstraint(item:self.dateLabel as Any, attribute:.leading, relatedBy:.equal, toItem:self.contentView, attribute:.leading, multiplier:1.0, constant:bubbleLeadingConstant + 3.0) //change here
+        self.dateLabelLeadingConstraint = NSLayoutConstraint(item:self.dateLabel as Any, attribute:.left, relatedBy:.equal, toItem:self.contentView, attribute:.left, multiplier:1.0, constant:bubbleLeadingConstant + 3.0) //change here
         self.dateLabelLeadingConstraint.priority = UILayoutPriority.defaultHigh
         
         
-        self.dateLabelTrailingConstraint = NSLayoutConstraint(item:self.contentView as Any, attribute:.trailing, relatedBy:.equal, toItem:self.dateLabel, attribute:.trailing, multiplier:1.0, constant:(bubbleTrailingConstant + 3.0)) //change here
+        self.dateLabelTrailingConstraint = NSLayoutConstraint(item:self.contentView as Any, attribute:.right, relatedBy:.equal, toItem:self.dateLabel, attribute:.right, multiplier:1.0, constant:(bubbleTrailingConstant + 3.0)) //change here
         self.dateLabelTrailingConstraint.priority = UILayoutPriority.defaultHigh
         
         self.dateLabelHeightConstraint =  NSLayoutConstraint.init(item: self.dateLabel as Any, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: dateLblHeight)
@@ -254,7 +283,13 @@ class MessageBubbleCell : UITableViewCell {
                 dateLabel.attributedText = attrStri
             }
         }
-        if self.tailPosition == .left{
+        let physicalTailPosition: BubbleMaskTailPosition
+        if isKoreSDKRTL {
+            physicalTailPosition = self.tailPosition == .left ? .right : .left
+        } else {
+            physicalTailPosition = self.tailPosition
+        }
+        if physicalTailPosition == .left {
             dateLabel.textAlignment = .left
         }else{
             dateLabel.textAlignment = .right
@@ -312,15 +347,7 @@ class TextBubbleCell : MessageBubbleCell {
     }
     override var tailPosition: BubbleMaskTailPosition {
         didSet {
-            self.bubbleTrailingConstraint.constant = bubbleTrailingConstant
-            if (tailPosition == .left) {
-                self.bubbleLeadingConstraint.priority = UILayoutPriority.defaultHigh
-                self.bubbleTrailingConstraint.priority = UILayoutPriority.defaultLow
-            } else {
-                self.bubbleLeadingConstraint.priority = UILayoutPriority.defaultLow
-                self.bubbleTrailingConstraint.priority = UILayoutPriority.defaultHigh
-                
-            }
+            self.applyHorizontalAlignment(for: tailPosition)
         }
     }
 }
@@ -1074,4 +1101,3 @@ class DigitalFormBubbleCel : MessageBubbleCell {
         self.senderImageView.isHidden = true
     }
 }
-

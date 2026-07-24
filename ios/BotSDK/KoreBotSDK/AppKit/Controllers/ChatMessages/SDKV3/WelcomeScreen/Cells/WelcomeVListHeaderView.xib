@@ -18,7 +18,7 @@
         </array>
     </customFonts>
     <objects>
-        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="WelcomeVListHeaderView" customModule="KoreBotSDK" customModuleProvider="target">
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="WelcomeVListHeaderView" customModule="korebotplugin" customModuleProvider="target">
             <connections>
                 <outlet property="bgV" destination="BqY-om-Pvm" id="R1b-bF-UKK"/>
                 <outlet property="imagVHeightConstraint" destination="mqT-NL-Po2" id="lg5-dJ-X3l"/>

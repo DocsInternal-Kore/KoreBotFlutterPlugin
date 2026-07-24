@@ -51,6 +51,12 @@ open class BotConnect: NSObject {
         customSettings()
         botViewController = ChatMessagesViewController()
         let navigationController = UINavigationController(rootViewController: botViewController)
+        let semanticDirection: UISemanticContentAttribute =
+            isKoreSDKRTL
+            ? .forceRightToLeft
+            : .forceLeftToRight
+        navigationController.view.semanticContentAttribute = semanticDirection
+        botViewController.view.semanticContentAttribute = semanticDirection
         navigationController.isNavigationBarHidden = true
         navigationController.modalPresentationStyle = .fullScreen
         botViewController.title = SDKConfiguration.botConfig.chatBotName
@@ -74,6 +80,11 @@ open class BotConnect: NSObject {
         italicCustomFont =  "HelveticaNeue-Italic"
     }
     func customSettings(){
+        let languageCode = koreSDkLanguage.replacingOccurrences(of: "_", with: "-")
+            .split(separator: "-")
+            .first
+            .map(String.init) ?? koreSDkLanguage
+        isKoreSDKRTL = Locale.characterDirection(forLanguage: languageCode) == .rightToLeft
         isNetworkOnResumeCallingHistory = networkOnResumeCallingHistory
         SDKConfiguration.botConfig.deviceToken = device_Token
         isShowQuickRepliesBottom = showQuickRepliesBottom
@@ -234,4 +245,3 @@ open class BotConnect: NSObject {
     }
     
 }
-

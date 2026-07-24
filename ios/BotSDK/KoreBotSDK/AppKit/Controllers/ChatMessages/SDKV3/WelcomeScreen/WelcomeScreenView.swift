@@ -11,7 +11,6 @@ protocol WelcomeScreenViewDelegate {
     func welcomeScreenBtnsAction(text:String, payload:String)
     func hidewelcomeScreenView()
     func linkButtonTapAction(urlString: String)
-    func keyBoardShow()
 }
 
 class WelcomeScreenView: UIView {
@@ -662,7 +661,6 @@ extension WelcomeScreenView: UITableViewDataSource, UITableViewDelegate, Welcome
                 if let title = buttons?.title{
                     if let action = buttons?.action, action.type == "postback"{
                         viewDelegate?.welcomeScreenBtnsAction(text: title, payload: action.value ?? title)
-                        viewDelegate?.keyBoardShow()
                     }
                 }
             }
@@ -689,7 +687,6 @@ extension WelcomeScreenView: UITableViewDataSource, UITableViewDelegate, Welcome
     }
     @objc fileprivate func startConversationBtnAction(_ sender: AnyObject!) {
         viewDelegate?.hidewelcomeScreenView()
-        viewDelegate?.keyBoardShow()
     }
     func linkButtonAction(urlString: String) {
         viewDelegate?.linkButtonTapAction(urlString: urlString)

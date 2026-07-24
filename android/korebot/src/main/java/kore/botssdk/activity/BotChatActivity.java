@@ -226,6 +226,7 @@ public class BotChatActivity extends BotAppCompactActivity implements BotChatVie
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        applyPreferredLayoutDirection();
         setContentLayout(R.layout.bot_chat_layout);
 
         botClient = new BotClient(this);
@@ -236,6 +237,7 @@ public class BotChatActivity extends BotAppCompactActivity implements BotChatVie
         viewModel = new ViewModelProvider(this, factory).get(BotChatViewModel.class);
 
         findViews();
+        applyPreferredLayoutDirection();
         getBundleInfo();
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -258,6 +260,16 @@ public class BotChatActivity extends BotAppCompactActivity implements BotChatVie
 
         viewModel.connectToBot(isMinimized());
         startService(new Intent(getApplicationContext(), ClosingService.class));
+    }
+
+    private void applyPreferredLayoutDirection() {
+        if (SDKConfiguration.getDeviceLocale() == null) return;
+
+        int layoutDirection = TextUtils.getLayoutDirectionFromLocale(SDKConfiguration.getDeviceLocale());
+        getWindow().getDecorView().setLayoutDirection(layoutDirection);
+        View contentView = findViewById(android.R.id.content);
+        if (contentView != null) contentView.setLayoutDirection(layoutDirection);
+        if (rlChatWindow != null) rlChatWindow.setLayoutDirection(layoutDirection);
     }
 
     @Override

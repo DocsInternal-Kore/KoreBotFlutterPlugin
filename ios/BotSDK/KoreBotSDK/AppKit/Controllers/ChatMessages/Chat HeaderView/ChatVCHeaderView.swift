@@ -82,6 +82,12 @@ class ChatVCHeaderView: UIView {
         view = loadViewFromNib()
         view.frame = self.bounds
         view.autoresizingMask = [UIView.AutoresizingMask.flexibleWidth, UIView.AutoresizingMask.flexibleHeight]
+        let semanticDirection: UISemanticContentAttribute = isKoreSDKRTL ? .forceRightToLeft : .forceLeftToRight
+        semanticContentAttribute = semanticDirection
+        view.semanticContentAttribute = semanticDirection
+        headerView.semanticContentAttribute = semanticDirection
+        RegulartHeaderView.semanticContentAttribute = semanticDirection
+        largeHeaderView.semanticContentAttribute = semanticDirection
         addSubview(view)
     }
 
@@ -127,7 +133,8 @@ class ChatVCHeaderView: UIView {
             titleTxtColor = headerDic.title?.color ?? headerIconColor
             subTitleTxtColor = headerDic.sub_title?.color ?? headerIconColor
         }
-        let backImage = UIImage(named: "cheveron-left", in: bundle, compatibleWith: nil)
+        let sourceBackImage = UIImage(named: "cheveron-left", in: bundle, compatibleWith: nil)
+        let backImage = isKoreSDKRTL ? sourceBackImage?.withHorizontallyFlippedOrientation() : sourceBackImage
         let tintedBackImage = backImage?.withRenderingMode(.alwaysTemplate)
         
         let helpImage = UIImage(named: "Help", in: bundle, compatibleWith: nil)
@@ -159,6 +166,13 @@ class ChatVCHeaderView: UIView {
         
         RegulartHeaderView.isHidden = true
         largeHeaderView.isHidden = true
+        let headerTextAlignment: NSTextAlignment = isKoreSDKRTL ? .right : .left
+        compactHeaderTitleLbl.textAlignment = headerTextAlignment
+        compactHeaderDescLbl.textAlignment = headerTextAlignment
+        RegulartHeaderTitleLbl.textAlignment = headerTextAlignment
+        RegulartHeaderDescLbl.textAlignment = headerTextAlignment
+        largeHeaderTitleLbl.textAlignment = headerTextAlignment
+        largeHeaderDescLbl.textAlignment = headerTextAlignment
         if size == "compact"{
             self.headerViewHeightConstraint.constant = 70.0 //headerHeight
             compactHeaderTitleLbl.text = titleTxt
@@ -374,4 +388,3 @@ class ChatVCHeaderView: UIView {
     }
 
 }
-

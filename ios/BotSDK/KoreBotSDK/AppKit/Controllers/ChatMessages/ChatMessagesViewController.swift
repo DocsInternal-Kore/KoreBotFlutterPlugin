@@ -53,6 +53,7 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         
         return progressBar
     }()
+    private var initialLoadingOverlay: UIView?
     
     @IBOutlet weak var quickSelectContainerHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var headerViewTopConstraint: NSLayoutConstraint!
@@ -164,6 +165,9 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         isSpeakingEnabled = false
         self.speechSynthesizer = AVSpeechSynthesizer()
         self.view.bringSubviewToFront(chatMaskview)
+        if let initialLoadingOverlay = initialLoadingOverlay {
+            self.view.bringSubviewToFront(initialLoadingOverlay)
+        }
     }
     
     override open func viewWillAppear(_ animated: Bool) {
@@ -349,6 +353,7 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         self.botMessagesView.thread = self.thread
         self.botMessagesView.viewDelegate = self
         self.botMessagesView.clearBackground = true
+        self.botMessagesView.tableView.keyboardDismissMode = .interactive
         self.threadContainerView.addSubview(self.botMessagesView!)
         
         self.threadContainerView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[botMessagesView]|", options:[], metrics:nil, views:["botMessagesView" : self.botMessagesView!]))
@@ -1197,9 +1202,9 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         if (self.tapToDismissGestureRecognizer == nil) {
             self.taskMenuContainerHeightConstant.constant = 0
             self.tapToDismissGestureRecognizer = UITapGestureRecognizer.init(target: self, action: #selector(ChatMessagesViewController.dismissKeyboard(_:)))
-            //self.botMessagesView.addGestureRecognizer(tapToDismissGestureRecognizer)
+            self.tapToDismissGestureRecognizer.cancelsTouchesInView = false
             self.tapToDismissGestureRecognizer.delegate = self
-            self.headerView.addGestureRecognizer(tapToDismissGestureRecognizer)
+            self.botMessagesView.addGestureRecognizer(tapToDismissGestureRecognizer)
         }
     }
     
@@ -1210,6 +1215,7 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         }
         if (self.tapToDismissGestureRecognizer != nil) {
             self.botMessagesView.removeGestureRecognizer(tapToDismissGestureRecognizer)
+            self.headerView.removeGestureRecognizer(tapToDismissGestureRecognizer)
             self.tapToDismissGestureRecognizer = nil
         }
     }
@@ -1587,9 +1593,6 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
         }
         
     }
-    func keyBoardShow(){
-        self.composeView.becomeFirstResponder()
-    }
     func updateMessage(messageId: String, componentDesc:String) {
         let dataStoreManager = DataStoreManager.sharedManager
         dataStoreManager.updateComponentDescription(messageId: messageId, newDescription: componentDesc)
@@ -1837,7 +1840,8 @@ public class ChatMessagesViewController: UIViewController, BotMessagesViewDelega
     }
     
     public func growingTextView(_: KREGrowingTextView, didChangeHeight height: CGFloat) {
-        
+        // The SDK V3 composer is intentionally fixed: 40 pt input inside
+        // a 60 pt footer. Longer text scrolls within the text view.
     }
     
     // MARK: TTS Functionality
@@ -2765,30 +2769,34 @@ extension ChatMessagesViewController{
     }
     
     func brandingApis(client: BotClient?, thread: KREThread?){
-        let brandingShared = BrandingSingleton.shared
         self.kaBotClient.brandingApiRequest(AcccesssTokenn,success: { [weak self] (jsonResult) in
-            print("brandingDic : \(jsonResult)")
-            if let v3Dic = jsonResult["v3"]{
-                let jsonDecoder = JSONDecoder()
-                guard let jsonData = try? JSONSerialization.data(withJSONObject: jsonResult["v3"] as Any , options: .prettyPrinted),
-                let brandingDic = try? jsonDecoder.decode(BrandingModel.self, from: jsonData) else {
-                    return
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                print("brandingDic : \(jsonResult)")
+                if let v3Dictionary = jsonResult["v3"],
+                   JSONSerialization.isValidJSONObject(v3Dictionary),
+                   let jsonData = try? JSONSerialization.data(withJSONObject: v3Dictionary),
+                   let brandingDic = try? JSONDecoder().decode(BrandingModel.self, from: jsonData) {
+                    self.overRideLocalBranding(responseTheme: brandingDic)
+                    self.sucessMethod(client: client, thread: thread)
+                } else {
+                    // Preserve the existing fallback when V3 branding is absent or malformed.
+                    self.getOfflineBrandingData(client: client, thread: thread)
                 }
-                //brandingValues = brandingDic
-                self?.overRideLocalBranding(responseTheme: brandingDic)
-                self?.sucessMethod(client: client, thread: thread)
-            }else{
+            }
+        }, failure: { [weak self] (error) in
+            DispatchQueue.main.async {
                 self?.getOfflineBrandingData(client: client, thread: thread)
             }
-            
-        }, failure: { (error) in
-            self.getOfflineBrandingData(client: client, thread: thread)
         })
     }
     
     func overRideLocalBranding(responseTheme: BrandingModel){
-        let overRideTheme = overRideBrandingTheme != nil ? responseTheme.updateWith(configModel: overRideBrandingTheme!) : responseTheme
-        brandingValues = overRideTheme
+        if let overrideTheme = overRideBrandingTheme {
+            brandingValues = responseTheme.updateWith(configModel: overrideTheme)
+        } else {
+            brandingValues = responseTheme
+        }
     }
     
     func getOfflineBrandingData(client: BotClient?, thread: KREThread?){
@@ -2848,10 +2856,14 @@ extension ChatMessagesViewController{
         subscribeNotifications()
         setupCloseOrMinimizePopup()
         if let footerDic = brandingValues.footer{
-            if statusBarBottomBackgroundColor == nil{
-                footerStatusBarView.backgroundColor = UIColor.init(hexString: footerDic.bg_color ?? "#FFFFFF")
-            }else{
+            if let statusBarBottomBackgroundColor = statusBarBottomBackgroundColor {
                 footerStatusBarView.backgroundColor = statusBarBottomBackgroundColor
+            } else {
+                // Continue the branded footer through the iPhone safe-area so
+                // the compose bar does not appear detached from the bottom.
+                footerStatusBarView.backgroundColor = UIColor(
+                    hexString: footerDic.bg_color ?? "#EEF2F6"
+                )
             }
             if let layout = footerDic.layout, layout == "keypad"{
                 self.configureViewForKeyboard(true)
@@ -2989,15 +3001,65 @@ extension ChatMessagesViewController{
     }
     
     func showLoader(){
-        [linerProgressBar].forEach {
-            $0.startAnimating()
+        let show = { [weak self] in
+            guard let self = self else { return }
+            self.linerProgressBar.startAnimating()
+
+            guard self.initialLoadingOverlay == nil else {
+                if let overlay = self.initialLoadingOverlay {
+                    self.view.bringSubviewToFront(overlay)
+                }
+                return
+            }
+
+            let overlay = UIView()
+            overlay.translatesAutoresizingMaskIntoConstraints = false
+            overlay.backgroundColor = UIColor(hexString: "#F8FAFC")
+            overlay.isUserInteractionEnabled = true
+
+            let indicator = UIActivityIndicatorView(style: .large)
+            indicator.color = themeColor
+            indicator.hidesWhenStopped = true
+            indicator.startAnimating()
+
+            let loadingLabel = UILabel()
+            loadingLabel.text = "Please wait.."
+            loadingLabel.textColor = UIColor(hexString: "#202124")
+            loadingLabel.font = UIFont(name: regularCustomFont, size: 16.0)
+                ?? UIFont.systemFont(ofSize: 16.0)
+
+            let loadingStack = UIStackView(arrangedSubviews: [indicator, loadingLabel])
+            loadingStack.translatesAutoresizingMaskIntoConstraints = false
+            loadingStack.axis = .horizontal
+            loadingStack.alignment = .center
+            loadingStack.spacing = 10.0
+            overlay.addSubview(loadingStack)
+
+            self.view.addSubview(overlay)
+            NSLayoutConstraint.activate([
+                overlay.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+                overlay.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+                overlay.topAnchor.constraint(equalTo: self.view.topAnchor),
+                overlay.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+                loadingStack.centerXAnchor.constraint(equalTo: overlay.centerXAnchor),
+                loadingStack.centerYAnchor.constraint(equalTo: overlay.centerYAnchor)
+            ])
+            self.initialLoadingOverlay = overlay
+            self.view.bringSubviewToFront(overlay)
         }
+
+        Foundation.Thread.isMainThread ? show() : DispatchQueue.main.async(execute: show)
     }
     
     func stopLoader(){
-        [linerProgressBar].forEach {
-            $0.stopAnimating()
+        let stop = { [weak self] in
+            guard let self = self else { return }
+            self.linerProgressBar.stopAnimating()
+            self.initialLoadingOverlay?.removeFromSuperview()
+            self.initialLoadingOverlay = nil
         }
+
+        Foundation.Thread.isMainThread ? stop() : DispatchQueue.main.async(execute: stop)
     }
     
     func brandingValuesChanges(){
@@ -3262,6 +3324,9 @@ extension ChatMessagesViewController {
 }
 extension ChatMessagesViewController: UIGestureRecognizerDelegate{
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        if gestureRecognizer === tapToDismissGestureRecognizer {
+            return true
+        }
         if touch.view?.isDescendant(of: botMessagesView.tableView) == true || touch.view?.isDescendant(of: quickReplyView) == true{
             return false
         }
