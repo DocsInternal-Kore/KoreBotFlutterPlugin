@@ -14,5 +14,7 @@ export 'src/net/bot_connection_state.dart';
 export 'src/session/bot_chat_session_state.dart';
 export 'src/ui/kore_bot_chat.dart';
 export 'src/ui/bot_chat_screen.dart';
+export 'src/ui/chat_header_builder.dart';
+export 'src/ui/chat_footer_builder.dart';
 export 'src/ui/theme/bot_chat_theme.dart';
 export 'src/services/speech_services.dart';

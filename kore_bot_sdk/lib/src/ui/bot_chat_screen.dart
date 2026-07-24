@@ -14,9 +14,10 @@ import '../services/speech_services.dart';
 import '../session/bot_chat_session_state.dart';
 import 'templates/message_bubble.dart';
 import 'theme/bot_chat_theme.dart';
+import 'chat_footer_builder.dart';
+import 'chat_header_builder.dart';
 import 'widgets/attachment_preview_bar.dart';
 import 'widgets/close_or_minimize_dialog.dart';
-import 'widgets/compose_footer.dart';
 import 'widgets/typing_indicator.dart';
 
 class BotChatScreen extends StatefulWidget {
@@ -26,12 +27,16 @@ class BotChatScreen extends StatefulWidget {
     this.theme = const BotChatTheme(),
     this.onEvent,
     this.controller,
+    this.headerBuilder,
+    this.footerBuilder,
   });
 
   final BotConfig config;
   final BotChatTheme theme;
   final BotEventCallback? onEvent;
   final BotChatController? controller;
+  final BotChatHeaderBuilder? headerBuilder;
+  final BotChatFooterBuilder? footerBuilder;
 
   @override
   State<BotChatScreen> createState() => _BotChatScreenState();
@@ -429,25 +434,10 @@ class _BotChatScreenState extends State<BotChatScreen> {
         },
         child: Scaffold(
           backgroundColor: theme.backgroundColor,
-          appBar: config.showHeader
-              ? AppBar(
-                  backgroundColor: theme.headerColor,
-                  foregroundColor: theme.headerTextColor,
-                  title: Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 18,
-                    ),
-                  ),
-                  leading: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: _onClosePressed,
-                  ),
-                )
-              : null,
           body: Column(
             children: [
+              if (widget.headerBuilder != null || config.showHeader)
+                _buildHeader(title, theme),
               if (_state == BotConnectionState.connecting || _uploading)
                 LinearProgressIndicator(
                   minHeight: 2,
@@ -506,26 +496,43 @@ class _BotChatScreenState extends State<BotChatScreen> {
                   theme: theme,
                   onClear: () => setState(() => _pendingAttachment = null),
                 ),
-              ComposeFooter(
-                controller: _inputController,
-                enabled: _state.isConnected && !_uploading,
-                hintText: hint,
-                theme: theme,
-                showAttachment: theme.showAttachment,
-                showMicrophone: theme.showMicrophone,
-                showTextToSpeech: theme.showTextToSpeech,
-                isListening: _listening,
-                ttsEnabled: _ttsEnabled,
-                hasPendingAttachment: _pendingAttachment != null,
-                onSend: _send,
-                onAttachment: _pickAttachment,
-                onMic: _toggleMic,
-                onToggleTts: _toggleTts,
-              ),
+              _buildFooter(hint, theme),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildHeader(String title, BotChatTheme theme) {
+    final headerContext = BotChatHeaderContext(
+      title: title,
+      theme: theme,
+      botIconUrl: theme.botIconUrl ?? widget.config.botIconUrl,
+      onClose: _onClosePressed,
+    );
+    final builder = widget.headerBuilder ?? buildDefaultChatHeader;
+    return builder(context, headerContext);
+  }
+
+  Widget _buildFooter(String hint, BotChatTheme theme) {
+    final footerContext = BotChatFooterContext(
+      controller: _inputController,
+      enabled: _state.isConnected && !_uploading,
+      hintText: hint,
+      theme: theme,
+      showAttachment: theme.showAttachment,
+      showMicrophone: theme.showMicrophone,
+      showTextToSpeech: theme.showTextToSpeech,
+      isListening: _listening,
+      ttsEnabled: _ttsEnabled,
+      hasPendingAttachment: _pendingAttachment != null,
+      onSend: _send,
+      onAttachment: _pickAttachment,
+      onMic: _toggleMic,
+      onToggleTts: _toggleTts,
+    );
+    final builder = widget.footerBuilder ?? buildDefaultChatFooter;
+    return builder(context, footerContext);
   }
 }

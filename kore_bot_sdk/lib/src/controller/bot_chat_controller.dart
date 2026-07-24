@@ -68,8 +68,6 @@ class BotChatController {
   bool _disposed = false;
   /// True after a live-agent message (SPM `isAgentConnect`).
   bool _agentConnected = false;
-  /// SPM-style history pagination: last offset sent to history API.
-  int _historyOffset = 0;
   bool _historyLoading = false;
   bool _hasMoreHistory = true;
   /// SPM `historyLimit` — live session messages only (excludes pull-to-refresh history).
@@ -293,7 +291,6 @@ class BotChatController {
     final token = _session?.accessToken;
     if (token == null || _historyLoading) return 0;
     _historyLoading = true;
-    _historyOffset = offset;
 
     try {
       final data = await _rest.fetchHistory(
@@ -349,8 +346,6 @@ class BotChatController {
       } else {
         _messages.insertAll(0, fresh);
       }
-      // Next pull uses updated display count as offset.
-      _historyOffset = _messages.length;
       _publishMessages();
       return fresh.length;
     } catch (error) {
@@ -754,7 +749,6 @@ class BotChatController {
   void _clearSessionState() {
     _agentConnected = false;
     _sessionHistoryLimit = 0;
-    _historyOffset = 0;
     _historyLoading = false;
     _hasMoreHistory = true;
     _messages.clear();

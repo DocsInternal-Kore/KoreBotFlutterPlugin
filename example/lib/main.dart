@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:kore_bot_sdk/kore_bot_sdk.dart';
 
+import 'custom_chat_footer.dart';
+import 'custom_chat_header.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
@@ -61,6 +64,8 @@ class HomePage extends StatelessWidget {
     await KoreBotChat.open(
       context,
       botConfig: botConfig,
+      headerBuilder: buildCustomChatHeader(),
+      footerBuilder: buildCustomChatFooter(),
       onEvent: (code, message) {
         debugPrint('Bot event: $code — $message');
       },
