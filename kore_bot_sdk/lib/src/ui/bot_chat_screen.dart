@@ -18,8 +18,10 @@ import 'theme/bot_chat_fonts.dart';
 import 'theme/bot_chat_theme.dart';
 import 'chat_footer_builder.dart';
 import 'chat_header_builder.dart';
+import 'network_connectivity_monitor.dart';
 import 'widgets/attachment_preview_bar.dart';
 import 'widgets/close_or_minimize_dialog.dart';
+import 'widgets/no_internet_banner.dart';
 import 'widgets/typing_indicator.dart';
 
 class BotChatScreen extends StatefulWidget {
@@ -56,6 +58,7 @@ class _BotChatScreenState extends State<BotChatScreen> {
   final _subscriptions = <StreamSubscription>[];
   final _stt = SpeechToTextService();
   final _imagePicker = ImagePicker();
+  final _connectivityMonitor = NetworkConnectivityMonitor();
 
   List<ChatMessage> _messages = const [];
   List<BotButton> _quickReplies = const [];
@@ -67,6 +70,7 @@ class _BotChatScreenState extends State<BotChatScreen> {
   bool _uploading = false;
   bool _isClosing = false;
   bool _allowPop = false;
+  bool _hasInternet = true;
   PendingAttachment? _pendingAttachment;
   int _sttSession = 0;
   String? _error;
@@ -128,7 +132,22 @@ class _BotChatScreenState extends State<BotChatScreen> {
       }),
     ]);
 
+    unawaited(_startConnectivityMonitoring());
     _connect();
+  }
+
+  void _onInternetStatusChanged(bool hasInternet) {
+    if (!mounted || _hasInternet == hasInternet) return;
+    setState(() => _hasInternet = hasInternet);
+  }
+
+  Future<void> _startConnectivityMonitoring() async {
+    _connectivityMonitor.onChanged = _onInternetStatusChanged;
+    await _connectivityMonitor.start();
+    if (!mounted) return;
+    if (_hasInternet != _connectivityMonitor.hasInternet) {
+      setState(() => _hasInternet = _connectivityMonitor.hasInternet);
+    }
   }
 
   Future<void> _connect() async {
@@ -414,6 +433,8 @@ class _BotChatScreenState extends State<BotChatScreen> {
     for (final sub in _subscriptions) {
       sub.cancel();
     }
+    _connectivityMonitor.onChanged = null;
+    unawaited(_connectivityMonitor.dispose());
     _stt.cancel();
     _scrollController.dispose();
     _inputController.dispose();
@@ -444,6 +465,7 @@ class _BotChatScreenState extends State<BotChatScreen> {
             children: [
               if (widget.headerBuilder != null || config.showHeader)
                 _buildHeader(title, theme),
+              NoInternetBanner(visible: !_hasInternet),
               if (_state == BotConnectionState.connecting || _uploading)
                 LinearProgressIndicator(
                   minHeight: 2,
@@ -525,7 +547,7 @@ class _BotChatScreenState extends State<BotChatScreen> {
   Widget _buildFooter(String hint, BotChatTheme theme) {
     final footerContext = BotChatFooterContext(
       controller: _inputController,
-      enabled: _state.isConnected && !_uploading,
+      enabled: _state.isConnected && !_uploading && _hasInternet,
       hintText: hint,
       theme: theme,
       showAttachment: theme.showAttachment,

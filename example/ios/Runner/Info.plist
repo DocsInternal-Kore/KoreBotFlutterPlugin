@@ -26,6 +26,14 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera access is required to send photo attachments.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone access is required for speech-to-text.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo library access is required to send image attachments.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Speech recognition is used to convert your voice into chat messages.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -66,13 +74,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Microphone access is required for speech-to-text.</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Speech recognition is used to convert your voice into chat messages.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Camera access is required to send photo attachments.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Photo library access is required to send image attachments.</string>
 </dict>
 </plist>
